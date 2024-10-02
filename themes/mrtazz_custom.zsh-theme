@@ -22,6 +22,13 @@ function cuda_prompt_info(){
     fi
 }
 
+function habana_prompt_info(){
+    if [[ ! -z "$HABANA_VISIBLE_MODULES" ]]; then
+        echo "| %{$FG[141]%}habana:${HABANA_VISIBLE_MODULES}"
+    else
+        echo ""
+    fi
+}
 
 PROMPT='\
 $(conda_prompt_info)\
@@ -32,7 +39,8 @@ $(conda_prompt_info)\
 %{$FG[153]%}${PWD/#$HOME/~}\
 %{$reset_color%}\
  $(git_prompt_info)\
- $(cuda_prompt_info)
+ $(cuda_prompt_info)\
+ $(habana_prompt_info)
 %{$fg_bold[blue]%}$ '
 
 ZSH_THEME_CONDA_PREFIX="%{$FG[226]%}("
