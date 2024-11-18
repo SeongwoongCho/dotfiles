@@ -41,9 +41,9 @@ alias ug='usegpu'
 alias hpusmi="watch -n.5 hl-smi"
 function usehpu(){
     if [ ! -z "$1" ]; then
-        export HABANA_VISIBLE_MODULES=$1 && export HLS_MODULES_ID=$1
+        export HABANA_VISIBLE_MODULES=$1
     else
-        export HABANA_VISIBLE_MODULES='' && export HLS_MODULES_ID=''
+        export HABANA_VISIBLE_MODULES=''
     fi
 }
 alias uh='usehpu'
