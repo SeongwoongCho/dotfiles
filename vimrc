@@ -151,4 +151,4 @@ let g:ctrlp_custom_ignore = {
   \ }
 " --
 
-
+set clipboard=unnamed
