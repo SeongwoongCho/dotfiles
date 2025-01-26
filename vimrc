@@ -132,7 +132,7 @@ set laststatus=2                " turn on bottom bar
 
 " python-mode
 
-`" remove trailing whitespaces from all lines
+" remove trailing whitespaces from all lines
 " https://vi.stackexchange.com/questions/454/whats-the-simplest-way-to-strip-trailing-whitespace-from-all-lines-in-a-file
 nnoremap <F4> :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar><CR>
 
