@@ -130,7 +130,21 @@ let g:airline_theme='bubblegum'
 let g:airline_section_b = '%{strftime("%a %H:%M:%S %Y-%m-%d")}'
 set laststatus=2                " turn on bottom bar
 
-" python-mode
+" Ale
+" Ale (python)
+"https://git.pyrokinesis.fr/darkgeem/chezmoi/-/blob/c800f8dc4e8c13b747c1b199ddb297787a2ebb5d/dot_vimrc
+" PEP8 ignores:
+	" (E501) Line too long (>79 characters)
+	let g:ale_python_flake8_options="--ignore=E501"
+    " (E701) multiple statements on one line (colon)
+    let g:ale_python_flake8_options.=",E701"
+    " (E702) multiple statements on one line (semi colon)
+    let g:ale_python_flake8_options.=",E702"
+
+
+let g:ale_python_pylint_executable=''
+let g:ale_fix_on_save = 1
+let g:ale_fixers={'python': ['remove_trailing_lines','trim_whitespace', 'isort']}
 
 " remove trailing whitespaces from all lines
 " https://vi.stackexchange.com/questions/454/whats-the-simplest-way-to-strip-trailing-whitespace-from-all-lines-in-a-file

@@ -1,5 +1,21 @@
 #! /bin/bash
 
+# backup existing dotfiles. 
+# (buo : back-up-original)
+function buo(){
+    backup_dir="$HOME/dotfiles_backup"
+    for name in "$@"; do
+        path="$HOME/$name"
+        if [ -f $path ] || [ -h $path ] || [ -d $path ];
+        then
+            mkdir -p $backup_dir
+            new_path="$backup_dir/$name"
+            printf "Found '$path'. Backing up to '$new_path\n"
+            mv $path $new_path
+        fi
+    done
+}
+
 # visdom
 alias vis='python -m visdom.server'
 
