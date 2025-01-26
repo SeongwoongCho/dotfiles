@@ -91,8 +91,8 @@ set hidden                  " enable switching across buffers without saving.
 :vnoremap > >gv             " (")
 
 " ipdb
-:nnoremap <Leader>b Oimport os; import ipdb; ipdb.set_trace(context=15) if os.environ.get("LOCAL_RANK", '0') == '0' else None<Esc>
-:nnoremap <Leader>v oimport os; import ipdb; ipdb.set_trace(context=15) if os.environ.get("LOCAL_RANK", '0') == '0' else None<Esc>
+:nnoremap <Leader>b Oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>
+:nnoremap <Leader>v oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>
 
 
 " =============== plugins ============= "
