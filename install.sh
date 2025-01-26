@@ -61,9 +61,8 @@ mkdir -p $HOME/.vim/autoload $HOME/.vim/bundle && curl -LSso $HOME/.vim/autoload
 git clone https://github.com/scrooloose/nerdtree.git $HOME/.vim/bundle/nerdtree
 ## jedi-vim: jumps, auto-suggestions/completions
 git clone --recursive https://github.com/davidhalter/jedi-vim.git $HOME/.vim/bundle/jedi-vim
-# vim-flake8
-mkdir -p $HOME/.vim/pack/flake8/start
-git clone https://github.com/nvie/vim-flake8.git $HOME/.vim/pack/flake8/start/vim-flake8
+# python-mode
+git clone --recurse-submodules https://github.com/python-mode/python-mode.git $HOMNE/.vim/bundle/python-mode
 ## airline: status/tabline customization
 git clone https://github.com/vim-airline/vim-airline $HOME/.vim/bundle/vim-airline
 git clone https://github.com/vim-airline/vim-airline-themes $HOME/.vim/bundle/vim-airline-themes
