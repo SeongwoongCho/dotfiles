@@ -21,7 +21,7 @@ zplug "zsh-users/zsh-autosuggestions"
 
 # Then, source plugins and add commands to $PATH
 zplug check || zplug install
-zplug load --verbose
+zplug load
 
 
 #==================================================#

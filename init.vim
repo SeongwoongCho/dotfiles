@@ -143,13 +143,12 @@ set laststatus=2                " turn on bottom bar
 " Ale (python)
 "https://git.pyrokinesis.fr/darkgeem/chezmoi/-/blob/c800f8dc4e8c13b747c1b199ddb297787a2ebb5d/dot_vimrc
 " PEP8 ignores:
-	" (E501) Line too long (>79 characters)
-	let g:ale_python_flake8_options="--ignore=E501"
-    " (E701) multiple statements on one line (colon)
-    let g:ale_python_flake8_options.=",E701"
-    " (E702) multiple statements on one line (semi colon)
-    let g:ale_python_flake8_options.=",E702"
-
+" (E501) Line too long (>79 characters)
+let g:ale_python_flake8_options="--ignore=E501"
+" (E701) multiple statements on one line (colon)
+let g:ale_python_flake8_options.=",E701"
+" (E702) multiple statements on one line (semi colon)
+let g:ale_python_flake8_options.=",E702"
 
 let g:ale_python_pylint_executable=''
 let g:ale_fix_on_save = 1
@@ -171,4 +170,4 @@ let g:ctrlp_custom_ignore = {
   \ }
 " --
 
-set clipboard=unnamed
+set clipboard+=unnamedplus
