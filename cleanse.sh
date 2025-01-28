@@ -8,7 +8,8 @@ rm -rf $HOME/.gitconfig.secret
 rm -rf $HOME/.Xmodmap
 rm -rf $HOME/.vimrc
 rm -rf $HOME/.config/nvim
-rm -rf $HOME/local/nvim
+rm -rf $HOME/.local/share/nvim
+rm -rf $HOME/.local/state/nvim
 rm -rf $HOME/.vim
 rm -rf $HOME/.zshrc
 rm -rf $HOME/.gitconfig.secret

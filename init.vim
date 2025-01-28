@@ -11,7 +11,24 @@ Plug 'ctrlpvim/ctrlp.vim'
 Plug 'mhartington/oceanic-next'
 Plug 'github/copilot.vim'
 Plug 'junegunn/fzf'
+
+" https://github.com/yetone/avante.nvim"
+"" Deps
+Plug 'stevearc/dressing.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'MunifTanjim/nui.nvim'
+
+"" Optional deps
+Plug 'hrsh7th/nvim-cmp'
+Plug 'nvim-tree/nvim-web-devicons' "or Plug 'echasnovski/mini.icons'
+Plug 'HakonHarnes/img-clip.nvim'
+Plug 'zbirenbaum/copilot.lua'
+
+"" Yay, pass source=true if you want to build from source
+Plug 'yetone/avante.nvim', { 'branch': 'main', 'do': 'make' }
+
 call plug#end()
+
 
 " =============== general ============= "
 if filereadable('/bin/zsh')
@@ -65,7 +82,8 @@ let g:oceanic_next_terminal_italic = 1
 colorscheme OceanicNext
 
 " copy-paste
-set pastetoggle=<F8>		                " this will disable auto indent when pasting
+nnoremap <F8> :set paste!<CR>   
+" set pastetoggle=<F8>		                " this will disable auto indent when pasting
 autocmd InsertLeave * silent! set nopaste   " unset paste when leaving insert mode
 
 " misc
@@ -170,4 +188,15 @@ let g:ctrlp_custom_ignore = {
   \ }
 " --
 
-set clipboard+=unnamedplus
+set clipboard=unnamed
+set guicursor=n-v-c-sm:block,i-ci-ve:block,r-cr-o:hor20
+
+" Avante
+nnoremap > :AvanteFocus<CR>
+nnoremap < :AvanteToggle<CR>
+" nnoremap <expr> \t (rand() % 2 == 0) ? ':echo "even"<CR>' : ':
+
+" autocmd! User avante.nvim lua << EOF
+" require('avante_lib').load()
+" require('avante').setup()
+" EOF
