@@ -1,8 +1,7 @@
 # dotfiles
 
 ```
-apt-get update;
-apt-get install -y unzip zip wget zsh vim tmux curl git htop libgl1 libglib2.0-0 rsync
+
 git clone https://github.com/SeongwoongCho/dotfiles.git ~/.dotfiles; cd ~/.dotfiles; bash install.sh;
 
 

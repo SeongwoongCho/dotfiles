@@ -13,6 +13,18 @@ export MYDOTFILES=$HOME/.dotfiles
 
 
 #==================================================#
+### Plugins
+source ~/.zplug/init.zsh
+zplug "djui/alias-tips"
+zplug "zsh-users/zsh-syntax-highlighting"
+zplug "zsh-users/zsh-autosuggestions"
+
+# Then, source plugins and add commands to $PATH
+zplug check || zplug install
+zplug load --verbose
+
+
+#==================================================#
 # terminal settings
 export TERM='xterm-256color' # terminal color
 
@@ -28,13 +40,13 @@ ZSH_THEME="mrtazz_custom"   # set zsh theme
 DISABLE_AUTO_UPDATE="true"  # no automatically update oh-my-zsh
 HIST_STAMPS="mm/dd/yyyy"    # history with date stamps
 
-# zsh plugins
-plugins=(
-  # git
-  # alias-tips
-  zsh-syntax-highlighting
-  zsh-autosuggestions
-)
+# # zsh plugins
+# plugins=(
+#   # git
+#   # alias-tips
+#   zsh-syntax-highlighting
+#   zsh-autosuggestions
+# )
 
 source $ZSH/oh-my-zsh.sh
 setopt nosharehistory # do not share command line history across tmux windows/panes
@@ -65,7 +77,7 @@ fi
 export ARCHFLAGS="-arch x86_64"
 
 # ssh
-export SSH_KEY_PATH="~/.ssh/rsa_id"
+export SSH_KEY_PATH="~/.ssh/id_rsa"
 
 # personal aliases
 for alias_file in "$HOME/.aliases"/*

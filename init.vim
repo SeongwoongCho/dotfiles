@@ -1,8 +1,17 @@
 " =============== plugins ============= "
-" enable pathogen
-execute pathogen#infect()
-filetype plugin indent on
-
+call plug#begin()
+Plug 'flazz/vim-colorschemes'
+Plug 'preservim/NERDTree'
+Plug 'davidhalter/jedi-vim'
+Plug 'dense-analysis/ale'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'tpope/vim-commentary'
+Plug 'ctrlpvim/ctrlp.vim'
+Plug 'mhartington/oceanic-next'
+Plug 'github/copilot.vim'
+Plug 'junegunn/fzf'
+call plug#end()
 
 " =============== general ============= "
 if filereadable('/bin/zsh')
