@@ -17,6 +17,7 @@ function buo(){
 }
 
 # visdom
+alias vim='nvim'
 alias vis='python -m visdom.server'
 
 # jupyter notebook
