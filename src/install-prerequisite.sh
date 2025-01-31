@@ -6,8 +6,9 @@ curl -s https://deb.nodesource.com/setup_20.x | bash
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 apt-get install -y sudo python3-opencv aria2 gcc tmux cmake libgl1 libglib2.0-0 g++ nodejs
 apt-get install -y unzip zip zsh wget neovim curl git htop libgl1 libglib2.0-0 rsync fzf
-apt-get install -y libevent-dev ncurses-dev bison pkg-config build-essential libreadline-dev
-#
+apt-get install -y libevent-dev ncurses-dev bison pkg-config build-essential libreadline-dev ripgrep
+
+
 # ###### TMUX ##### 
 echo **** Installing Latest tmux from the source **** 
 apt-get remove -y tmux
