@@ -13,7 +13,7 @@ echo **** Installing Latest tmux from the source ****
 apt-get remove -y tmux
 
 ## tmux
-git clone https://github.com/tmux/tmux.git --branch 3.3 
+git clone https://github.com/tmux/tmux.git
 cd tmux
 sh autogen.sh
 ./configure && make
