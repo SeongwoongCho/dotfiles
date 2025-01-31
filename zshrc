@@ -1,27 +1,14 @@
 #==================================================#
-### set default paths
+## set default paths
 
+export MYDOTFILES=$HOME/.dotfiles
 export PATH=$HOME/bin:/usr/local/bin:/usr/local/cuda/bin:$PATH
-export PATH=$HOME/anaconda3/bin:$PATH # anaconda3
 export PATH=$HOME/.local/bin:$PATH
-export MYVIMRC=$HOME/.vimrc
+export PATH=$MYDOTFILES/tmux:$PATH
 export SHELL=$(which zsh)
 export ZSH=$HOME/.oh-my-zsh # oh-my-zsh
 export LANG=en_US.UTF-8
 export LC_ALL=C
-export MYDOTFILES=$HOME/.dotfiles
-
-
-#==================================================#
-### Plugins
-source ~/.zplug/init.zsh
-zplug "djui/alias-tips"
-zplug "zsh-users/zsh-syntax-highlighting"
-zplug "zsh-users/zsh-autosuggestions"
-
-# Then, source plugins and add commands to $PATH
-zplug check || zplug install
-zplug load
 
 
 #==================================================#
@@ -31,8 +18,7 @@ export TERM='xterm-256color' # terminal color
 
 #==================================================#
 ### zsh settings
-
-export LS_COLORS=$(cat $MYDOTFILES/LS_COLORS)
+export LS_COLORS=$(cat $MYDOTFILES/assets/LS_COLORS)
 
 # OH-MY-ZSH
 # themes: https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
@@ -40,13 +26,6 @@ ZSH_THEME="mrtazz_custom"   # set zsh theme
 DISABLE_AUTO_UPDATE="true"  # no automatically update oh-my-zsh
 HIST_STAMPS="mm/dd/yyyy"    # history with date stamps
 
-# # zsh plugins
-# plugins=(
-#   # git
-#   # alias-tips
-#   zsh-syntax-highlighting
-#   zsh-autosuggestions
-# )
 
 source $ZSH/oh-my-zsh.sh
 setopt nosharehistory # do not share command line history across tmux windows/panes
@@ -61,6 +40,17 @@ function precmd() {
         echo ""
     fi
 }
+
+#==================================================#
+### zsh plugins
+source ~/.zplug/init.zsh
+zplug "djui/alias-tips"
+zplug "zsh-users/zsh-syntax-highlighting"
+zplug "zsh-users/zsh-autosuggestions"
+
+# Then, source plugins and add commands to $PATH
+zplug check || zplug install
+zplug load
 
 
 #==================================================#
@@ -98,3 +88,4 @@ function fzfv()
 
 # remove duplicates in PATH
 export PATH="$(echo -n $PATH | awk -v RS=: -v ORS=: '!arr[$0]++')"
+

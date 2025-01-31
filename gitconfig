@@ -7,6 +7,9 @@
     undo = reset --soft HEAD^
     cm = commit -m
 
+[pull]
+  rebase = false
+
 [push]
     default = simple
 
@@ -14,5 +17,5 @@
     showUntrackedFiles = all
 
 [user]
-	name = seongwoongcho
-	email = seongwoongjo@kaist.ac.kr
+    name = seongwoongcho
+    email = seongwoongjo@kaist.ac.kr

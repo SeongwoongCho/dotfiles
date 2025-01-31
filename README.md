@@ -2,7 +2,7 @@
 
 ```
 
-git clone https://github.com/SeongwoongCho/dotfiles.git ~/.dotfiles; cd ~/.dotfiles; bash install.sh;
+git clone https://github.com/SeongwoongCho/dotfiles.git ~/.dotfiles; cd ~/.dotfiles; bash src/install.sh;
 
 
 ```
