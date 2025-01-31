@@ -29,7 +29,7 @@ ln -sf $DOT_DIR/assets/mrtazz_custom.zsh-theme $HOME/.oh-my-zsh/themes/
 #==================================================#
 # download useful plugins
 echo; echo '** download zsh plugin manager, zplug.'
-git clone https://github.com/zplug/zplug $HOMNE/.zplug
+git clone https://github.com/zplug/zplug $HOME/.zplug
 
 
 #==================================================#
