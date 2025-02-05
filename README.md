@@ -52,7 +52,7 @@ git clone https://github.com/SeongwoongCho/dotfiles.git ~/.dotfiles; cd ~/.dotfi
     - font quality: Natural ClearType
     - bold: Use bold color and font
 
-## Trouble shouting
+## Trouble shooting 
 - All special characters are not displayed properly in the terminal. <br>
     - Solution: Change the font to 'Hack Nerd Font'.
 
@@ -62,3 +62,4 @@ git clone https://github.com/SeongwoongCho/dotfiles.git ~/.dotfiles; cd ~/.dotfi
 - auto fixing indentation by '=G' does not work sometimes.
 - <F9> toggle line number is not working properly. -- numberwidth for linenumber is remained.
 - Avante Toggle ("?") automatically enters INSERT mode. -- fixed by adding 'normal' mode after entering INSERT mode.
+- Add jupyter lab configuration.
