@@ -16,6 +16,9 @@ function buo(){
     done
 }
 
+# tmux
+alias tmux='tmux -u'
+
 # visdom
 alias vim='nvim'
 alias vis='python -m visdom.server'

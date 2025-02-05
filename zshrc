@@ -7,8 +7,12 @@ export PATH=$HOME/.local/bin:$PATH
 export PATH=$MYDOTFILES/tmux:$PATH
 export SHELL=$(which zsh)
 export ZSH=$HOME/.oh-my-zsh # oh-my-zsh
+export LANGUAGE=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
-export LC_ALL=C
+
+# export LANG
 export FZF_DEFAULT_COMMAND='fd - type f'
 
 #==================================================#
@@ -89,4 +93,7 @@ function fzfv()
 
 # remove duplicates in PATH
 export PATH="$(echo -n $PATH | awk -v RS=: -v ORS=: '!arr[$0]++')"
+
+bindkey "^[[1;3C" forward-word
+bindkey "^[[1;3D" backward-word
 

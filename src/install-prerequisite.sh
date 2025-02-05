@@ -4,21 +4,27 @@ add-apt-repository -y ppa:neovim-ppa/unstable
 apt-get update;
 curl -s https://deb.nodesource.com/setup_20.x | bash
 curl https://sh.rustup.rs -sSf | sh -s -- -y
-apt-get install -y sudo python3-opencv aria2 gcc tmux cmake libgl1 libglib2.0-0 g++ nodejs
-apt-get install -y unzip zip zsh wget neovim curl git htop libgl1 libglib2.0-0 rsync fzf
-apt-get install -y libevent-dev ncurses-dev bison pkg-config build-essential libreadline-dev ripgrep
+apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ nodejs
+apt-get install -y unzip zip zsh wget curl git htop libgl1 libglib2.0-0 rsync fzf
+apt-get install -y libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
 
+# neovim #
+apt-get install ninja-build gettext cmake unzip curl build-essential
+git clone https://github.com/neovim/neovim -b v0.10.3 ~/.neovim
+cd ~/.neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
+make install
+cd ~/.dotfiles
 
-# ###### TMUX ##### 
-echo **** Installing Latest tmux from the source **** 
-apt-get remove -y tmux
-
-## tmux
-git clone https://github.com/tmux/tmux.git
-cd tmux
-sh autogen.sh
-./configure && make
-cd ..
+# # ###### TMUX ##### 
+# echo **** Installing Latest tmux from the source **** 
+# apt-get remove -y tmux
+#
+# ## tmux
+# git clone https://github.com/tmux/tmux.git ~/.tmux
+# cd .tmux
+# sh autogen.sh
+# ./configure && make
+# cd ~/.dotfiles
 
 ###### LUA #####
 echo **** Installing Lua ****

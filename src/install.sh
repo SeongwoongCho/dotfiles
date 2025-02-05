@@ -2,7 +2,7 @@
 
 #==================================================#
 DOT_DIR=$PWD
-
+echo; echo '** DOT_DIR: ' $DOT_DIR
 
 #==================================================#
 echo; echo '** download prerequisite libraries.'
@@ -43,5 +43,8 @@ nvim --headless "+TSUpdateSync python lua c cpp markdown markdown_inline latex h
 #==================================================#
 # set zsh to the default shell
 echo; echo '** set ZSH as default shell.'
+locale-gen en_US.UTF-8
 echo "exec zsh" >> $HOME/.bash_profile
 exec zsh
+
+
