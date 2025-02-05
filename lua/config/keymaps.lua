@@ -11,6 +11,9 @@ vim.keymap.set("n", "@", ":noh<CR>", { desc = "Turn off search highlight" })
 -- Copy & Paste
 vim.keymap.set("n", "<F8>", ":set paste!<CR>")
 
+-- vim.keymap.set("n", "<D-v>", "i<C-r>+<Esc>", { noremap = true, silent = true }) -- Command + V for macOS
+-- vim.keymap.set("n", "<C-v>", "i<C-r>+<Esc>", { noremap = true, silent = true }) -- Ctrl + V for Windows/Linux
+
 -- Toggle line numbers
 vim.keymap.set("n", "<F9>", ":set invnumber<CR>", { desc = "Toggle line number" })
 

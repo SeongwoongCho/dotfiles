@@ -9,7 +9,7 @@ export SHELL=$(which zsh)
 export ZSH=$HOME/.oh-my-zsh # oh-my-zsh
 export LANG=en_US.UTF-8
 export LC_ALL=C
-
+export FZF_DEFAULT_COMMAND='fd - type f'
 
 #==================================================#
 # terminal settings
@@ -47,6 +47,7 @@ source ~/.zplug/init.zsh
 zplug "djui/alias-tips"
 zplug "zsh-users/zsh-syntax-highlighting"
 zplug "zsh-users/zsh-autosuggestions"
+# zplug "junegunn/fzf"
 
 # Then, source plugins and add commands to $PATH
 zplug check || zplug install

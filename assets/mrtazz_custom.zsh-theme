@@ -6,6 +6,14 @@
 # background color: %{$BG[BG_CODE]%} (see spectrum_bls for details about BG_CODE)
 # reset: %{$reset_color%}
 
+function conda_prompt_info(){
+    if [[ ! -z "$CONDA_DEFAULT_ENV" ]]; then
+        echo "${ZSH_THEME_CONDA_PREFIX}${CONDA_DEFAULT_ENV:t}${ZSH_THEME_CONDA_SUFFIX} "
+    else
+        echo ""
+    fi
+}
+
 function cuda_prompt_info(){
     if [[ ! -z "$CUDA_VISIBLE_DEVICES" ]]; then
         echo "| %{$FG[141]%}cuda:${CUDA_VISIBLE_DEVICES}"
@@ -23,6 +31,7 @@ function habana_prompt_info(){
 }
 
 PROMPT='\
+$(conda_prompt_info)\
 %{$FG[153]%}%n\
 %{$FG[255]%} at \
 %{$FG[153]%}%m\
@@ -33,6 +42,9 @@ PROMPT='\
  $(cuda_prompt_info)\
  $(habana_prompt_info)
 %{$fg_bold[blue]%}$ '
+
+ZSH_THEME_CONDA_PREFIX="%{$FG[226]%}("
+ZSH_THEME_CONDA_SUFFIX="%{$FG[226]%})%{$reset_color%}"
 
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$FG[218]%}on "
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$FG[218]%}%{$reset_color%}"

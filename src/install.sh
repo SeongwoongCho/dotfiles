@@ -35,8 +35,10 @@ git clone https://github.com/zplug/zplug $HOME/.zplug
 #==================================================#
 # download neovim plugins from lazy.nvim
 nvim --headless "+Lazy! install" +qa
-nvim --headless "+Lazy! update" +qa
-nvim --headless "+TSUpdateSync python lua c cpp" -c "q"
+# nvim --headless "+Lazy! update" +qa
+pip install pylatexenc
+cargo install --locked tree-sitter-cli # to install latex parser
+nvim --headless "+TSUpdateSync python lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
 
 #==================================================#
 # set zsh to the default shell

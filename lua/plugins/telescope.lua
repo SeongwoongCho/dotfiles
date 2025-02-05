@@ -19,9 +19,24 @@ return {
         },
         {
             "<C-o>",
-            ":Telescope live_grep<CR>",
-            desc = "Live Grep"
-        }
+            function()
+                -- Find the root directory of the nearest Git repository
+                local git_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
+                if git_root and vim.fn.isdirectory(git_root) == 1 then
+                    -- If a Git root directory is found, search files from there
+                    require("telescope.builtin").live_grep({ cwd = git_root })
+                else
+                    -- If no Git directory is found, search from the current working directory
+                    require("telescope.builtin").live_grep({ cwd = vim.fn.getcwd() })
+                end
+            end,
+            desc = "Live Grep",
+        },
+        -- {
+        --     "<C-o>",
+        --     ":Telescope live_grep<CR>",
+        --     desc = "Live Grep"
+        -- }
     },
     -- change some options
     opts = {
