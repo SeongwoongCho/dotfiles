@@ -1,5 +1,22 @@
 #! /bin/bash
 
+#=================================================#
+# argument parser
+while getopts 'i:' flag; do
+  case "${flag}" in
+    i) install_avante='true' ;;
+    esac
+done
+
+#=================================================#
+# handling avante
+if [ "$install_avante" = "true" ];
+then
+    mv $DOT_DIR/lua/plugins/avante.lua $DOT_DIR/lua/plugins/avante.lua.old
+else
+    mv $DOT_DIR/lua/plugins/avante.lua.old $DOT_DIR/lua/plugins/avante.lua
+fi
+
 #==================================================#
 DOT_DIR=$PWD
 echo; echo '** DOT_DIR: ' $DOT_DIR
@@ -37,6 +54,8 @@ git clone https://github.com/zplug/zplug $HOME/.zplug
 nvim --headless "+Lazy! install" +qa
 # nvim --headless "+Lazy! update" +qa
 pip install pylatexenc
+cargo; # handling unexpected error (will be erased after fixing) 
+
 cargo install --locked tree-sitter-cli # to install latex parser
 nvim --headless "+TSUpdateSync python lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
 
