@@ -35,7 +35,7 @@ ln -sf $DOT_DIR/tmux.conf $HOME/.tmux.conf
 ln -sf $DOT_DIR/aliases $HOME/.aliases
 ln -sf $DOT_DIR/gitconfig $HOME/.gitconfig
 ln -sf $DOT_DIR/zshrc $HOME/.zshrc
-
+ln -sf $DOT_DIR/coc-settings.json $HOME/.config/nvim/coc-settings.json
 
 # #==================================================#
 echo; echo '** download oh-my-zsh.'
@@ -59,11 +59,14 @@ cargo; # handling unexpected error (will be erased after fixing)
 cargo install --locked tree-sitter-cli # to install latex parser
 nvim --headless "+TSUpdateSync python lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
 
+# coc setup
+nvim --headless "+CocInstall -sync coc-clangd" +qa
+nvim --headless "+call coc#util#install()" +qa
+
+
 #==================================================#
 # set zsh to the default shell
 echo; echo '** set ZSH as default shell.'
 locale-gen en_US.UTF-8
 echo "exec zsh" >> $HOME/.bash_profile
 exec zsh
-
-
