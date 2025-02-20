@@ -7,7 +7,7 @@ curl https://sh.rustup.rs -sSf | sh -s -- -y
 apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ nodejs
 apt-get install -y unzip zip zsh wget curl git htop libgl1 libglib2.0-0 rsync fzf
 apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
-apt-get install -y clangd clangd-12
+apt-get install -y clang clangd clangd-12 libomp-14-dev
 
 
 # neovim #

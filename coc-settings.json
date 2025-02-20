@@ -1,7 +1,7 @@
 "languageserver": {
   "clangd": {
     "command": "clangd",
-    "rootPatterns": [".git", "compile_flags.txt", "compile_commands.json"],
+    "rootPatterns": ["compile_commands.json", ".git", "compile_flags.txt"],
     "filetypes": ["c", "cc", "cpp", "c++", "objc", "objcpp"]
   }
 }
