@@ -20,5 +20,11 @@
     name = seongwoong 
     email = seongwoong@mobilint.com
 
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+
+[url "git@git.mobilint.com:"]
+    insteadOf = https://git.mobilint.com/
+
 [credential]
 	helper = cache
