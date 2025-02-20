@@ -4,6 +4,11 @@ return {
         -- Configuration goes here.
         local g = vim.g
 
+        g.ale_pattern_options = {
+            cc = {ale_enabled = 0},
+            h = {ale_enabled = 0},
+        }
+
         -- Flake8 options 설정
         g.ale_python_flake8_options = "--ignore=E501,E701,E702"
 
