@@ -1,4 +1,3 @@
-#==================================================#
 ## set default paths
 
 export MYDOTFILES=$HOME/.dotfiles
@@ -13,7 +12,8 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
 # export LANG
-export FZF_DEFAULT_COMMAND='fd - type f'
+# export FZF_DEFAULT_COMMAND='fd - type f'
+export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
 
 #==================================================#
 # terminal settings
@@ -51,7 +51,8 @@ source ~/.zplug/init.zsh
 zplug "djui/alias-tips"
 zplug "zsh-users/zsh-syntax-highlighting"
 zplug "zsh-users/zsh-autosuggestions"
-# zplug "junegunn/fzf"
+zplug "junegunn/fzf"
+zplug "sharkdp/fd"
 
 # Then, source plugins and add commands to $PATH
 zplug check || zplug install
@@ -81,19 +82,14 @@ do
 done
 
 # fzf
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# fzf preview
-function fzfv()
+function fuzzyvim()
 {
-    fzf --preview '[[ $(file --mime {}) =~ binary ]] &&
-                 echo {} is a binary file ||
-                 (cat {}) 2> /dev/null | head -500'
+    vim $(fzf)
 }
+zle -N fuzzyvim 
 
 # remove duplicates in PATH
 export PATH="$(echo -n $PATH | awk -v RS=: -v ORS=: '!arr[$0]++')"
 
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
-

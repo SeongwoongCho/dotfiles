@@ -95,3 +95,6 @@ function pyclean(){
     echo $cmd
     eval $cmd
 }
+
+# fzf
+
