@@ -32,4 +32,6 @@ vim.opt.wrap = false          -- no line wrapping
 vim.opt.textwidth = 0           -- no line wrapping
 vim.opt.splitbelow = true       -- split bottom window if needed
 vim.opt.lazyredraw = true       -- don't update screen during macro and script execution
-vim.opt.equalalways = flase
+vim.opt.equalalways = false
+vim.opt.signcolumn = 'yes'
+

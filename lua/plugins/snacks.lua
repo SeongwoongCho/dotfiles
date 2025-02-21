@@ -17,7 +17,7 @@ return
             notifier = { enabled = true },
             quickfile = { enabled = true },
             scroll = { enabled = false },
-            statuscolumn = { enabled = false }, 
+            statuscolumn = { enabled = true }, 
             words = { enabled = false },
             
             styles = {
@@ -29,6 +29,7 @@ return
         init = function()
             vim.keymap.set("n", "<F9>", function()
                 vim.cmd("set invnumber")
+                vim.cmd("let &signcolumn = ( &signcolumn == 'yes' ? 'no' : 'yes' )")
             end, { noremap = true, silent = true })
 
         end
