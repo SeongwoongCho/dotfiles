@@ -17,8 +17,9 @@ return
             notifier = { enabled = true },
             quickfile = { enabled = true },
             scroll = { enabled = false },
-            statuscolumn = { enabled = true },
+            statuscolumn = { enabled = false }, 
             words = { enabled = false },
+            
             styles = {
                 notification = {
                     wo = { wrap = false } -- Wrap notifications
@@ -28,16 +29,6 @@ return
         init = function()
             vim.keymap.set("n", "<F9>", function()
                 vim.cmd("set invnumber")
-
-                -- only inverse properties that are enabled in default configuration
-                -- Snacks.bigfile.enabled = not Snacks.bigfile.enabled
-                -- Snacks.dashboard.enabled = not Snacks.dashboard.enabled
-                Snacks.indent.enabled = not Snacks.indent.enabled 
-                -- Snacks.input.enabled = not Snacks.input.enabled
-                -- Snacks.picker.enabled = not Snacks.picker.enabled                
-                -- Snacks.notifier.enabled = not Snacks.notifier.enabled
-                -- Snacks.quickfile.enabled = not Snacks.quickfile.enabled
-                -- Snacks.statuscolumn.enabled = not Snacks.statuscolumn.enabled
             end, { noremap = true, silent = true })
 
         end
