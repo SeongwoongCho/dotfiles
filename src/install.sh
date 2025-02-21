@@ -63,6 +63,9 @@ nvim --headless "+TSUpdateSync python lua c cpp markdown markdown_inline latex h
 nvim --headless "+CocInstall -sync coc-clangd" +qa
 nvim --headless "+call coc#util#install()" +qa
 
+# vscode symlink
+ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
+chmod +x /usr/bin/OpenDebugAD7
 
 #==================================================#
 # set zsh to the default shell

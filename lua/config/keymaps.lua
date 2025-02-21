@@ -1,6 +1,6 @@
--- Set leader keys
+-- Set leader keys (The localleader is currently only used in debugger (nvim-dap-ui))
 vim.g.mapleader = ","
-vim.g.maplocalleader = ","
+vim.g.maplocalleader = "."
 
 -- Reload vimrc
 vim.keymap.set("n", "<leader>R", ":so $MYVIMRC<CR>", { desc = "Reload vimrc" })
@@ -29,5 +29,5 @@ vim.keymap.set("v", "<", "<gv", { desc = "Keep selection after indenting" })
 vim.keymap.set("v", ">", ">gv", { desc = "Keep selection after indenting" })
 
 -- Insert ipdb breakpoint for Python debugging
-vim.keymap.set("n", "<Leader>b", "Oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })
-vim.keymap.set("n", "<Leader>v", "oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })
+vim.keymap.set("n", "<leader>b", "Oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })
+vim.keymap.set("n", "<leader>v", "oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })

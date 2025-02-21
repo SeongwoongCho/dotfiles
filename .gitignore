@@ -105,3 +105,6 @@ venv.bak/
 
 # tmux
 tmux/
+
+# cpptools-linux-x64
+cpptools-linux-x64/

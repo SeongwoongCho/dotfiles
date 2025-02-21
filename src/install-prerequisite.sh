@@ -7,8 +7,12 @@ curl https://sh.rustup.rs -sSf | sh -s -- -y
 apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ nodejs
 apt-get install -y unzip zip zsh wget curl git htop libgl1 libglib2.0-0 rsync fzf
 apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
-apt-get install -y clang clangd clangd-12 libomp-14-dev
+apt-get install -y clang clangd clangd-12 libomp-14-dev gdb
 
+# vscode cpp extension: https://github.com/microsoft/vscode-cpptools/releases
+wget https://github.com/microsoft/vscode-cpptools/releases/download/v1.24.1/cpptools-linux-x64.vsix 
+unzip cpptools-linux-x64.vsix -d cpptools-linux-x64/
+rm -r cpptools-linux-x64.vsix
 
 # neovim #
 apt-get install ninja-build gettext cmake unzip curl build-essential
