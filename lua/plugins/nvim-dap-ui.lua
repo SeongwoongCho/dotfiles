@@ -72,7 +72,7 @@ return {
 
 
         vim.fn.sign_define('DapBreakpoint', {text='●', texthl='red', linehl='', numhl=''}) 
-
+        
         dap.adapters.cppdbg = {
             id = 'cppdbg',
             type = 'executable',
@@ -80,9 +80,18 @@ return {
         }
         dap.configurations.cpp = {
             {
-                name = "Launch file",
-                type = "cppdbg",
-                request = "launch",
+                name = function()
+                    local config = read_launch_json()
+                    return config and config.name or "Launch"
+                end,
+                type = function()
+                    local config = read_launch_json()
+                    return config and config.type or "cppdbg"
+                end,
+                request = function()
+                    local config = read_launch_json()
+                    return config and config.request or "launch"
+                end,
                 args = function()
                     local config = read_launch_json()
                     return config and config.args or {}
@@ -91,8 +100,14 @@ return {
                     local config = read_launch_json()
                     return config and config.program or vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
                 end,
-                cwd = '${workspaceFolder}',
-                stopAtEntry = true,
+                cwd = function()
+                    local config = read_launch_json()
+                    return config and config.cwd or "${workspaceFolder}"
+                end,
+                stopAtEntry = function()
+                    local config = read_launch_json()
+                    return config and config.stopAtEntry or true
+                end,
             },
         }
         dap.configurations.c = dap.configurations.cpp
