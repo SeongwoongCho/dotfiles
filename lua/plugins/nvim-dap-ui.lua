@@ -1,6 +1,28 @@
 return {
     "rcarriga/nvim-dap-ui", 
     dependencies = {"mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"}, 
+    opts = {
+        layouts = {
+            {
+                elements = {
+                    { id = "console", size = 0.5 },
+                    { id = "repl", size = 0.5 },
+                },
+                position = "left",
+                size = 50,
+            },
+            {
+                elements = {
+                    { id = "scopes", size = 0.50 },
+                    { id = "breakpoints", size = 0.20 },
+                    { id = "stacks", size = 0.15 },
+                    { id = "watches", size = 0.15 },
+                },
+                position = "bottom",
+                size = 15,
+            },
+        },
+    },
     -- https://github.com/mfussenegger/nvim-dap/wiki/Debug-Adapter-installation#ccrust-via-vscode-cpptools
     config = function()
         local dap = require('dap')
@@ -72,44 +94,63 @@ return {
 
 
         vim.fn.sign_define('DapBreakpoint', {text='●', texthl='red', linehl='', numhl=''}) 
-        
+
         dap.adapters.cppdbg = {
             id = 'cppdbg',
             type = 'executable',
             command = '/usr/bin/OpenDebugAD7',
         }
-        dap.configurations.cpp = {
-            {
-                name = function()
-                    local config = read_launch_json()
-                    return config and config.name or "Launch"
-                end,
-                type = function()
-                    local config = read_launch_json()
-                    return config and config.type or "cppdbg"
-                end,
-                request = function()
-                    local config = read_launch_json()
-                    return config and config.request or "launch"
-                end,
-                args = function()
-                    local config = read_launch_json()
-                    return config and config.args or {}
-                end,
-                program = function()
-                    local config = read_launch_json()
-                    return config and config.program or vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-                end,
-                cwd = function()
-                    local config = read_launch_json()
-                    return config and config.cwd or "${workspaceFolder}"
-                end,
-                stopAtEntry = function()
-                    local config = read_launch_json()
-                    return config and config.stopAtEntry or true
-                end,
-            },
-        }
+        dap.configurations.cpp = { } -- this automatically read .vscode/launch.json 
+        -- dap.configurations.cpp = {
+        --     {
+        --         name = function()
+        --             local config = read_launch_json()
+        --             return config and config.name or "Launch"
+        --         end,
+        --         type = function()
+        --             local config = read_launch_json()
+        --             return config and config.type or "cppdbg"
+        --         end,
+        --         request = function()
+        --             local config = read_launch_json()
+        --             return config and config.request or "launch"
+        --         end,
+        --         args = function()
+        --             local config = read_launch_json()
+        --             return config and config.args or {}
+        --         end,
+        --         program = function()
+        --             local config = read_launch_json()
+        --             return config and config.program or vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        --         end,
+        --         cwd = function()
+        --             local config = read_launch_json()
+        --             return config and config.cwd or "${workspaceFolder}"
+        --         end,
+        --         stopAtEntry = function()
+        --             local config = read_launch_json()
+        --             return config and config.stopAtEntry or true
+        --         end,
+        --     },
+        -- }
+        -- dap.configurations.cpp = {
+            -- {
+            --     name = "Launch",
+            --     type = "cppdbg",
+            --     request = "launch",
+            --     args = function()
+            --         local config = read_launch_json()
+            --         return config and config.args or {}
+            --     end,
+            --     program = function()
+            --         local config = read_launch_json()
+            --         return config and config.program or vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+            --     end,
+            --     cwd = "${workspaceFolder}",
+            --     stopAtEntry = true
+            -- },
+        -- }
+
         dap.configurations.c = dap.configurations.cpp
         dap.configurations.rust = dap.configurations.cpp
 
