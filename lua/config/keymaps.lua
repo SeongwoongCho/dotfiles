@@ -31,3 +31,6 @@ vim.keymap.set("v", ">", ">gv", { desc = "Keep selection after indenting" })
 -- Insert ipdb breakpoint for Python debugging
 vim.keymap.set("n", "<leader>b", "Oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })
 vim.keymap.set("n", "<leader>v", "oimport os; import ipdb; ipdb.set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })
+
+-- go to the previous line after go-to-deifinition
+vim.keymap.set("n", "<leader>g", "<C-o>")
