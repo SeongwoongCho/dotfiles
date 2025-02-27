@@ -30,6 +30,7 @@ return
             vim.keymap.set("n", "<F9>", function()
                 vim.cmd("set invnumber")
                 vim.cmd("let &signcolumn = ( &signcolumn == 'yes' ? 'no' : 'yes' )")
+                Snacks.indent.enabled = not Snacks.indent.enabled
             end, { noremap = true, silent = true })
 
         end
