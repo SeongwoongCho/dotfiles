@@ -108,3 +108,6 @@ tmux/
 
 # cpptools-linux-x64
 cpptools-linux-x64/
+
+# launch.json
+launch.json
