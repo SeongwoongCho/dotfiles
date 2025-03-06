@@ -93,3 +93,7 @@ export PATH="$(echo -n $PATH | awk -v RS=: -v ORS=: '!arr[$0]++')"
 
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
+
+# fash compilation
+export CC='ccache gcc'
+export CXX='ccache g++'
