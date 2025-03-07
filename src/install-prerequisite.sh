@@ -15,7 +15,7 @@ unzip cpptools-linux-x64.vsix -d cpptools-linux-x64/
 rm -r cpptools-linux-x64.vsix
 
 # neovim #
-apt-get install ninja-build gettext cmake unzip curl build-essential
+apt-get install -y ninja-build gettext cmake unzip curl build-essential
 git clone https://github.com/neovim/neovim -b v0.10.3 ~/.neovim
 cd ~/.neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
 make install
