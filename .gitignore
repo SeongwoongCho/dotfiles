@@ -111,3 +111,6 @@ cpptools-linux-x64/
 
 # launch.json
 launch.json
+
+# swap file
+.swp
