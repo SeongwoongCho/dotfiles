@@ -56,7 +56,8 @@ nvim --headless "+Lazy! install" +qa
 pip install pylatexenc
 
 cargo install --locked tree-sitter-cli # to install latex parser
-nvim --headless "+TSUpdateSync python lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
+nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
+nvim --headless "+TSUninstall python" -c "q"
 
 # coc setup
 ## :call coc#util#install()
