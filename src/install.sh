@@ -54,14 +54,16 @@ git clone https://github.com/zplug/zplug $HOME/.zplug
 nvim --headless "+Lazy! install" +qa
 # nvim --headless "+Lazy! update" +qa
 pip install pylatexenc
-cargo; # handling unexpected error (will be erased after fixing) 
 
 cargo install --locked tree-sitter-cli # to install latex parser
 nvim --headless "+TSUpdateSync python lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
 
 # coc setup
+## :call coc#util#install()
+cd ~/.local/share/nvim/lazy/coc.nvim/
+npm install
+cd $DOT_DIR
 nvim --headless "+CocInstall -sync coc-clangd" +qa
-nvim --headless "+call coc#util#install()" +qa
 
 # vscode symlink
 ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
