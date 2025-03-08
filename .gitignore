@@ -109,5 +109,8 @@ tmux/
 # cpptools-linux-x64
 cpptools-linux-x64/
 
-# launch.json
-launch.json
+# .vscode/launch.json
+.vscode
+
+# swap file
+.swp
