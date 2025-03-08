@@ -1,4 +1,5 @@
 ###### APT ##### 
+apt-get update;
 apt-get install -y software-properties-common curl
 add-apt-repository -y ppa:neovim-ppa/unstable 
 apt-get update;
