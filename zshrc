@@ -95,5 +95,5 @@ bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
 
 # fash compilation
-export CC='/usr/bin/clang'
-export CXX='/usr/bin/clang++'
+export CC='ccache gcc'
+export CXX='ccache g++'
