@@ -58,7 +58,6 @@ pip install pylatexenc
 bash; # cargo
 cargo install --locked tree-sitter-cli # to install latex parser
 nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
-nvim --headless "+TSUninstall python" -c "q"
 
 # coc setup
 ## :call coc#util#install()
@@ -70,7 +69,7 @@ nvim --headless "+CocInstall -sync coc-clangd" +qa
 # vscode symlink
 ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
 chmod +x /usr/bin/OpenDebugAD7
-
+nvim --headless "+TSUninstall python" -c "q"
 #==================================================#
 # set zsh to the default shell
 echo; echo '** set ZSH as default shell.'
