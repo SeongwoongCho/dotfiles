@@ -68,6 +68,6 @@ pip install pynvim
 ##  ale
 pip install isort
 # gpustat
-pip install gpustat
+pip install gpustat==1.0.0
 # precommit
 pip install pre-commit
