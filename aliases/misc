@@ -43,7 +43,7 @@ alias ug='usegpu'
 
 # cmake auto
 alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint'
-alias cmakeauto2 = 'cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
+alias cmakeauto2='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
 
 # hpu
 alias hpusmi="watch -n.5 hl-smi"
