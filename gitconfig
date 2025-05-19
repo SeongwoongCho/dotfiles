@@ -17,8 +17,8 @@
     showUntrackedFiles = all
 
 [user]
-    name = seongwoong 
-    email = seongwoong@mobilint.com
+	name = seongwoong
+	email = seongwoong@mobilint.com
 
 [credential]
-	helper = store
+	helper = store 

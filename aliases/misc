@@ -45,6 +45,14 @@ alias ug='usegpu'
 alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint'
 alias cmakeauto2='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
 
+# color print for quantizer
+# alias colorprint = "cat log.txt | sed -E 's/\[([0-9;]+)m/\x1b[\1m/g'
+function colorprint(){
+    cmd="cat $1 | sed -E 's/\[([0-9;]+)m/\x1b[\1m/g'"
+    eval $cmd
+}
+
+
 # hpu
 alias hpusmi="watch -n.5 hl-smi"
 function usehpu(){
