@@ -9,6 +9,8 @@ vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.softtabstop = 4
 vim.opt.expandtab = true
+vim.opt.fixeol= false
+vim.opt.endofline = false
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.incsearch = true
@@ -34,4 +36,3 @@ vim.opt.splitbelow = true       -- split bottom window if needed
 vim.opt.lazyredraw = true       -- don't update screen during macro and script execution
 vim.opt.equalalways = false
 vim.opt.signcolumn = 'yes'
-

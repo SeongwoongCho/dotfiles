@@ -29,6 +29,16 @@ autocmd("FileType", {
     command = "setlocal formatoptions-=c formatoptions-=r formatoptions-=o",
 })
 
+local noEoLGroup = augroup("NoEOLOnSave", { clear = true })
+autocmd("BufWritePre", {
+  group   = noEoLGroup,
+  pattern = "*",
+  callback = function()
+    -- 현재 버퍼에만 적용
+    vim.opt_local.fixeol    = false
+    vim.opt_local.endofline = false
+  end,
+})
 -- Automatically fix unmatched indentation 
 -- autocmd("BufWritePost", {
 --     pattern = "*",

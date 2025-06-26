@@ -17,6 +17,10 @@ return {
         local presets = require("markview.presets");
         
         require("markview").setup({
+            experimental = {
+                check_rtp        = false,  -- don’t auto–reorder your &runtimepath
+                check_rtp_message = false, -- don’t even show the warning
+            },
             markdown = {
                 headings = presets.headings.arrowed
             }
