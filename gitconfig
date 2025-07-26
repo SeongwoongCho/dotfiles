@@ -21,4 +21,38 @@
 	email = seongwoong@mobilint.com
 
 [credential]
-	helper = store 
+	helper = store
+
+[core]
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    side-by-side = true 
+    line-numbers = true
+    features = forest-night
+
+[delta "forest-night"]
+    syntax-theme = "gruvbox-dark"
+    plus-style = "syntax #1A472A"
+    minus-style = "syntax #4A272A"
+    commit-style = "raw"
+    zero-style = "syntax"
+
+    hunk-header-style = syntax bold
+    hunk-header-decoration-style = omit
+    file-style = yellow italic
+    file-decoration-style = yellow ul
+    line-numbers-zero-style = "#4b5263"
+    line-numbers-left-format = "{nm:^4} "
+    line-numbers-right-format = "{np:^4} "
+    line-numbers-padding-char = " "
+
+[merge]
+    conflictstyle = diff3
+
+[diff]
+    colorMoved = default

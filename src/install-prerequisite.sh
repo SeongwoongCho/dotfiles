@@ -11,10 +11,11 @@ if ! command -v tree-sitter >/dev/null 2>&1; then
     cargo install --locked tree-sitter-cli # for latex parser
 fi
 
-DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
+DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs 
 DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh wget curl git htop libgl1 libglib2.0-0 rsync fzf
 DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
-DEBIAN_FRONTEND=noninteractive apt-get install -y clang clangd clangd-12 libomp-14-dev gdb
+DEBIAN_FRONTEND=noninteractive apt-get install -y clang-format clang clangd clangd-12 libomp-14-dev gdb
+cargo install git-delta
 
 # vscode cpp extension: https://github.com/microsoft/vscode-cpptools/releases
 wget https://github.com/microsoft/vscode-cpptools/releases/download/v1.24.1/cpptools-linux-x64.vsix 
@@ -73,5 +74,6 @@ pip install pynvim
 pip install isort
 # gpustat
 pip install gpustat==1.0.0
-# precommit
+# precommit & formmater
 pip install pre-commit
+pip install black
