@@ -1,20 +1,5 @@
 #!/bin/bash
 
-echo; echo '** install mbltmon **'
-if [ -d "$HOME/.mbltmon" ]; then
-    cd "$HOME/.mbltmon" || exit 1
-    git pull
-else
-    git clone https://git.mobilint.com/sdk/application/mbltmon "$HOME/.mbltmon"
-fi
-
-rm -rf "$HOME/.mbltmon/build"
-mkdir -p "$HOME/.mbltmon/build"
-cd "$HOME/.mbltmon/build"
-
-cmake .. -DDRIVER_TYPE=aries
-make -j16
-
 echo; echo '** install maccel **'
 if [ -d "$HOME/.maccel" ]; then
     cd "$HOME/.maccel" || exit 1

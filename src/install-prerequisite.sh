@@ -6,7 +6,11 @@ apt-get update;
 curl -s https://deb.nodesource.com/setup_20.x | bash
 # install cargo
 curl https://sh.rustup.rs -sSf | sh -s -- -y
-bash 
+export PATH="$HOME/.cargo/bin:$PATH"
+if ! command -v tree-sitter >/dev/null 2>&1; then
+    cargo install --locked tree-sitter-cli # for latex parser
+fi
+
 DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
 DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh wget curl git htop libgl1 libglib2.0-0 rsync fzf
 DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
