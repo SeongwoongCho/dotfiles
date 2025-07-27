@@ -29,8 +29,13 @@ bash $DOT_DIR/src/install-prerequisite.sh
 #==================================================#
 echo; echo '** link custom configurations.'
 source "$PWD/aliases/misc"
-ln -sf $DOT_DIR/assets/Xmodmap $HOME/.Xmodmap 
-mkdir -p $HOME/.config/nvim && ln -sf $DOT_DIR/init.lua $HOME/.config/nvim/init.lua && ln -sf $DOT_DIR/lua $HOME/.config/nvim/lua
+ln -sf $DOT_DIR/assets/Xmodmap $HOME/.Xmodmap
+
+# Clean and link nvim configuration
+rm -rf $HOME/.config/nvim
+mkdir -p $HOME/.config
+ln -sfn $DOT_DIR $HOME/.config/nvim
+
 ln -sf $DOT_DIR/tmux.conf $HOME/.tmux.conf
 ln -sf $DOT_DIR/aliases $HOME/.aliases
 ln -sf $DOT_DIR/gitconfig $HOME/.gitconfig

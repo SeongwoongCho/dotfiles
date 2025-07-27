@@ -31,7 +31,7 @@ return
                 vim.cmd("set invnumber")
                 vim.cmd("let &signcolumn = ( &signcolumn == 'yes' ? 'no' : 'yes' )")
                 Snacks.indent.enabled = not Snacks.indent.enabled
-            end, { noremap = true, silent = true })
+            end, { noremap = true, silent = true, desc = "Toggle line numbers, sign column, and indent guides" })
 
         end
     }

@@ -18,20 +18,20 @@ vim.keymap.set("n", "<F8>", ":set paste!<CR>")
 vim.keymap.set("n", "<F9>", ":set invnumber<CR>", { desc = "Toggle line number" })
 
 -- Save file
-vim.keymap.set("n", "<leader>s", ":w<CR>", { desc = "Save file" })
+vim.keymap.set("n", "<leader>s", ":w<CR>", { desc = "Save current file" })
 
 -- Navigate buffers
 vim.keymap.set("n", "[b", ":bprevious<CR>", { desc = "Go to previous buffer" })
 vim.keymap.set("n", "]b", ":bnext<CR>", { desc = "Go to next buffer" })
 
 -- Keep selection after indenting in visual mode
-vim.keymap.set("v", "<", "<gv", { desc = "Keep selection after indenting" })
-vim.keymap.set("v", ">", ">gv", { desc = "Keep selection after indenting" })
+vim.keymap.set("v", "<", "<gv", { desc = "Indent line left" })
+vim.keymap.set("v", ">", ">gv", { desc = "Indent line right" })
 
 -- Insert ipdb breakpoint for Python debugging
-vim.keymap.set("n", "<leader>b", "O__import__('ipdb').set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })
-vim.keymap.set("n", "<leader>v", "o__import__('ipdb').set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint" })
+vim.keymap.set("n", "<leader>b", "O__import__('ipdb').set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint above" })
+vim.keymap.set("n", "<leader>v", "o__import__('ipdb').set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint below" })
 
 -- go to the previous line after go-to-deifinition
-vim.keymap.set("n", "<leader>g", "<C-o>")
+vim.keymap.set("n", "<leader>g", "<C-o>", { desc = "Go to previous location" })
 
