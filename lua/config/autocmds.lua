@@ -6,8 +6,8 @@
 -- See: :h api-autocmd, :h augroup
 -- https://neovim.io/doc/user/autocmd.html
 
-local augroup = vim.api.nvim_create_augroup   -- Create/get autocommand group
-local autocmd = vim.api.nvim_create_autocmd   -- Create autocommand
+local augroup = vim.api.nvim_create_augroup -- Create/get autocommand group
+local autocmd = vim.api.nvim_create_autocmd -- Create autocommand
 
 -----------------------------------------------------------
 -- General settings
@@ -29,7 +29,20 @@ autocmd("FileType", {
     command = "setlocal formatoptions-=c formatoptions-=r formatoptions-=o",
 })
 
--- Automatically fix unmatched indentation 
+autocmd("FileType", {
+    pattern = "qf",
+    callback = function()
+        vim.keymap.set("n", "<CR>", function()
+            -- 현재 quickfix 항목을 실행 (기존 <CR>처럼)
+            vim.cmd("execute 'cc' . line('.')")
+
+            -- quickfix 창 닫기
+            vim.cmd("cclose")
+        end, { buffer = true })
+    end,
+})
+
+-- Automatically fix unmatched indentation
 -- autocmd("BufWritePost", {
 --     pattern = "*",
 --     command = "normal! gg=G"
@@ -53,47 +66,47 @@ autocmd("FileType", {
 
 
 autocmd('LspAttach', {
-  desc = 'LSP actions',
-  callback = function()
-    local bufmap = function(mode, lhs, rhs)
-      local opts = {buffer = true}
-      vim.keymap.set(mode, lhs, rhs, opts)
+    desc = 'LSP actions',
+    callback = function()
+        local bufmap = function(mode, lhs, rhs)
+            local opts = { buffer = true }
+            vim.keymap.set(mode, lhs, rhs, opts)
+        end
+
+        -- Displays hover information about the symbol under the cursor
+        -- bufmap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>')
+
+        -- Jump to the definition
+        bufmap('n', '<leader>d', '<cmd>lua vim.lsp.buf.definition()<cr>')
+
+        -- Jump to declaration
+        bufmap('n', '<leader>D', '<cmd>lua vim.lsp.buf.declaration()<cr>')
+
+        -- Lists all the implementations for the symbol under the cursor
+        -- bufmap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>')
+
+        -- Jumps to the definition of the type symbol
+        -- bufmap('n', 'go', '<cmd>lua vim.lsp.buf.type_definition()<cr>')
+
+        -- Lists all the references
+        -- bufmap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>')
+
+        -- Displays a function's signature information
+        -- bufmap('n', 'gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>')
+
+        -- Renames all references to the symbol under the cursor
+        bufmap('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<cr>')
+
+        -- Selects a code action available at the current cursor position
+        bufmap('n', '<F4>', '<cmd>lua vim.lsp.buf.code_action()<cr>')
+
+        -- Show diagnostics in a floating window
+        bufmap('n', '<leader>l', '<cmd>lua vim.diagnostic.open_float()<cr>')
+
+        -- Move to the previous diagnostic
+        bufmap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>')
+
+        -- Move to the next diagnostic
+        bufmap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>')
     end
-
-    -- Displays hover information about the symbol under the cursor
-    -- bufmap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>')
-
-    -- Jump to the definition
-    bufmap('n', '<leader>d', '<cmd>lua vim.lsp.buf.definition()<cr>')
-
-    -- Jump to declaration
-    bufmap('n', '<leader>D', '<cmd>lua vim.lsp.buf.declaration()<cr>')
-
-    -- Lists all the implementations for the symbol under the cursor
-    -- bufmap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>')
-
-    -- Jumps to the definition of the type symbol
-    -- bufmap('n', 'go', '<cmd>lua vim.lsp.buf.type_definition()<cr>')
-
-    -- Lists all the references 
-    -- bufmap('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>')
-
-    -- Displays a function's signature information
-    -- bufmap('n', 'gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>')
-
-    -- Renames all references to the symbol under the cursor
-    bufmap('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<cr>')
-
-    -- Selects a code action available at the current cursor position
-    bufmap('n', '<F4>', '<cmd>lua vim.lsp.buf.code_action()<cr>')
-
-    -- Show diagnostics in a floating window
-    bufmap('n', '<leader>l', '<cmd>lua vim.diagnostic.open_float()<cr>')
-
-    -- Move to the previous diagnostic
-    bufmap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>')
-
-    -- Move to the next diagnostic
-    bufmap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>')
-  end
 })
