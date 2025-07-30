@@ -24,8 +24,8 @@ rm -r cpptools-linux-x64.vsix
 
 # neovim #
 DEBIAN_FRONTEND=noninteractive apt-get install -y ninja-build gettext cmake unzip curl build-essential
-git clone https://github.com/neovim/neovim -b v0.10.3 ~/.neovim
-cd ~/.neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
+git clone https://github.com/neovim/neovim -b v0.11.3 ~/.neovim
+cd ~/.neovim && CC=gcc CXX=g++ make CMAKE_BUILD_TYPE=RelWithDebInfo
 make install
 cd ~/.dotfiles
 

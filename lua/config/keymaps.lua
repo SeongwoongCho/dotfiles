@@ -35,3 +35,15 @@ vim.keymap.set("n", "<leader>v", "o__import__('ipdb').set_trace(context=15)<Esc>
 -- go to the previous line after go-to-deifinition
 vim.keymap.set("n", "<leader>g", "<C-o>", { desc = "Go to previous location" })
 
+-- osc52, yanking for ssh server
+-- vim.g.clipboard = {
+--   name = 'OSC 52',
+--   copy = {
+--     ['+'] = require('vim.ui.clipboard.osc52').copy,
+--     ['*'] = require('vim.ui.clipboard.osc52').copy,
+--   },
+--   paste = {
+--     ['+'] = require('vim.ui.clipboard.osc52').paste,
+--     ['*'] = require('vim.ui.clipboard.osc52').paste,
+--   },
+-- }

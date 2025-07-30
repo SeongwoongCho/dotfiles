@@ -6,6 +6,7 @@ if [ -d "$HOME/.maccel" ]; then
     git pull
 else
     git clone https://git.mobilint.com/sdk/runtime/maccel "$HOME/.maccel"
+    git pull
 fi
 
 rm -rf "$HOME/.maccel/build"

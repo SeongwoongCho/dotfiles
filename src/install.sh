@@ -64,10 +64,15 @@ nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bas
 
 # coc setup
 ## :call coc#util#install()
-cd ~/.local/share/nvim/lazy/coc.nvim/
-npm install
-cd $DOT_DIR
-nvim --headless "+CocInstall -sync coc-clangd" +qa
+# cd ~/.local/share/nvim/lazy/coc.nvim/
+# npm install
+# cd $DOT_DIR
+# nvim --headless "+CocInstall -sync coc-clangd" +qa
+
+# mason setup
+nvim --headless "MasonInstall clangd" +qa
+
+
 
 # vscode symlink
 ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
