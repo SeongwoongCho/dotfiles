@@ -67,13 +67,16 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y imagemagick libmagickwand-dev
 
 
 ###### PIP ##### 
+pip install uv
+uv self update
+
 # vim plugin Prerequisites
 ## jedi-vim
-pip install pynvim
+uv pip install pynvim
 ##  ale
-pip install isort
+uv pip install isort
 # gpustat
-pip install gpustat==1.0.0
+uv pip install gpustat==1.0.0
 # precommit & formmater
-pip install pre-commit
-pip install black
+uv pip install pre-commit
+uv pip install black
