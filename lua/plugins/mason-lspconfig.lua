@@ -9,8 +9,8 @@ return {
         require("mason").setup()
 
         require("mason-lspconfig").setup({
-            ensure_installed = { "clangd", "lua_ls" }, -- 원하는 서버 나열
-            automatic_installation = true,             -- old automatic_enable 대체
+            ensure_installed = { "clangd", "lua_ls", "pyright" }, -- 원하는 서버 나열
+            automatic_installation = true,                        -- old automatic_enable 대체
         })
 
         local sign = function(opts)
