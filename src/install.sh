@@ -58,7 +58,7 @@ git clone https://github.com/zplug/zplug $HOME/.zplug
 # download neovim plugins from lazy.nvim
 nvim --headless "+Lazy! install" +qa
 # nvim --headless "+Lazy! update" +qa
-pip install pylatexenc
+uv pip install pylatexenc
 
 nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
 
