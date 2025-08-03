@@ -1,7 +1,7 @@
 return {
     {
         'hrsh7th/nvim-cmp',
-        commit = "6c84bc75c64f778e9f1dcb798ed41c7fcb93b639",
+        -- commit = "6c84bc75c64f778e9f1dcb798ed41c7fcb93b639",
         lazy = false,
         priority = 1000,
         dependencies = {
@@ -25,6 +25,31 @@ return {
             lspconfig.lua_ls.setup({
                 capabilities = lsp_capabilities,
             })
+            lspconfig.jedi_language_server.setup { capabilities = capabilities }
+            lspconfig['pylsp'].setup {
+                capabilities = capabilities,
+                settings = {
+                    pylsp = {
+                        plugins = {
+                            jedi_completion = {
+                                include_params = true,
+                            },
+
+                            -- PEP8 체크 (pycodestyle) 플러그인 옵션
+                            pycodestyle = {
+                                enabled = true,
+                                -- 아래에 무시할 PEP8/pycodestyle 코드를 넣으세요
+                                ignore = { "E501", "W291", "W391", "W503" },
+                                -- 한 줄 최대 길이 제한 변경 (기본 79)
+                                maxLineLength = 100,
+                            },
+                            pyflakes = {
+                                enabled = false,
+                            }
+                        },
+                    },
+                },
+            }
 
             local cmp = require 'cmp'
             local luasnip = require 'luasnip'
