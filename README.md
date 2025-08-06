@@ -1,65 +1,131 @@
 # dotfiles
 
-## Usage
+Personal development environment configuration using Neovim, Zsh, and various tools.
+
+## Quick Install
 
 ```bash
-git clone git@github.com:SeongwoongCho/dotfiles.git ~/.dotfiles; cd ~/.dotfiles; bash src/install.sh;
+git clone git@github.com:SeongwoongCho/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+bash src/install.sh
 ```
 
-## Features | Plugins
-- ZSH features & plugins (see `zshrc` file) 
-    - oh-my-zsh, alias-tips, zsh-syntax-highlighting, zsh-autosuggestions
-- VIM features & Plugins (see `lua/plugins` directory)
-    - ale.lua : Asynchronous Lint Engine for vim (removing trailing white spaces, PEP8 checker, import order fixer, etc.)
-    - avante.lua : Cursor-style AI assistant for vim
-        - I currently only consider 'copilot', which is installed automatically along with avante, and you have to input ':Copilot Setup' for authentication. 
-    - telescope.lua: Advanced Fuzzy finder for vim (seems to be better than ctrlp)
-    - snacks.lua, vim-airline.lua, oceanic-next.lua: UI for vim
-    - treesitter.lua: Syntax parser for vim
-    - jedi-vim.lua: Python autocompletion for vim
-    - render-markdown.lua: rendering markdown in the vim 
-- lazy-lock.json : Contains verified version of plugins  
+## Core Features
 
-## VIM Key bindings
-- Basic shortcuts
-    - F2 : turn off search highlight
-    - F3 : turn on search highlight based on keyword at current cursor position
-    - F4 : trailing whitespaces from all lines
-    - F5 : turn on PEP8 checker
-    - F6 : turn off PEP8 checker
-    - F8 : paste toggle (on/off)
-    - F9 : toggle line number (useful when copying a block of lines without line numbers)
-    - =G : auto fix indentation (sometimes not working under the codes with comments)
+### 🖥️ Terminal Environment
+- **Shell**: Zsh with Oh-My-Zsh
+- **Theme**: TangoDark terminal color scheme
+- **Font**: D2Coding Mono Hack (Nerd Font compatible)
 
-- Avante shortscuts
-    - ? : toggle avante sidebar (AI assistant) on/off
-    - \> : Switch from code / sidebar to sidebar / code
-    - tab : switch panes in sidebar.
-    - ]], [[ : jump to next/previous provided (by the AI) code block (function, class, etc.)
-    - ]x, [x : jump to next/previous conflicts 
+### ⚡ Zsh Configuration
+- **Theme**: mrtazz_custom
+- **Plugins**: 
+  - alias-tips
+  - zsh-syntax-highlighting  
+  - zsh-autosuggestions
+- **Features**:
+  - Custom LS_COLORS
+  - FZF integration with fd
+  - History with timestamps
+  - Newline before each prompt
 
-- FuzzyFinding
-    - <C-p> : fuzzy find file by name
-    - <C-o> : fuzzy find file by content
+### 🚀 Neovim Setup (Lazy.nvim)
+Modern Neovim configuration with LSP support and advanced features.
 
-- ...
+#### LSP Servers & Language Support
+- **C/C++**: clangd with clang-tidy integration
+- **Python**: pylsp + jedi_language_server (dual setup)
+- **Lua**: lua_ls with Neovim-specific settings
+- **Auto-installation**: Mason + mason-lspconfig
 
-## Infos
-- terminal info (iterm 2): <br>
-    - type: xterm <br>
-    - colorscheme: New Black <br>
-    - font: Hack Nerd Font  
-    - font quality: Natural ClearType
-    - bold: Use bold color and font
+#### Key Plugins
+- **telescope.lua**: Fuzzy finder and file navigation
+- **nvim-cmp.lua**: Intelligent autocompletion with LSP
+- **treesitter.lua**: Advanced syntax highlighting and parsing
+- **gitsigns.lua**: Git integration with inline diff markers
+- **formatter.lua**: Code formatting with configurable timeout
+- **oceanic-next.lua**: Color scheme
+- **snacks.lua + lualine.lua**: Modern UI components
+- **nvim-tree.lua**: File explorer
+- **markview.lua**: Enhanced markdown rendering
+- **yanky.lua**: Enhanced yank/paste functionality
+- **nvim-dap-ui.lua**: Debug adapter protocol UI  
 
-## Trouble shooting 
-- All special characters are not displayed properly in the terminal. <br>
-    - Solution: Change the font to 'Hack Nerd Font'.
+## ⌨️ Key Bindings
 
-## TODOs
-- fix treesitter for python parser. -- fix by disabling treesitter for python.
-- image preview is not working in Telescope.
-- auto fixing indentation by '=G' does not work sometimes.
-- <F9> toggle line number is not working properly. -- numberwidth for linenumber is remained.
-- Avante Toggle ("?") automatically enters INSERT mode. -- fixed by adding 'normal' mode after entering INSERT mode.
-- Add jupyter lab configuration.
+### Leader Keys
+- **Leader**: `,` (comma)
+- **Local Leader**: `.` (period) - used for debugger
+
+### Essential Shortcuts
+- **`,R`**: Reload vimrc configuration
+- **`@`**: Turn off search highlight  
+- **`,s`**: Save current file
+- **`F8`**: Toggle paste mode
+- **`F9`**: Toggle line numbers
+
+### Navigation & Buffers
+- **`[b`** / **`]b`**: Previous/Next buffer
+- **`,g`**: Go to previous location (after go-to-definition)
+
+### Development Tools
+- **`,b`** / **`,v`**: Insert Python ipdb breakpoint (above/below)
+- **`=G`**: Auto-fix indentation
+
+### Fuzzy Finding (Telescope)
+- **`<C-p>`**: Find files by name
+- **`<C-o>`**: Find files by content (live grep)
+
+### Visual Mode
+- **`<`** / **`>`**: Indent left/right while keeping selection
+
+## 🔧 Installation Details
+
+### Prerequisites
+The installation script (`src/install.sh`) automatically handles:
+- Oh-My-Zsh installation
+- Neovim plugin management via Lazy.nvim
+- LSP servers via Mason
+- Required dependencies and libraries
+
+## 🎨 Theme & Font Setup
+
+### Terminal Configuration
+- **Color Scheme**: TangoDark
+- **Font**: D2Coding Mono (Nerd Font)
+- **Font Features**: 
+  - Ligature support
+  - Powerline symbols
+  - Nerd Font icons
+
+### Neovim Color Scheme
+- **Main Theme**: Oceanic Next
+- **UI Components**: Modern statusline with lualine
+- **Syntax**: Enhanced with Treesitter
+
+## 🚨 Troubleshooting
+
+### Common Issues
+- **Special characters not displaying**: Install D2Coding Mono Hack Nerd Font
+- **LSP not working**: Restart Neovim after initial setup for Mason to install servers
+- **Formatter timeout**: Increased to 2000ms for better reliability
+
+### Known Limitations  
+- Image preview in Telescope may not work in all terminals
+- Auto-indentation (`=G`) may have issues with complex comment blocks
+
+## 📁 Project Structure
+
+```
+~/.dotfiles/
+├── init.lua              # Neovim entry point
+├── lua/
+│   ├── config/           # Core configuration
+│   │   ├── keymaps.lua   # Key mappings
+│   │   ├── options.lua   # Neovim options  
+│   │   └── lazy.lua      # Plugin manager setup
+│   └── plugins/          # Plugin configurations
+├── src/                  # Installation scripts
+├── zshrc                 # Zsh configuration
+└── assets/              # Color schemes and resources
+```
