@@ -18,6 +18,7 @@ return {
             'petertriho/cmp-git',
             -- 'Exafunction/windsurf.vim'
         },
+        -- comments
         event = "InsertEnter",
         config = function()
             -- Store capabilities globally for mason-lspconfig to use
@@ -71,6 +72,7 @@ return {
                         }
                     }
                 },
+
                 window = {
                     completion = cmp.config.window.bordered(),
                     documentation = cmp.config.window.bordered(),
@@ -82,41 +84,42 @@ return {
                     }
                 },
                 mapping = cmp.mapping.preset.insert({
-                    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-                    ['<C-f>'] = cmp.mapping.scroll_docs(4),
                     ['<C-Space>'] = cmp.mapping.complete(),
                     ['<CR>'] = cmp.mapping.confirm {
                         behavior = cmp.ConfirmBehavior.Replace,
                         select = true,
                     },
-                    ['<Tab>'] = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_next_item()
-                        elseif luasnip.expand_or_jumpable() then
-                            luasnip.expand_or_jump()
-                        else
-                            fallback()
-                        end
-                    end, { 'i', 's' }),
-                    ['<S-Tab>'] = cmp.mapping(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_prev_item()
-                        elseif luasnip.jumpable(-1) then
-                            luasnip.jump(-1)
-                        else
-                            fallback()
-                        end
-                    end, { 'i', 's' }),
+                    -- ['<S-Down>'] = cmp.mapping(function(fallback)
+                    --     if cmp.visible() then
+                    --         cmp.select_next_item()
+                    --     elseif luasnip.expand_or_jumpable() then
+                    --         luasnip.expand_or_jump()
+                    --     else
+                    --         fallback()
+                    --     end
+                    -- end, { 'i', 's' }),
+                    -- ['<S-Up>'] = cmp.mapping(function(fallback)
+                    --     if cmp.visible() then
+                    --         cmp.select_prev_item()
+                    --     elseif luasnip.jumpable(-1) then
+                    --         luasnip.jump(-1)
+                    --     else
+                    --         fallback()
+                    --     end
+                    -- end, { 'i', 's' }),
                 }),
                 sources = cmp.config.sources({
-                    { name = 'nvim_lsp',   priority = 1000 },
-                    { name = 'codeium',    priority = 800 },
+                    { name = 'codeium',    priority = 1000 },
+                    { name = 'nvim_lsp',   priority = 800 },
                     { name = 'luasnip',    priority = 750 },
                     { name = 'buffer',     priority = 500 },
                     { name = 'path',       priority = 250 },
                     { name = 'treesitter', priority = 300 },
                     { name = 'git',        priority = 200 },
-                })
+                }),
+                experimental = {
+                    ghost_text = true,
+                },
             }
 
             -- Setup cmdline completion
@@ -137,5 +140,4 @@ return {
             })
         end
     }
-
 }
