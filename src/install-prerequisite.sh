@@ -15,6 +15,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc 
 DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh wget curl git htop libgl1 libglib2.0-0 rsync fzf
 DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
 DEBIAN_FRONTEND=noninteractive apt-get install -y clang-format clang clangd clangd-12 libomp-14-dev gdb
+DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
 cargo install git-delta
 
 # vscode cpp extension: https://github.com/microsoft/vscode-cpptools/releases

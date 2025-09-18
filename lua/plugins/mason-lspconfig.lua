@@ -14,15 +14,15 @@ return {
         })
 
         require("mason-lspconfig").setup_handlers({
-            function (server_name)
+            function(server_name)
                 local capabilities = _G.lsp_capabilities or {}
-                require("lspconfig")[server_name].setup({
+                vim.lsp.config(server_name, {
                     capabilities = capabilities,
                 })
             end,
             ["clangd"] = function()
                 local capabilities = _G.lsp_capabilities or {}
-                require("lspconfig").clangd.setup({
+                vim.lsp.config("cland", {
                     capabilities = capabilities,
                     cmd = {
                         "clangd",
@@ -42,7 +42,7 @@ return {
             end,
             ["lua_ls"] = function()
                 local capabilities = _G.lsp_capabilities or {}
-                require("lspconfig").lua_ls.setup({
+                vim.lsp.config("lua_ls", {
                     capabilities = capabilities,
                     settings = {
                         Lua = {
@@ -64,7 +64,7 @@ return {
             end,
             ["pylsp"] = function()
                 local capabilities = _G.lsp_capabilities or {}
-                require("lspconfig").pylsp.setup({
+                vim.lsp.config("pylsp", {
                     capabilities = capabilities,
                     settings = {
                         pylsp = {
@@ -87,7 +87,7 @@ return {
             end,
             ["jedi_language_server"] = function()
                 local capabilities = _G.lsp_capabilities or {}
-                require("lspconfig").jedi_language_server.setup({
+                vim.lsp.config("jedi_language_server", {
                     capabilities = capabilities,
                 })
             end,

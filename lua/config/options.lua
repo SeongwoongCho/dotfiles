@@ -36,3 +36,7 @@ vim.opt.splitbelow = true       -- split bottom window if needed
 vim.opt.lazyredraw = true       -- don't update screen during macro and script execution
 vim.opt.equalalways = false
 vim.opt.signcolumn = 'yes'
+
+-- clipboard
+-- vim.opt.clipboard:append("unnamedplus")
+vim.g.clipboard = "osc52"

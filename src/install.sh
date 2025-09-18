@@ -79,6 +79,13 @@ ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr
 chmod +x /usr/bin/OpenDebugAD7
 nvim --headless "+TSUninstall python" -c "q"
 
+# codeium
+# todo: 이 시점에서 .cache/nvim/codeium이 있는지 확인
+chown -R root:root ~/.cache/nvim/codeium
+chmod -R 755 ~/.cache/nvim/codeium
+# register codeium key automatically
+echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' >> ~/.cache/nvim/codeium/config.json
+
 #==================================================#
 # set zsh to the default shell
 echo; echo '** set ZSH as default shell.'
