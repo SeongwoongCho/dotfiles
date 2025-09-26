@@ -9,8 +9,8 @@ return {
         require("mason").setup()
 
         require("mason-lspconfig").setup({
-            ensure_installed = { "clangd", "lua_ls", "pylsp", "jedi_language_server" }, -- 원하는 서버 나열
-            automatic_installation = true,                                              -- old automatic_enable 대체
+            ensure_installed = { "clangd", "lua_ls", "pylsp", "jedi_language_server", "bashls" }, -- 원하는 서버 나열
+            automatic_installation = true,                                                        -- old automatic_enable 대체
         })
 
         require("mason-lspconfig").setup_handlers({
