@@ -58,7 +58,7 @@ git clone https://github.com/zplug/zplug $HOME/.zplug
 # download neovim plugins from lazy.nvim
 nvim --headless "+Lazy! install" +qa
 # nvim --headless "+Lazy! update" +qa
-uv pip install pylatexenc
+uv pip install --system pylatexenc
 
 nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
 
@@ -80,7 +80,7 @@ chmod +x /usr/bin/OpenDebugAD7
 nvim --headless "+TSUninstall python" -c "q"
 
 # codeium
-# todo: 이 시점에서 .cache/nvim/codeium이 있는지 확인
+# todo: we have to explicitly run the following code. Fix this to automate. 
 chown -R root:root ~/.cache/nvim/codeium
 chmod -R 755 ~/.cache/nvim/codeium
 # register codeium key automatically

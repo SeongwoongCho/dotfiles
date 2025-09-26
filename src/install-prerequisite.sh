@@ -73,11 +73,11 @@ uv self update
 
 # vim plugin Prerequisites
 ## jedi-vim
-uv pip install pynvim
+uv pip install --system pynvim
 ##  ale
-uv pip install isort
+uv pip install --system isort
 # gpustat
-uv pip install gpustat==1.0.0
+uv pip install --system gpustat
 # precommit & formmater
-uv pip install pre-commit
-uv pip install black
+uv pip install --system pre-commit
+uv pip install --system black
