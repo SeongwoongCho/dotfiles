@@ -114,6 +114,14 @@ The installation script (`src/install.sh`) automatically handles:
 - Image preview in Telescope may not work in all terminals
 - Auto-indentation (`=G`) may have issues with complex comment blocks
 
+### Codeium
+Please run the following code in case codeium is not properly working. 
+
+```
+chown -R root:root ~/.cache/nvim/codeium
+chmod -R 755 ~/.cache/nvim/codeium
+```
+
 ## 📁 Project Structure
 
 ```

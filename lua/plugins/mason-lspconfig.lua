@@ -22,7 +22,8 @@ return {
             end,
             ["clangd"] = function()
                 local capabilities = _G.lsp_capabilities or {}
-                vim.lsp.config("cland", {
+                vim.lsp.enable('clangd')
+                vim.lsp.config("clangd", {
                     capabilities = capabilities,
                     cmd = {
                         "clangd",
@@ -42,6 +43,7 @@ return {
             end,
             ["lua_ls"] = function()
                 local capabilities = _G.lsp_capabilities or {}
+                vim.lsp.enable('lua_ls')
                 vim.lsp.config("lua_ls", {
                     capabilities = capabilities,
                     settings = {
@@ -64,6 +66,7 @@ return {
             end,
             ["pylsp"] = function()
                 local capabilities = _G.lsp_capabilities or {}
+                vim.lsp.enable('pylsp')
                 vim.lsp.config("pylsp", {
                     capabilities = capabilities,
                     settings = {
@@ -86,6 +89,7 @@ return {
                 })
             end,
             ["jedi_language_server"] = function()
+                vim.lsp.enable('jedi_language_server')
                 local capabilities = _G.lsp_capabilities or {}
                 vim.lsp.config("jedi_language_server", {
                     capabilities = capabilities,
