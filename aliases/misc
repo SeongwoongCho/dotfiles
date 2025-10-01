@@ -1,13 +1,12 @@
 #! /bin/bash
 
-# backup existing dotfiles. 
+# backup existing dotfiles.
 # (buo : back-up-original)
-function buo(){
+function buo() {
     backup_dir="$HOME/dotfiles_backup"
     for name in "$@"; do
         path="$HOME/$name"
-        if [ -f $path ] || [ -h $path ] || [ -d $path ];
-        then
+        if [ -f $path ] || [ -h $path ] || [ -d $path ]; then
             mkdir -p $backup_dir
             new_path="$backup_dir/$name"
             printf "Found '$path'. Backing up to '$new_path\n"
@@ -22,6 +21,7 @@ alias tmux='tmux -u'
 # visdom
 alias vim='nvim'
 alias vis='python -m visdom.server'
+alias vimconflicts="vim $(git diff --name-only --diff-filter=U)"
 
 # jupyter notebook
 alias jn='jupyter notebook'
@@ -32,7 +32,7 @@ alias jla='jupyter lab --ip 0.0.0.0 --allow-root'
 # gpu
 alias gpu="watch --color -n.5 gpustat --color"
 alias gpusmi="watch -n.5 nvidia-smi"
-function usegpu(){
+function usegpu() {
     if [ ! -z "$1" ]; then
         export CUDA_VISIBLE_DEVICES=$1
     else
@@ -49,15 +49,14 @@ alias cmakeauto2_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR
 
 # color print for quantizer
 # alias colorprint = "cat log.txt | sed -E 's/\[([0-9;]+)m/\x1b[\1m/g'
-function colorprint(){
+function colorprint() {
     cmd="cat $1 | sed -E 's/\[([0-9;]+)m/\x1b[\1m/g'"
     eval $cmd
 }
 
-
 # hpu
 alias hpusmi="watch -n.5 hl-smi"
-function usehpu(){
+function usehpu() {
     if [ ! -z "$1" ]; then
         export HABANA_VISIBLE_MODULES=$1
     else
@@ -75,16 +74,16 @@ alias tblist='ps -ef | grep "tensorboard"'
 alias pylist='ps -ef | grep "python"'
 
 # custom rsync
-function myrsync(){
+function myrsync() {
     port=$1
     remainder=$2
-    cmd="rsync -avzhe 'ssh -p ${port}' ${remainder}" 
+    cmd="rsync -avzhe 'ssh -p ${port}' ${remainder}"
     echo $cmd
     eval $cmd
 }
 
-function howmany(){
-    function help(){
+function howmany() {
+    function help() {
         echo 'Count the number of files with PATTERN in a specific location LOCATION'
         echo 'Usage: howmany LOCATION "PATTERN"'
         echo 'Example: howmany /path/to/your/images/ "*.jpg"'
@@ -104,11 +103,10 @@ function howmany(){
     fi
 }
 
-function pyclean(){
+function pyclean() {
     cmd="find . | grep -E '(/__pycache__$|\.pyc$|\.pyo$|\.ipynb_checkpoints$)' | xargs rm -rf"
     echo $cmd
     eval $cmd
 }
 
 # fzf
-
