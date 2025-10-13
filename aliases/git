@@ -10,7 +10,6 @@ alias gcmd='git commit -m "."'
 alias gcl='git clone'
 alias gps='git push'
 alias gpl='git pull'
-alias gra
 
 function gclone(){
     user=$1
