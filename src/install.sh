@@ -72,8 +72,6 @@ nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bas
 # mason setup
 nvim --headless "MasonInstall clangd" +qa
 
-
-
 # vscode symlink
 ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
 chmod +x /usr/bin/OpenDebugAD7
@@ -85,6 +83,9 @@ chown -R root:root ~/.cache/nvim/codeium
 chmod -R 755 ~/.cache/nvim/codeium
 # register codeium key automatically
 echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' >> ~/.cache/nvim/codeium/config.json
+
+# install claude code
+npm install -g @anthropic-ai/claude-code
 
 #==================================================#
 # set zsh to the default shell

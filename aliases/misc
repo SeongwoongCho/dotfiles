@@ -21,7 +21,7 @@ alias tmux='tmux -u'
 # visdom
 alias vim='nvim'
 alias vis='python -m visdom.server'
-alias vimconflicts="vim $(git diff --name-only --diff-filter=U)"
+alias vimconflicts='vim $(git diff --name-only --diff-filter=U)'
 
 # jupyter notebook
 alias jn='jupyter notebook'
