@@ -12,7 +12,7 @@ if ! command -v tree-sitter >/dev/null 2>&1; then
 fi
 
 DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
-DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh wget curl git htop libgl1 libglib2.0-0 rsync fzf
+DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh ssh wget curl git htop libgl1 libglib2.0-0 rsync fzf
 DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
 DEBIAN_FRONTEND=noninteractive apt-get install -y shfmt, clang-format clang clangd clangd-12 libomp-14-dev gdb
 DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
@@ -81,3 +81,29 @@ uv pip install --system pre-commit
 uv pip install --system black
 uv pip install --system jedi_language_server
 uv pip install --system python-lsp-server
+
+# thefuck
+uv pip install --system thefuck
+
+##### mobilint libraries #####
+# Add Mobilint's official GPG key:
+apt update
+apt install ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://dl.mobilint.com/apt/gpg.pub -o /etc/apt/keyrings/mblt.asc
+chmod a+r /etc/apt/keyrings/mblt.asc
+
+# Add the repository to apt sources:
+printf "%s\n" \
+    "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt \
+    stable multiverse" \
+    "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt \
+    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") multiverse" | \
+    tee /etc/apt/sources.list.d/mobilint.list > /dev/null
+
+# Update available packages
+apt update
+apt-get install mobilint-cli
+
+## maccel
+uv pip install --system maccel

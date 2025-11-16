@@ -98,3 +98,5 @@ bindkey "^[[1;3D" backward-word
 # fash compilation
 export CC='ccache gcc'
 export CXX='ccache g++'
+
+eval $(thefuck --alias)
