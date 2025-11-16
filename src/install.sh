@@ -89,6 +89,11 @@ nvim --headless "+TSUninstall python" -c "q"
 
 # install claude code
 npm install -g @anthropic-ai/claude-code
+claude mcp add sequential-thinking npx -- -y @modelcontextprotocol/server-sequential-thinking
+claude mcp add --transport http context7 https://mcp.context7.com/mcp
+claude mcp add apidog -- npx -y apidog-mcp-server@latest --oas=https://petstore.swagger.io/v2/swagger.json
+claude mcp add memory -- npx -y @modelcontextprotocol/server-memory
+claude mcp add server-filesystem-- npx -- -y @modelcontextprotocol/server-filesystem
 
 #==================================================#
 # set zsh to the default shell
