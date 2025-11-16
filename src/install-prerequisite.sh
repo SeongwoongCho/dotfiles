@@ -14,8 +14,14 @@ fi
 DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
 DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh ssh wget curl git htop libgl1 libglib2.0-0 rsync fzf
 DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
-DEBIAN_FRONTEND=noninteractive apt-get install -y shfmt, clang-format clang clangd clangd-12 libomp-14-dev gdb
+DEBIAN_FRONTEND=noninteractive apt-get install -y clang-format clang clangd clangd-12 libomp-dev gdb
 DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
+
+# shfmt
+curl -sS https://webi.sh/shfmt | sh
+source ~/.config/envman/PATH.env
+
+# git delta
 cargo install git-delta
 
 # vscode cpp extension: https://github.com/microsoft/vscode-cpptools/releases
@@ -98,8 +104,8 @@ printf "%s\n" \
     "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt \
     stable multiverse" \
     "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt \
-    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") multiverse" | \
-    tee /etc/apt/sources.list.d/mobilint.list > /dev/null
+    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") multiverse" |
+    tee /etc/apt/sources.list.d/mobilint.list >/dev/null
 
 # Update available packages
 apt update
