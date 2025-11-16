@@ -55,6 +55,15 @@ echo
 echo '** download zsh plugin manager, zplug.'
 git clone https://github.com/zplug/zplug $HOME/.zplug
 
+# codeium
+mkdir -p ~/.cache/nvim/codeium
+chown -R $(whoami):$(whoami) ~/.cache/nvim/codeium
+chmod -R 755 ~/.cache/nvim/codeium
+# register codeium key automatically
+rm -f ~/.cache/nvim/codeium/config.json
+touch ~/.cache/nvim/codeium/config.json
+echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' >>~/.cache/nvim/codeium/config.json
+
 #==================================================#
 # download neovim plugins from lazy.nvim
 nvim --headless "+Lazy! install" +qa
@@ -77,15 +86,6 @@ nvim --headless "MasonInstall clangd" +qa
 ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
 chmod +x /usr/bin/OpenDebugAD7
 nvim --headless "+TSUninstall python" -c "q"
-
-# codeium
-# todo: we have to explicitly run the following code. Fix this to automate.
-chown -R root:root ~/.cache/nvim/codeium
-chmod -R 755 ~/.cache/nvim/codeium
-# register codeium key automatically
-rm -f ~/.cache/nvim/codeium/config.json
-touch ~/.cache/nvim/codeium/config.json
-echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' >>~/.cache/nvim/codeium/config.json
 
 # install claude code
 npm install -g @anthropic-ai/claude-code
