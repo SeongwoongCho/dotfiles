@@ -1,16 +1,22 @@
-#! /bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-rm -rf $HOME/.oh-my-zsh
-rm -rf $HOME/.aliases
-rm -rf $HOME/.tmux.conf
-rm -rf $HOME/.gitconfig
-rm -rf $HOME/.gitconfig.secret
-rm -rf $HOME/.Xmodmap
-rm -rf $HOME/.vimrc
-rm -rf $HOME/.config/nvim
-rm -rf $HOME/.local/share/nvim
-rm -rf $HOME/.local/state/nvim
-rm -rf $HOME/.vim
-rm -rf $HOME/.zshrc
-rm -rf $HOME/.gitconfig.secret
-rm -rf $HOME/.fzf*
+targets=(
+    "$HOME/.oh-my-zsh"
+    "$HOME/.aliases"
+    "$HOME/.tmux.conf"
+    "$HOME/.gitconfig"
+    "$HOME/.gitconfig.secret"
+    "$HOME/.Xmodmap"
+    "$HOME/.vimrc"
+    "$HOME/.config/nvim"
+    "$HOME/.local/share/nvim"
+    "$HOME/.local/state/nvim"
+    "$HOME/.vim"
+    "$HOME/.zshrc"
+    "$HOME/.fzf"*
+)
+
+for path in "${targets[@]}"; do
+    rm -rf "$path"
+done

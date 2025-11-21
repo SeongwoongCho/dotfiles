@@ -1,115 +1,106 @@
-###### APT #####
+#!/usr/bin/env bash
+set -euo pipefail
+
+log() { printf '\n>> %s\n' "$1"; }
+
+APT_INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -y"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+log "update apt sources and install base tools"
 apt-get update
 apt-get install -y software-properties-common curl
 add-apt-repository -y ppa:neovim-ppa/unstable
 apt-get update
 curl -s https://deb.nodesource.com/setup_20.x | bash
-# install cargo
+
+log "install rust and tree-sitter"
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 export PATH="$HOME/.cargo/bin:$PATH"
 if ! command -v tree-sitter >/dev/null 2>&1; then
-    cargo install --locked tree-sitter-cli # for latex parser
+    cargo install --locked tree-sitter-cli
 fi
 
-DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
-DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh ssh wget curl git htop libgl1 libglib2.0-0 rsync fzf
-DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
-DEBIAN_FRONTEND=noninteractive apt-get install -y clang-format clang clangd clangd-12 libomp-dev gdb
-DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
+log "install apt packages"
+${APT_INSTALL} sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
+${APT_INSTALL} unzip zip zsh ssh wget curl git htop rsync fzf libgl1 libglib2.0-0
+${APT_INSTALL} tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
+${APT_INSTALL} clang-format clang clangd clangd-12 libomp-dev gdb
+${APT_INSTALL} python3-venv
 
-# shfmt
+log "install shfmt"
 curl -sS https://webi.sh/shfmt | sh
-source ~/.config/envman/PATH.env
+if [ -f ~/.config/envman/PATH.env ]; then
+    # shellcheck source=/dev/null
+    source ~/.config/envman/PATH.env
+fi
 
-# git delta
+log "install git-delta"
 cargo install git-delta
 
-# vscode cpp extension: https://github.com/microsoft/vscode-cpptools/releases
+log "install vscode c++ extension"
 wget https://github.com/microsoft/vscode-cpptools/releases/download/v1.24.1/cpptools-linux-x64.vsix
 unzip cpptools-linux-x64.vsix -d cpptools-linux-x64/
 rm -r cpptools-linux-x64.vsix
 
-# neovim #
-DEBIAN_FRONTEND=noninteractive apt-get install -y ninja-build gettext cmake unzip curl build-essential
+log "build neovim from source"
+${APT_INSTALL} ninja-build gettext cmake unzip curl build-essential
 git clone https://github.com/neovim/neovim -b v0.11.3 ~/.neovim
-cd ~/.neovim && CC=gcc CXX=g++ make CMAKE_BUILD_TYPE=RelWithDebInfo
+pushd ~/.neovim >/dev/null
+CC=gcc CXX=g++ make CMAKE_BUILD_TYPE=RelWithDebInfo
 make install
-cd ~/.dotfiles
+popd >/dev/null
 
-# # ###### TMUX #####
-# echo **** Installing Latest tmux from the source ****
-# apt-get remove -y tmux
-#
-# ## tmux
-# git clone https://github.com/tmux/tmux.git ~/.tmux
-# cd .tmux
-# sh autogen.sh
-# ./configure && make
-# cd ~/.dotfiles
-
-###### LUA #####
-echo **** Installing Lua ****
-mkdir lua_build && cd lua_build
+log "install lua 5.1.5"
+LUA_TMP=$(mktemp -d)
+pushd "$LUA_TMP" >/dev/null
 wget http://www.lua.org/ftp/lua-5.1.5.tar.gz
 tar zxf lua-5.1.5.tar.gz
 cd lua-5.1.5
 make linux test
 make install
-cd ../.. && rm -r lua_build
+popd >/dev/null
+rm -rf "$LUA_TMP"
 
-echo **** Installing Luarocks ****
-mkdir lua_build && cd lua_build
+log "install luarocks"
+LUAROCKS_TMP=$(mktemp -d)
+pushd "$LUAROCKS_TMP" >/dev/null
 wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz
 tar zxpf luarocks-3.11.1.tar.gz
 cd luarocks-3.11.1
 ./configure && make && make install
 luarocks install luasocket
-cd ../.. && rm -r lua_build
+popd >/dev/null
+rm -rf "$LUAROCKS_TMP"
 
-###### Installing Kitty backend & magick for image visualization (image.nvim) in vim #####
+log "install kitty backend and magick"
 curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin
 luarocks --lua-version=5.1 install magick
-DEBIAN_FRONTEND=noninteractive apt-get install -y imagemagick libmagickwand-dev
+${APT_INSTALL} imagemagick libmagickwand-dev
 
-###### PIP #####
+log "install python tooling with uv"
 pip install uv
 uv self update
-
-# vim plugin Prerequisites
-## jedi-vim
 uv pip install --system pynvim
-##  ale
 uv pip install --system isort
-# gpustat
 uv pip install --system gpustat
-# precommit & formmater
 uv pip install --system pre-commit
 uv pip install --system black
 uv pip install --system jedi_language_server
 uv pip install --system python-lsp-server
-
-# thefuck
 uv pip install --system thefuck
 
-##### mobilint libraries #####
-# Add Mobilint's official GPG key:
-apt update
-apt install ca-certificates curl
+log "add mobilint apt source and tools"
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://dl.mobilint.com/apt/gpg.pub -o /etc/apt/keyrings/mblt.asc
 chmod a+r /etc/apt/keyrings/mblt.asc
-
-# Add the repository to apt sources:
 printf "%s\n" \
-    "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt \
-    stable multiverse" \
-    "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt \
-    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") multiverse" |
+    "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt stable multiverse" \
+    "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") multiverse" |
     tee /etc/apt/sources.list.d/mobilint.list >/dev/null
-
-# Update available packages
-apt update
-apt-get install mobilint-cli
-
-## maccel
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y mobilint-cli
 uv pip install --system maccel
+
+cd "$ROOT_DIR"
