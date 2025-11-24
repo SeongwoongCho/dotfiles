@@ -63,6 +63,7 @@ chmod -R 755 ~/.cache/nvim/codeium
 rm -f ~/.cache/nvim/codeium/config.json
 touch ~/.cache/nvim/codeium/config.json
 echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' >>~/.cache/nvim/codeium/config.json
+chmod -R 755 ~/.cache/nvim/codeium
 
 #==================================================#
 # download neovim plugins from lazy.nvim
