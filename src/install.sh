@@ -50,10 +50,7 @@ ln -sf "$DOT_DIR/aliases" "$HOME/.aliases"
 ln -sf "$DOT_DIR/gitconfig" "$HOME/.gitconfig"
 ln -sf "$DOT_DIR/zshrc" "$HOME/.zshrc"
 ln -sf "$DOT_DIR/coc-settings.json" "$HOME/.config/nvim/coc-settings.json"
-
-log "download oh-my-zsh."
-bash "$DOT_DIR/src/install-omz.sh"
-ln -sf "$DOT_DIR/assets/mrtazz_custom.zsh-theme" "$HOME/.oh-my-zsh/themes/"
+ln -sf "$DOT_DIR/sshconfig" "$HOME/.ssh/config"
 
 log "download zsh plugin manager, zplug."
 if [ ! -d "$HOME/.zplug" ]; then
@@ -65,6 +62,7 @@ chown -R "$(whoami)":"$(whoami)" ~/.cache/nvim/codeium
 chmod -R 755 ~/.cache/nvim/codeium
 rm -f ~/.cache/nvim/codeium/config.json
 echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' >>~/.cache/nvim/codeium/config.json
+chmod -R 755 ~/.cache/nvim/codeium
 
 log "download neovim plugins from lazy.nvim."
 nvim --headless "+Lazy! install" +qa
@@ -93,6 +91,12 @@ claude mcp add server-filesystem-- npx -- -y @modelcontextprotocol/server-filesy
 npm i -g @openai/codex
 
 log "set ZSH as default shell."
+
+#==================================================#
+# set zsh to the default shell
+echo
+echo '** set ZSH as default shell.'
+>>>>>>> dd6c5b7f1bcdbc953c18fa9a8cfc2e14441e33dd
 locale-gen en_US.UTF-8
 if ! grep -qs "exec zsh" "$HOME/.bash_profile"; then
     echo "exec zsh" >>"$HOME/.bash_profile"

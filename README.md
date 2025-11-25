@@ -4,10 +4,21 @@ Personal development environment configuration using Neovim, Zsh, and various to
 
 ## Quick Install
 
+###  Install by cli command line
 ```bash
 git clone git@github.com:SeongwoongCho/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 bash src/install.sh
+```
+### Install by Docker 
+```bash
+#!/bin/bash
+docker build \
+  --build-arg USER_ID=$(id -u) \
+  --build-arg USER_NAME=$(id -un) \
+  -t ${IMAGE_NAME} .
+
+bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 ```
 
 ## Core Features

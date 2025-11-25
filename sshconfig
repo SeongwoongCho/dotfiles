@@ -1,0 +1,74 @@
+Host mobi35
+    HostName 192.168.10.35
+    User mobilint
+    # 산업용 PC, Aries2 설치
+
+Host mobi202
+    HostName 192.168.10.202
+    User mobilint
+    Port 7845
+    # 시험인증 서버, Aries2 설치
+
+Host mobi74
+    HostName 172.16.0.74
+    User mobilint
+    # MLX-A1
+
+Host mobi150
+    HostName 192.168.10.150
+    User user
+    # Aries2, A6000 Ada 48GB x2
+
+Host mobi200
+    HostName 192.168.10.200
+    User mobilint
+    # A5000 x2
+
+Host mobi132
+    HostName 192.168.10.132
+    User mobilint
+    # RTX 3090 x1, MLA100(Aries1) NPU
+
+Host mobi61
+    HostName 192.168.10.61
+    User mobilint
+    # TITAN RTX 2EA, MLA100(Aries2) NPU
+
+Host mobi131
+    HostName 192.168.10.131
+    User mobilint
+    # RTX 3090 3EA, MLA100(Aries2) NPU
+
+Host mobi69
+    HostName 192.168.10.69
+    User mobilint
+    # RTX 3090 2EA, MLA100(Aries2) NPU
+
+Host metam178
+    HostName 192.168.10.178
+    User mobilint
+    # MetaM Test Server, RTX 2080 Ti 4EA, MLA100 2EA (NPU)
+    
+Host mobi102
+    HostName 192.168.10.102
+    User mobilint
+    Port 7893
+    # NPU only, MLA100 4EA
+
+Host mobi201
+    HostName 192.168.10.201
+    User mobilint
+    Port 7892
+    # NPU only
+
+Host mobi25
+    HostName 192.168.10.25
+    User dgxuser
+    Port 2332
+    # (device 정보 미기재)
+
+Host mobi205
+    HostName 192.168.10.205
+    User mobilint
+    Port 8956
+    # (device 정보 미기재)
