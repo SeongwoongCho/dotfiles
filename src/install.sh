@@ -42,6 +42,7 @@ ln -sf $DOT_DIR/aliases $HOME/.aliases
 ln -sf $DOT_DIR/gitconfig $HOME/.gitconfig
 ln -sf $DOT_DIR/zshrc $HOME/.zshrc
 ln -sf $DOT_DIR/coc-settings.json $HOME/.config/nvim/coc-settings.json
+ln -sf $DOT_DIR/sshconfig $HOME/.ssh/config
 
 # #==================================================#
 echo
@@ -95,6 +96,9 @@ claude mcp add --transport http context7 https://mcp.context7.com/mcp
 claude mcp add apidog -- npx -y apidog-mcp-server@latest --oas=https://petstore.swagger.io/v2/swagger.json
 claude mcp add memory -- npx -y @modelcontextprotocol/server-memory
 claude mcp add server-filesystem-- npx -- -y @modelcontextprotocol/server-filesystem
+
+# install codex
+npm i -g @openai/codex
 
 #==================================================#
 # set zsh to the default shell
