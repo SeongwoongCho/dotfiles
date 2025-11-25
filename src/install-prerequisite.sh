@@ -2,8 +2,9 @@
 set -euo pipefail
 
 log() { printf '\n>> %s\n' "$1"; }
-
-APT_INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -y"
+apt_install() {
+    DEBIAN_FRONTEND=noninteractive apt-get install -y "$@"
+}
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 log "update apt sources and install base tools"
@@ -21,11 +22,11 @@ if ! command -v tree-sitter >/dev/null 2>&1; then
 fi
 
 log "install apt packages"
-${APT_INSTALL} sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
-${APT_INSTALL} unzip zip zsh ssh wget curl git htop rsync fzf libgl1 libglib2.0-0
-${APT_INSTALL} tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
-${APT_INSTALL} clang-format clang clangd clangd-12 libomp-dev gdb
-${APT_INSTALL} python3-venv
+apt_install sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
+apt_install  unzip zip zsh ssh wget curl git htop rsync fzf libgl1 libglib2.0-0
+apt_install  tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
+apt_install  clang-format clang clangd clangd-12 libomp-dev gdb
+apt_install  python3-venv
 
 log "install shfmt"
 curl -sS https://webi.sh/shfmt | sh
@@ -43,7 +44,7 @@ unzip cpptools-linux-x64.vsix -d cpptools-linux-x64/
 rm -r cpptools-linux-x64.vsix
 
 log "build neovim from source"
-${APT_INSTALL} ninja-build gettext cmake unzip curl build-essential
+apt_install  ninja-build gettext cmake unzip curl build-essential
 git clone https://github.com/neovim/neovim -b v0.11.3 ~/.neovim
 pushd ~/.neovim >/dev/null
 CC=gcc CXX=g++ make CMAKE_BUILD_TYPE=RelWithDebInfo
@@ -75,7 +76,7 @@ rm -rf "$LUAROCKS_TMP"
 log "install kitty backend and magick"
 curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin
 luarocks --lua-version=5.1 install magick
-${APT_INSTALL} imagemagick libmagickwand-dev
+apt_install imagemagick libmagickwand-dev
 
 log "install python tooling with uv"
 pip install uv
@@ -91,7 +92,7 @@ uv pip install --system thefuck
 
 log "add mobilint apt source and tools"
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl
+apt_install ca-certificates curl
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://dl.mobilint.com/apt/gpg.pub -o /etc/apt/keyrings/mblt.asc
 chmod a+r /etc/apt/keyrings/mblt.asc
@@ -100,7 +101,7 @@ printf "%s\n" \
     "deb [signed-by=/etc/apt/keyrings/mblt.asc] https://dl.mobilint.com/apt $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") multiverse" |
     tee /etc/apt/sources.list.d/mobilint.list >/dev/null
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y mobilint-cli
+apt_install mobilint-cli
 uv pip install --system maccel
 
 cd "$ROOT_DIR"
