@@ -110,3 +110,14 @@ autocmd('LspAttach', {
         bufmap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>')
     end
 })
+
+-- Fix codeium cache permissions on startup
+autocmd("VimEnter", {
+    pattern = "*",
+    callback = function()
+        local codeium_dir = vim.fn.expand("~/.cache/nvim/codeium")
+        if vim.fn.isdirectory(codeium_dir) == 1 then
+            vim.fn.system("chmod -R 755 " .. codeium_dir)
+        end
+    end,
+})
