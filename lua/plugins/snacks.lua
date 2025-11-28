@@ -8,7 +8,30 @@ return {
 		-- or leave it empty to use the default settings
 		-- refer to the configuration section below
 		bigfile = { enabled = true },
-		dashboard = { enabled = true },
+		dashboard = {
+			enabled = true,
+			sections = {
+				{ section = "header" },
+				{ section = "keys", gap = 1, padding = 1 },
+				{ section = "startup" },
+			},
+			preset = {
+				keys = {
+					{ icon = " ", key = "r", desc = "Session Search", action = ":AutoSession search" },
+					{ icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.picker.files()" },
+					{ icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
+					{ icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.picker.grep()" },
+					{
+						icon = " ",
+						key = "c",
+						desc = "Config",
+						action = ":lua Snacks.picker.files({cwd = vim.fn.stdpath('config')})",
+					},
+					{ icon = "󰒲 ", key = "l", desc = "Lazy", action = ":Lazy" },
+					{ icon = " ", key = "q", desc = "Quit", action = ":qa" },
+				},
+			},
+		},
 		indent = { enabled = true },
 		scope = { enabled = false },
 		input = { enabled = true },

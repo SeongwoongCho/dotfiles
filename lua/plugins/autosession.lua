@@ -12,7 +12,7 @@ return {
 	---@module "auto-session"
 	---@type AutoSession.Config
 	opts = {
-		-- The following are already the default values, no need to provide them if these are already the settings you want.
+		auto_restore = false, -- 자동 세션 복원 비활성화 (dashboard에서 수동으로 로드)
 		session_lens = {
 			picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also manually choose one. Falls back to vim.ui.select
 			mappings = {

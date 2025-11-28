@@ -74,6 +74,15 @@ return {
 				red = "#d78787",
 			}
 
+			-- Current 탭 배경과 비슷한 색상의 아이콘만 오버라이드
+			-- (연두/노란 계열 → 어두운 색으로)
+			local current_overrides = {
+				Txt = "#2d5016", -- 원래 #89E051 (연두)
+				Json = "#6b6b20", -- 원래 #CBCB41 (노란)
+				Yaml = "#3d4a4d", -- 원래 #6D8086 (회색)
+				Yml = "#3d4a4d",
+			}
+
 			-- barbar가 쓰는 상태 → 배경색 매핑
 			local status_bg = {
 				Current = colors.green, -- 선택 탭
@@ -83,31 +92,40 @@ return {
 			}
 
 			-- 개별 DevIcon 하이라이트에 상태별 bg 입히기
-			local function tint_one(base_hl, fg)
+			local function tint_one(base_hl, fg, name)
 				for suffix, bg in pairs(status_bg) do
-					vim.api.nvim_set_hl(0, base_hl .. suffix, { fg = fg, bg = bg })
+					local final_fg = fg
+					-- Current 탭에서만 오버라이드 적용
+					if suffix == "Current" and name and current_overrides[name] then
+						final_fg = current_overrides[name]
+					end
+					vim.api.nvim_set_hl(0, base_hl .. suffix, { fg = final_fg, bg = bg })
 				end
 			end
 
-			-- 기본 아이콘도 처리
-			local _, default_fg = devicons.get_icon_color("a.txt", "txt", { default = true })
-			default_fg = default_fg or colors.fg
-			tint_one("DevIconDefault", default_fg)
-
-			-- 모든 아이콘에 대해 처리
+			-- 모든 아이콘에 대해 처리 (color가 nil인 경우도 포함)
 			for _, ic in pairs(devicons.get_icons()) do
-				if ic.name and ic.color then
-					tint_one("DevIcon" .. ic.name, ic.color)
+				if ic.name then
+					local fg = ic.color or colors.fg
+					tint_one("DevIcon" .. ic.name, fg, ic.name)
 				end
 			end
+
+			-- 기본 아이콘도 처리 (등록되지 않은 파일 타입용)
+			local _, default_fg = devicons.get_icon_color("file", nil, { default = true })
+			default_fg = default_fg or colors.fg
+			tint_one("DevIconDefault", default_fg, nil)
 		end
 
 		-- 첫 적용
 		bubblegum_paint_devicon_bgs()
 
-		-- 컬러스킴/배경(라이트·다크) 바뀔 때 재적용
-		vim.api.nvim_create_autocmd({ "ColorScheme", "VimEnter" }, {
-			callback = bubblegum_paint_devicon_bgs,
+		-- 컬러스킴/배경(라이트·다크) 바뀔 때, 또는 새 버퍼 열 때 재적용
+		-- BufEnter: barbar가 새 파일 타입의 하이라이트를 만든 후 덮어쓰기 위해 필요
+		vim.api.nvim_create_autocmd({ "ColorScheme", "VimEnter", "BufEnter" }, {
+			callback = function()
+				vim.schedule(bubblegum_paint_devicon_bgs)
+			end,
 		})
 		vim.api.nvim_create_autocmd("OptionSet", {
 			pattern = "background",
