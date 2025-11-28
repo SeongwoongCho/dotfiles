@@ -21,7 +21,7 @@ vim.o.guicursor = "n-v-c-sm:block,i-ci-ve:block,r-cr-o:hor20"
 -- Can be ignored
 -- vim.opt.t_Co = 256
 vim.opt.termguicolors = true
-vim.opt.encoding = 'utf-8'
+vim.opt.encoding = "utf-8"
 vim.opt.compatible = false
 
 -- misc
@@ -30,12 +30,12 @@ vim.opt.history = 1000
 vim.opt.undolevels = 1000
 vim.opt.swapfile = false
 vim.opt.backup = false
-vim.opt.wrap = false      -- no line wrapping
-vim.opt.textwidth = 0     -- no line wrapping
+vim.opt.wrap = false -- no line wrapping
+vim.opt.textwidth = 0 -- no line wrapping
 vim.opt.splitbelow = true -- split bottom window if needed
 vim.opt.lazyredraw = true -- don't update screen during macro and script execution
 vim.opt.equalalways = false
-vim.opt.signcolumn = 'yes'
+vim.opt.signcolumn = "yes"
 
 -- clipboard
 -- vim.opt.clipboard:append("unnamedplus")

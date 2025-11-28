@@ -29,8 +29,18 @@ vim.keymap.set("v", "<", "<gv", { desc = "Indent line left" })
 vim.keymap.set("v", ">", ">gv", { desc = "Indent line right" })
 
 -- Insert ipdb breakpoint for Python debugging
-vim.keymap.set("n", "<leader>b", "O__import__('ipdb').set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint above" })
-vim.keymap.set("n", "<leader>v", "o__import__('ipdb').set_trace(context=15)<Esc>", { desc = "Insert ipdb breakpoint below" })
+vim.keymap.set(
+	"n",
+	"<leader>b",
+	"O__import__('ipdb').set_trace(context=15)<Esc>",
+	{ desc = "Insert ipdb breakpoint above" }
+)
+vim.keymap.set(
+	"n",
+	"<leader>v",
+	"o__import__('ipdb').set_trace(context=15)<Esc>",
+	{ desc = "Insert ipdb breakpoint below" }
+)
 
 -- go to the previous line after go-to-deifinition
 vim.keymap.set("n", "<leader>g", "<C-o>", { desc = "Go to previous location" })
@@ -42,24 +52,24 @@ vim.keymap.set("v", "y", '"+y', { noremap = true })
 
 -- Visual mode: search and replace selected text in entire file
 local function visual_search_replace()
-    -- Get the visually selected text
-    vim.cmd('noau normal! "vy"')
-    local search_text = vim.fn.getreg("v")
+	-- Get the visually selected text
+	vim.cmd('noau normal! "vy"')
+	local search_text = vim.fn.getreg("v")
 
-    -- Escape special characters for search pattern
-    search_text = vim.fn.escape(search_text, '/\\')
+	-- Escape special characters for search pattern
+	search_text = vim.fn.escape(search_text, "/\\")
 
-    -- Prompt for replacement text
-    local replace_text = vim.fn.input("Replace with: ")
-    if replace_text == "" then
-        return
-    end
+	-- Prompt for replacement text
+	local replace_text = vim.fn.input("Replace with: ")
+	if replace_text == "" then
+		return
+	end
 
-    -- Escape special characters for replacement text
-    replace_text = vim.fn.escape(replace_text, '/\\&~')
+	-- Escape special characters for replacement text
+	replace_text = vim.fn.escape(replace_text, "/\\&~")
 
-    -- Execute the substitution
-    vim.cmd(string.format("%%s/%s/%s/g", search_text, replace_text))
+	-- Execute the substitution
+	vim.cmd(string.format("%%s/%s/%s/g", search_text, replace_text))
 end
 
 vim.keymap.set("x", "<leader>s", visual_search_replace, { desc = "Search and replace selected text in entire file" })

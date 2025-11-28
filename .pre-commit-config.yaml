@@ -4,3 +4,8 @@ repos:
     hooks:
       - id: shfmt
         args: ["-i", "2", "-ci"]
+
+  - repo: https://github.com/JohnnyMorganz/StyLua
+    rev: v0.20.0 # Use the latest tag
+    hooks:
+      - id: stylua-github
