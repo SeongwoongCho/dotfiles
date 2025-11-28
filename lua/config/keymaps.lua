@@ -20,9 +20,9 @@ vim.keymap.set("n", "<F9>", ":set invnumber<CR>", { desc = "Toggle line number" 
 -- Save file
 vim.keymap.set("n", "<leader>s", ":w<CR>", { desc = "Save current file" })
 
--- Navigate buffers
-vim.keymap.set("n", "[b", ":bprevious<CR>", { desc = "Go to previous buffer" })
-vim.keymap.set("n", "]b", ":bnext<CR>", { desc = "Go to next buffer" })
+-- Navigate buffers (using barbar.nvim commands to respect tab order)
+vim.keymap.set("n", "[b", "<Cmd>BufferPrevious<CR>", { desc = "Go to previous buffer" })
+vim.keymap.set("n", "]b", "<Cmd>BufferNext<CR>", { desc = "Go to next buffer" })
 
 -- Keep selection after indenting in visual mode
 vim.keymap.set("v", "<", "<gv", { desc = "Indent line left" })
