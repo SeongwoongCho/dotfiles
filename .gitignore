@@ -114,3 +114,6 @@ cpptools-linux-x64/
 
 # swap file
 .swp
+
+# lazy-lock
+lazy-lock.json

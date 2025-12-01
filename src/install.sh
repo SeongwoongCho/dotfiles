@@ -56,6 +56,11 @@ echo
 echo '** download zsh plugin manager, zplug.'
 git clone https://github.com/zplug/zplug $HOME/.zplug
 
+# download tmux plugin manager (TPM)
+echo
+echo '** download tmux plugin manager (TPM).'
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
 # codeium
 mkdir -p ~/.cache/nvim/codeium
 chown -R $(whoami):$(whoami) ~/.cache/nvim/codeium
