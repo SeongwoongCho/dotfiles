@@ -41,6 +41,14 @@ return {
 			layout_config = { prompt_position = "top" },
 			sorting_strategy = "ascending",
 			winblend = 0,
+			mappings = {
+				i = {
+					["<CR>"] = function(prompt_bufnr)
+						require("telescope.actions").select_default(prompt_bufnr)
+						vim.cmd("stopinsert")
+					end,
+				},
+			},
 		},
 	},
 	config = function()

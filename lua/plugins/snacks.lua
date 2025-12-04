@@ -19,7 +19,7 @@ return {
 				keys = {
 					{ icon = " ", key = "r", desc = "Session Search", action = ":AutoSession search" },
 					{ icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.picker.files()" },
-					{ icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
+					{ icon = " ", key = "n", desc = "New File", action = ":ene" },
 					{ icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.picker.grep()" },
 					{
 						icon = " ",
