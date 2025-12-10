@@ -32,6 +32,7 @@ alias jla='jupyter lab --ip 0.0.0.0 --allow-root'
 # gpu
 alias gpu="watch --color -n.5 gpustat --color"
 alias gpusmi="watch -n.5 nvidia-smi"
+alias npu="watch --color -n.5 npustat --color"
 function usegpu() {
     if [ ! -z "$1" ]; then
         export CUDA_VISIBLE_DEVICES=$1

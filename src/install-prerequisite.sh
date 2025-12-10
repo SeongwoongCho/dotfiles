@@ -82,6 +82,8 @@ uv pip install --system pynvim
 uv pip install --system isort
 # gpustat
 uv pip install --system gpustat
+# npustat
+uv pip install --system -e ~/.dotfiles/npustat
 # precommit & formmater
 uv pip install --system pre-commit
 uv pip install --system black
