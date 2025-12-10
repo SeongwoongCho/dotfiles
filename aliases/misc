@@ -15,24 +15,6 @@ function buo() {
     done
 }
 
-# tmux
-alias tmux='tmux -u'
-
-# visdom
-alias vim='nvim'
-alias vis='python -m visdom.server'
-alias vimconflicts='vim $(git diff --name-only --diff-filter=U)'
-
-# jupyter notebook
-alias jn='jupyter notebook'
-alias jna='jupyter notebook --ip 0.0.0.0'
-alias jl='jupyter lab'
-alias jla='jupyter lab --ip 0.0.0.0 --allow-root'
-
-# gpu
-alias gpu="watch --color -n.5 gpustat --color"
-alias gpusmi="watch -n.5 nvidia-smi"
-alias npu="watch --color -n.5 npustat --color"
 function usegpu() {
     if [ ! -z "$1" ]; then
         export CUDA_VISIBLE_DEVICES=$1
@@ -40,41 +22,11 @@ function usegpu() {
         export CUDA_VISIBLE_DEVICES=''
     fi
 }
-alias ug='usegpu'
-
-# cmake auto
-alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint'
-alias cmakeauto2='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
-alias cmakeauto_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint'
-alias cmakeauto2_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
-
-# color print for quantizer
-# alias colorprint = "cat log.txt | sed -E 's/\[([0-9;]+)m/\x1b[\1m/g'
 function colorprint() {
     cmd="cat $1 | sed -E 's/\[([0-9;]+)m/\x1b[\1m/g'"
     eval $cmd
 }
 
-# hpu
-alias hpusmi="watch -n.5 hl-smi"
-function usehpu() {
-    if [ ! -z "$1" ]; then
-        export HABANA_VISIBLE_MODULES=$1
-    else
-        export HABANA_VISIBLE_MODULES=''
-    fi
-}
-alias uh='usehpu'
-
-# misc
-alias du='du -hd 1'
-alias cudav='nvcc --version'
-alias cudnnv='cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2'
-alias jnlist='jupyter notebook list'
-alias tblist='ps -ef | grep "tensorboard"'
-alias pylist='ps -ef | grep "python"'
-
-# custom rsync
 function myrsync() {
     port=$1
     remainder=$2
@@ -110,4 +62,50 @@ function pyclean() {
     eval $cmd
 }
 
-# fzf
+# tmux
+alias tmux='tmux -u'
+
+# visdom
+alias vim='nvim'
+alias vis='python -m visdom.server'
+alias vimconflicts='vim $(git diff --name-only --diff-filter=U)'
+
+# jupyter notebook
+alias jn='jupyter notebook'
+alias jna='jupyter notebook --ip 0.0.0.0'
+alias jl='jupyter lab'
+alias jla='jupyter lab --ip 0.0.0.0 --allow-root'
+
+# gpu
+alias gpu="watch --color -n.5 gpustat --color"
+alias gpusmi="watch -n.5 nvidia-smi"
+alias npu="watch --color -n.5 npustat --color"
+alias ug='usegpu'
+
+# cmake auto
+alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint'
+alias cmakeauto2='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
+alias cmakeauto_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint'
+alias cmakeauto2_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
+
+# hpu
+alias hpusmi="watch -n.5 hl-smi"
+function usehpu() {
+    if [ ! -z "$1" ]; then
+        export HABANA_VISIBLE_MODULES=$1
+    else
+        export HABANA_VISIBLE_MODULES=''
+    fi
+}
+alias uh='usehpu'
+
+# misc
+alias du='du -hd 1'
+alias cudav='nvcc --version'
+alias cudnnv='cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2'
+alias jnlist='jupyter notebook list'
+alias tblist='ps -ef | grep "tensorboard"'
+alias pylist='ps -ef | grep "python"'
+
+# lsd
+alias ls='eza'

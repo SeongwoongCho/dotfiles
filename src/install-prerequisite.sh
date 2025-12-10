@@ -24,6 +24,9 @@ source ~/.config/envman/PATH.env
 # git delta
 cargo install git-delta
 
+# eza
+cargo install eza
+
 # vscode cpp extension: https://github.com/microsoft/vscode-cpptools/releases
 wget https://github.com/microsoft/vscode-cpptools/releases/download/v1.24.1/cpptools-linux-x64.vsix
 unzip cpptools-linux-x64.vsix -d cpptools-linux-x64/
