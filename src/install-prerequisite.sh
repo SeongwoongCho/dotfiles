@@ -16,6 +16,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh ssh wget curl gi
 DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
 DEBIAN_FRONTEND=noninteractive apt-get install -y clang-format clang clangd clangd-12 libomp-dev gdb
 DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
+DEBIAN_FRONTEND=noninteractive apt-get install -y bat duf
 
 # shfmt
 curl -sS https://webi.sh/shfmt | sh
@@ -26,6 +27,12 @@ cargo install git-delta
 
 # eza
 cargo install eza
+
+# dust
+cargo install du-dust
+
+# zoxide
+curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 
 # vscode cpp extension: https://github.com/microsoft/vscode-cpptools/releases
 wget https://github.com/microsoft/vscode-cpptools/releases/download/v1.24.1/cpptools-linux-x64.vsix
