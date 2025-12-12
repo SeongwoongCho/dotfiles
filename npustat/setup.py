@@ -22,7 +22,7 @@ def read_version():
             "setuptools_scm needs to be installed manually. "
             "Or consider running `pip install -e .` instead."
         )
-    version = setuptools_scm.get_version()
+    version = setuptools_scm.get_version(search_parent_directories=True)
     setuptools_scm.dump_version(root=__PATH__, version=version,
                                 write_to='npustat/_version.py')
     return version
