@@ -61,6 +61,11 @@ echo
 echo '** download tmux plugin manager (TPM).'
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
+# install tmux plugins via TPM (without entering tmux session)
+echo
+echo '** install tmux plugins.'
+bash ~/.tmux/plugins/tpm/bin/install_plugins
+
 # codeium
 mkdir -p ~/.cache/nvim/codeium
 chown -R $(whoami):$(whoami) ~/.cache/nvim/codeium
