@@ -76,8 +76,8 @@ export ARCHFLAGS="-arch x86_64"
 # ssh
 export SSH_KEY_PATH="~/.ssh/id_rsa"
 
-# personal aliases
-for alias_file in "$HOME/.aliases"/*
+# personal aliases (zsh.d)
+for alias_file in "$HOME/.zsh.d"/*.zsh
 do
     source $alias_file
 done
