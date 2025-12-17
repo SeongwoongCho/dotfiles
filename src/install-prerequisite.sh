@@ -106,8 +106,8 @@ uv pip install --system thefuck
 
 ##### mobilint libraries #####
 # Add Mobilint's official GPG key:
-apt update
-apt install ca-certificates curl
+apt-get -y update
+DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://dl.mobilint.com/apt/gpg.pub -o /etc/apt/keyrings/mblt.asc
 chmod a+r /etc/apt/keyrings/mblt.asc
@@ -121,8 +121,8 @@ printf "%s\n" \
     tee /etc/apt/sources.list.d/mobilint.list >/dev/null
 
 # Update available packages
-apt update
-apt-get install mobilint-cli
+DEBIAN_FRONTEND=noninteractive apt-get -y update
+DEBIAN_FRONTEND=noninteractive apt-get -y install mobilint-cli
 
 ## maccel
 uv pip install --system maccel
