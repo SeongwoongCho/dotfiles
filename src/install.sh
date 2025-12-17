@@ -43,6 +43,7 @@ git clone https://github.com/zplug/zplug $HOME/.zplug
 echo
 echo '** download tmux plugin manager (TPM).'
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+ln -sf $DOT_DIR/tmux/statusbar.tmux ~/.tmux/statusbar.tmux
 
 # install tmux plugins via TPM (without entering tmux session)
 echo
