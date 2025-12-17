@@ -4,19 +4,20 @@ apt-get install -y software-properties-common curl
 add-apt-repository -y ppa:neovim-ppa/unstable
 apt-get update
 curl -s https://deb.nodesource.com/setup_20.x | bash
+
+DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
+DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh ssh wget curl git htop libgl1 libglib2.0-0 rsync fzf
+DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
+DEBIAN_FRONTEND=noninteractive apt-get install -y clang-format clang clangd libclang-dev clangd-12 libomp-dev gdb
+DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
+DEBIAN_FRONTEND=noninteractive apt-get install -y bat duf
+
 # install cargo
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 export PATH="$HOME/.cargo/bin:$PATH"
 if ! command -v tree-sitter >/dev/null 2>&1; then
     cargo install --locked tree-sitter-cli # for latex parser
 fi
-
-DEBIAN_FRONTEND=noninteractive apt-get install -y sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
-DEBIAN_FRONTEND=noninteractive apt-get install -y unzip zip zsh ssh wget curl git htop libgl1 libglib2.0-0 rsync fzf
-DEBIAN_FRONTEND=noninteractive apt-get install -y tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
-DEBIAN_FRONTEND=noninteractive apt-get install -y clang-format clang clangd clangd-12 libomp-dev gdb
-DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv
-DEBIAN_FRONTEND=noninteractive apt-get install -y bat duf
 
 # shfmt
 curl -sS https://webi.sh/shfmt | sh
