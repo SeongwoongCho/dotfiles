@@ -8,7 +8,7 @@ echo '** DOT_DIR: ' $DOT_DIR
 #==================================================#
 echo
 echo '** download prerequisite libraries.'
-bash $DOT_DIR/etc/install-prerequisite.sh
+bash $DOT_DIR/src/install-prerequisite.sh
 
 #==================================================#
 echo
@@ -30,7 +30,7 @@ ln -sf $DOT_DIR/ssh/config $HOME/.ssh/config
 # #==================================================#
 echo
 echo '** download oh-my-zsh.'
-bash $DOT_DIR/etc/install-omz.sh
+bash $DOT_DIR/src/install-omz.sh
 ln -sf $DOT_DIR/assets/mrtazz_custom.zsh-theme $HOME/.oh-my-zsh/themes/
 
 #==================================================#
