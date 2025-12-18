@@ -19,11 +19,10 @@ main() {
       TMUX_STATUS_BG="colour$PROMPT_HOST_COLOR"
   fi
 
-  # [left status] session name (#S), hostname (#h)
+  # [left status] session name (#S) - dark gray to distinguish from active tab
   tmux set -g status-left "\
-#[fg=#000000,bg=$TMUX_STATUS_BG,bold] #S \
-#[fg=#1c1c1c,bg=$TMUX_STATUS_BG,nobold,nounderscore,noitalics]\
-#[fg=$TMUX_STATUS_BG,bg=#1c1c1c] #h \
+#[fg=#ffffff,bg=#444444,bold] #S \
+#[fg=#444444,bg=#1c1c1c]\
 "
 
   # [right status]
@@ -70,18 +69,18 @@ main() {
 #[fg=#9e9e9e,bg=#303030] %m/%d %H:%M \
 "
 
-  # [window] number (#I), window flag (#F), window name (#W)
+  # [window] number (#I), window flag (#F), window name (#W, max 20 chars)
   tmux setw -g window-status-format "\
 #[fg=#0087af,bg=#1c1c1c] #{?#{m:*M*,#F},#[fg=#121212]#[bg=#5faf5f],}#I#F\
-#[fg=#bcbcbc,bg=#1c1c1c] #W\
+#[fg=#bcbcbc,bg=#1c1c1c] #{=20:window_name}\
 #[bg=#1c1c1c] \
 "
 
-  # [active window]
+  # [active window] (window name max 25 chars)
   tmux setw -g window-status-current-format "\
 #[fg=#1c1c1c,bg=#0087af,nobold,nounderscore,noitalics]\
 #[fg=#5fffff,bg=#0087af] #{?#{m:*M*,#F},#[fg=#121212]#[bg=#5faf5f],}#I#F\
-#[fg=#ffffff,bg=#0087af,bold] #W\
+#[fg=#ffffff,bg=#0087af,bold] #{=25:window_name}\
 #{?pane_synchronized,#[fg=#d7ff00] (SYNC),} \
 #[fg=#0087af,bg=#1c1c1c,nobold,nounderscore,noitalics]\
 "
@@ -113,7 +112,7 @@ component-cpu() {
   fi
 
   printf "#[bg=#1c1c1c,fg=$bgcolor,nobold]"
-  printf "#[bg=$bgcolor,fg=$fgcolor]  %2.0f%% #[default]" $cpu_percentage
+  printf "#[bg=$bgcolor,fg=$fgcolor]  CPU %2.0f%% #[default]" $cpu_percentage
 }
 
 component-ram() {
@@ -145,7 +144,7 @@ component-ram() {
   else                                                     bgcolor='#35301F'; fgcolor='white';
   fi
 
-  printf "#[bg=$bgcolor,fg=$fgcolor]  %.1f/%.0fG #[default]" $mem_used $mem_total
+  printf "#[bg=$bgcolor,fg=$fgcolor]  RAM %.1f/%.0fG #[default]" $mem_used $mem_total
 }
 
 component-gpu() {
@@ -170,7 +169,7 @@ component-gpu() {
   else                                               bgcolor='#30412A'; fgcolor='white';
   fi
 
-  printf "#[bg=$bgcolor,fg=$fgcolor] 󰢮 %3.0f%% #[default]" "$gpu_util"
+  printf "#[bg=$bgcolor,fg=$fgcolor] 󰢮 GPU %3.0f%% #[default]" "$gpu_util"
   sleep 1
 }
 
@@ -196,7 +195,7 @@ component-hpu() {
   else                                               bgcolor='#1f4575'; fgcolor='#888888';
   fi
 
-  printf "#[bg=$bgcolor,fg=$fgcolor]  %3.0f%% #[default]" "$hpu_util"
+  printf "#[bg=$bgcolor,fg=$fgcolor]  HPU %3.0f%% #[default]" "$hpu_util"
   sleep 1
 }
 
@@ -222,7 +221,7 @@ component-npu() {
   else                                               bgcolor='#3b2b4e'; fgcolor='#888888';
   fi
 
-  printf "#[bg=$bgcolor,fg=$fgcolor] 󰚩 %3.0f%% #[default]" "$npu_util"
+  printf "#[bg=$bgcolor,fg=$fgcolor] 󰚩 NPU %3.0f%% #[default]" "$npu_util"
   sleep 1
 }
 
