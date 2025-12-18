@@ -33,9 +33,12 @@ return { -- Highlight, edit, and navigate code
 				local lang = vim.treesitter.language.get_lang(ft) or ft
 				local ok = pcall(vim.treesitter.language.inspect, lang)
 				if not ok then
-					pcall(function()
-						vim.cmd("TSInstall " .. lang)
-					end)
+					local parsers_ok, parsers = pcall(require, "nvim-treesitter.parsers")
+					if parsers_ok and parsers.get_parser_configs()[lang] then
+						pcall(function()
+							vim.cmd("TSInstall " .. lang)
+						end)
+					end
 				end
 			end,
 		})
