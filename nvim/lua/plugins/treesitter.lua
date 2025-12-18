@@ -17,10 +17,19 @@ return { -- Highlight, edit, and navigate code
 			"vim",
 			"vimdoc",
 		}
+		-- Filetypes to skip auto-install (no parser available)
+		local ignore_filetypes = {
+			["snacks_notif"] = true,
+			["snacks_dashboard"] = true,
+			["snacks_picker_input"] = true,
+		}
 		-- Auto-install parsers
 		vim.api.nvim_create_autocmd("FileType", {
 			callback = function()
 				local ft = vim.bo.filetype
+				if ignore_filetypes[ft] then
+					return
+				end
 				local lang = vim.treesitter.language.get_lang(ft) or ft
 				local ok = pcall(vim.treesitter.language.inspect, lang)
 				if not ok then
