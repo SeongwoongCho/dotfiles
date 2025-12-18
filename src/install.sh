@@ -1,21 +1,5 @@
 #! /bin/bash
 
-#=================================================#
-# argument parser
-while getopts 'i:' flag; do
-    case "${flag}" in
-    i) install_avante='true' ;;
-    esac
-done
-
-#=================================================#
-# handling avante
-if [ "$install_avante" = "true" ]; then
-    mv $DOT_DIR/lua/plugins/avante.lua $DOT_DIR/lua/plugins/avante.lua.old
-else
-    mv $DOT_DIR/lua/plugins/avante.lua.old $DOT_DIR/lua/plugins/avante.lua
-fi
-
 #==================================================#
 DOT_DIR=$PWD
 echo
@@ -29,20 +13,19 @@ bash $DOT_DIR/src/install-prerequisite.sh
 #==================================================#
 echo
 echo '** link custom configurations.'
-source "$PWD/aliases/misc"
+source "$PWD/zsh/zsh.d/misc.zsh"
 ln -sf $DOT_DIR/assets/Xmodmap $HOME/.Xmodmap
 
 # Clean and link nvim configuration
 rm -rf $HOME/.config/nvim
 mkdir -p $HOME/.config
-ln -sfn $DOT_DIR $HOME/.config/nvim
+ln -sfn $DOT_DIR/nvim $HOME/.config/nvim
 
-ln -sf $DOT_DIR/tmux.conf $HOME/.tmux.conf
-ln -sf $DOT_DIR/aliases $HOME/.aliases
-ln -sf $DOT_DIR/gitconfig $HOME/.gitconfig
-ln -sf $DOT_DIR/zshrc $HOME/.zshrc
-ln -sf $DOT_DIR/coc-settings.json $HOME/.config/nvim/coc-settings.json
-ln -sf $DOT_DIR/sshconfig $HOME/.ssh/config
+ln -sf $DOT_DIR/tmux/tmux.conf $HOME/.tmux.conf
+ln -sf $DOT_DIR/zsh/zsh.d $HOME/.zsh.d
+ln -sf $DOT_DIR/git/gitconfig $HOME/.gitconfig
+ln -sf $DOT_DIR/zsh/zshrc $HOME/.zshrc
+ln -sf $DOT_DIR/ssh/config $HOME/.ssh/config
 
 # #==================================================#
 echo
@@ -60,6 +43,7 @@ git clone https://github.com/zplug/zplug $HOME/.zplug
 echo
 echo '** download tmux plugin manager (TPM).'
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+ln -sf $DOT_DIR/tmux/statusbar.tmux ~/.tmux/statusbar.tmux
 
 # install tmux plugins via TPM (without entering tmux session)
 echo
@@ -83,13 +67,6 @@ nvim --headless "+Lazy! install" +qa
 uv pip install --system pylatexenc
 
 nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
-
-# coc setup
-## :call coc#util#install()
-# cd ~/.local/share/nvim/lazy/coc.nvim/
-# npm install
-# cd $DOT_DIR
-# nvim --headless "+CocInstall -sync coc-clangd" +qa
 
 # mason setup
 nvim --headless "MasonInstall clangd" +qa
