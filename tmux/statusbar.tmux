@@ -134,7 +134,6 @@ component-ram() {
   esac
 
   if [ -z "$mem_percentage" ]; then return 1; fi
-  sleep 0.9
 
   # Color gradient (orange shades)
   local bgcolor fgcolor
@@ -156,7 +155,6 @@ component-gpu() {
   fi
 
   if [ -z "$gpu_util" ]; then
-    sleep 1
     return 1
   fi
 
@@ -170,7 +168,6 @@ component-gpu() {
   fi
 
   printf "#[bg=$bgcolor,fg=$fgcolor] 󰢮 GPU %3.0f%% #[default]" "$gpu_util"
-  sleep 1
 }
 
 component-hpu() {
@@ -182,7 +179,6 @@ component-hpu() {
   fi
 
   if [ -z "$hpu_util" ]; then
-    sleep 1
     return 1
   fi
 
@@ -196,7 +192,6 @@ component-hpu() {
   fi
 
   printf "#[bg=$bgcolor,fg=$fgcolor]  HPU %3.0f%% #[default]" "$hpu_util"
-  sleep 1
 }
 
 component-npu() {
@@ -208,7 +203,6 @@ component-npu() {
   fi
 
   if [ -z "$npu_util" ]; then
-    sleep 1
     return 1
   fi
 
@@ -222,7 +216,6 @@ component-npu() {
   fi
 
   printf "#[bg=$bgcolor,fg=$fgcolor] 󰚩 NPU %3.0f%% #[default]" "$npu_util"
-  sleep 1
 }
 
 # Entry point
