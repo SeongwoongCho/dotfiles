@@ -34,35 +34,26 @@ return {
 			desc = "Live Grep",
 		},
 	},
-	-- change some options
-	opts = {
-		defaults = {
-			layout_strategy = "horizontal",
-			layout_config = { prompt_position = "top" },
-			sorting_strategy = "ascending",
-			winblend = 0,
-			mappings = {
-				i = {
-					["<CR>"] = function(prompt_bufnr)
-						require("telescope.actions").select_default(prompt_bufnr)
-						vim.cmd("stopinsert")
-					end,
+	config = function()
+		local actions = require("telescope.actions")
+		require("telescope").setup({
+			defaults = {
+				layout_strategy = "horizontal",
+				layout_config = { prompt_position = "top" },
+				sorting_strategy = "ascending",
+				winblend = 0,
+				mappings = {
+					i = {
+						["<CR>"] = function(prompt_bufnr)
+							actions.select_default(prompt_bufnr)
+							vim.schedule(function()
+								vim.cmd("stopinsert")
+							end)
+						end,
+					},
 				},
 			},
-		},
-	},
-	config = function()
-		-- require("telescope").setup({
-		--     extensions = {
-		--         media_files = {
-		--             -- filetypes whitelist
-		--             -- defaults to {"png", "jpg", "mp4", "webm", "pdf"}
-		--             filetypes = {"png", "PNG", "webp", "WEBP", "jpg", "JPG", "jpeg", "JPEG"},
-		--             -- find command (defaults to `fd`)
-		--             -- find_cmd = "rg"
-		--         }
-		--     },
-		-- })
+		})
 		require("telescope").load_extension("media_files")
 	end,
 }
