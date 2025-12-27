@@ -64,11 +64,7 @@ chmod -R 755 ~/.cache/nvim/codeium
 #==================================================#
 # download neovim plugins from lazy.nvim
 nvim --headless "+Lazy! install" +qa
-
-nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
-
-# mason setup
-nvim --headless "MasonInstall clangd" +qa
+nvim --headless "+MasonInstall clangd" +qa
 
 # vscode symlink
 ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
