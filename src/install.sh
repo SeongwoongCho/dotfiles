@@ -54,6 +54,7 @@ bash ~/.tmux/plugins/tpm/bin/install_plugins
 mkdir -p ~/.cache/nvim/codeium
 chown -R $(whoami):$(whoami) ~/.cache/nvim/codeium
 chmod -R 755 ~/.cache/nvim/codeium
+
 # register codeium key automatically
 rm -f ~/.cache/nvim/codeium/config.json
 touch ~/.cache/nvim/codeium/config.json
@@ -63,8 +64,6 @@ chmod -R 755 ~/.cache/nvim/codeium
 #==================================================#
 # download neovim plugins from lazy.nvim
 nvim --headless "+Lazy! install" +qa
-# nvim --headless "+Lazy! update" +qa
-uv pip install --system pylatexenc
 
 nvim --headless "+TSUpdateSync lua c cpp markdown markdown_inline latex html bash diff luadoc query vim vimdoc" -c "q"
 
@@ -78,8 +77,27 @@ nvim --headless "+TSUninstall python" -c "q"
 
 # install claude code
 npm install -g @anthropic-ai/claude-code
+claude plugin install context7@claude-plugins-official
+claude plugin install frontend-design@claude-plugins-official
+claude plugin install serena@claude-plugins-official
+claude plugin install feature-dev@claude-plugins-official
+claude plugin install code-review@claude-plugins-official
+claude plugin install security-guidance@claude-plugins-official
+claude plugin install pr-review-toolkit@claude-plugins-official
+claude plugin install hookify@claude-plugins-official
+claude plugin install ralph-wiggum@claude-plugins-official
+claude plugin install greptile@claude-plugins-official
+claude plugin install typescript-lsp@claude-plugins-official
+claude plugin install pyright-lsp@claude-plugins-official
+claude plugin install gopls-lsp@claude-plugins-official
+claude plugin install rust-analyzer-lsp@claude-plugins-official
+claude plugin install csharp-lsp@claude-plugins-official
+claude plugin install php-lsp@claude-plugins-official
+claude plugin install swift-lsp@claude-plugins-official
+claude plugin install jdtls-lsp@claude-plugins-official
+claude plugin install clangd-lsp@claude-plugins-official
+claude plugin install lua-lsp@claude-plugins-official
 claude mcp add sequential-thinking npx -- -y @modelcontextprotocol/server-sequential-thinking
-claude mcp add --transport http context7 https://mcp.context7.com/mcp
 claude mcp add apidog -- npx -y apidog-mcp-server@latest --oas=https://petstore.swagger.io/v2/swagger.json
 claude mcp add memory -- npx -y @modelcontextprotocol/server-memory
 claude mcp add server-filesystem-- npx -- -y @modelcontextprotocol/server-filesystem

@@ -26,10 +26,13 @@ log_section() {
 
 log_install() { echo -e "${CYAN}[INSTALLING]${NC} $1 via ${BOLD}$2${NC}..."; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1 installed via $2"; }
-log_warn()    { echo -e "${YELLOW}[FALLBACK]${NC} $1: $2"; }
-log_error()   { echo -e "${RED}[FAILED]${NC} $1 via $2"; FAILED_PACKAGES+=("$1 ($2)"); }
-log_info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_skip()    { echo -e "${YELLOW}[SKIP]${NC} $1 already installed"; }
+log_warn() { echo -e "${YELLOW}[FALLBACK]${NC} $1: $2"; }
+log_error() {
+    echo -e "${RED}[FAILED]${NC} $1 via $2"
+    FAILED_PACKAGES+=("$1 ($2)")
+}
+log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_skip() { echo -e "${YELLOW}[SKIP]${NC} $1 already installed"; }
 
 #####################################
 # Installation Helper Functions
@@ -82,10 +85,20 @@ install_by_uv() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --editable)  editable=true; pkg_path="$2"; shift 2 ;;
-            --python)    python_version="$2"; shift 2 ;;
-            --with)      with_deps="$2"; shift 2 ;;
-            *)           shift ;;
+        --editable)
+            editable=true
+            pkg_path="$2"
+            shift 2
+            ;;
+        --python)
+            python_version="$2"
+            shift 2
+            ;;
+        --with)
+            with_deps="$2"
+            shift 2
+            ;;
+        *) shift ;;
         esac
     done
 
@@ -384,6 +397,7 @@ main() {
     install_by_uv "python-lsp-server"
     install_by_uv "thefuck" --python 3.11 --with setuptools
     install_by_uv "maccel"
+    install_by_uv "pylatexenc"
 
     log_section "VSCode C++ Tools"
     install_vscode_cpptools "v1.24.1"
