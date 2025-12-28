@@ -84,6 +84,7 @@ claude plugin install pr-review-toolkit@claude-plugins-official
 claude plugin install hookify@claude-plugins-official
 claude plugin install ralph-wiggum@claude-plugins-official
 claude plugin install greptile@claude-plugins-official
+claude plugin install playwright@claude-plugins-official
 claude plugin install typescript-lsp@claude-plugins-official
 claude plugin install pyright-lsp@claude-plugins-official
 claude plugin install gopls-lsp@claude-plugins-official
