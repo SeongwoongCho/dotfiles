@@ -100,6 +100,17 @@ claude mcp add apidog -- npx -y apidog-mcp-server@latest --oas=https://petstore.
 claude mcp add memory -- npx -y @modelcontextprotocol/server-memory
 claude mcp add server-filesystem-- npx -- -y @modelcontextprotocol/server-filesystem
 
+# ui
+## statusline
+npm install -g @cometix/ccline
+mkdir -p ~/.claude
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+if [ -f "$CLAUDE_SETTINGS" ]; then
+    jq '.statusLine = {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
+else
+    echo '{"statusLine": {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}}' >"$CLAUDE_SETTINGS"
+fi
+
 # install codex
 npm i -g @openai/codex
 

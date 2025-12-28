@@ -351,7 +351,7 @@ main() {
         unzip zip zsh ssh wget curl git htop rsync fzf
         tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
         clang-format clang clangd llvm libclang-dev libclang1 clangd-12 libomp-dev gdb
-        python3-venv bat duf
+        python3-venv bat duf jq
     )
     for pkg in "${apt_packages[@]}"; do
         install_by_apt "$pkg"
