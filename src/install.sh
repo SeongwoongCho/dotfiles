@@ -80,7 +80,7 @@ claude plugin install serena@claude-plugins-official
 claude plugin install feature-dev@claude-plugins-official
 claude plugin install code-review@claude-plugins-official
 claude plugin install security-guidance@claude-plugins-official
-claude plugin install pr-review-toolkit@claude-plugins-official
+claude plugin install pr-review-toolkit@claude-plugins-officia
 claude plugin install hookify@claude-plugins-official
 claude plugin install ralph-wiggum@claude-plugins-official
 claude plugin install greptile@claude-plugins-official
@@ -106,15 +106,24 @@ npm install -g @cometix/ccline
 mkdir -p ~/.claude
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 if [ -f "$CLAUDE_SETTINGS" ]; then
-    jq '.statusLine = {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
+	jq '.statusLine = {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
 else
-    echo '{"statusLine": {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}}' >"$CLAUDE_SETTINGS"
+	echo '{"statusLine": {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}}' >"$CLAUDE_SETTINGS"
 fi
 
 # install codex
 npm i -g @openai/codex
 
-#==================================================#
+# install opencode
+curl -fsSL https://opencode.ai/install | bash
+
+# link opencode configuration
+echo
+echo '** link opencode configuration.'
+mkdir -p $HOME/.config/opencode
+ln -sf $DOT_DIR/opencode/opencode.jsonc $HOME/.config/opencode/opencode.jsonc
+
+#==================================================
 # set zsh to the default shell
 echo
 echo '** set ZSH as default shell.'
