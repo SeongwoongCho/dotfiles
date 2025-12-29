@@ -112,3 +112,8 @@ alias ls='eza'
 alias df='duf'
 alias cd='z'
 alias bat='batcat'
+
+# opencode
+function askai() {
+    opencode run "$*" --model opencode/big-pickle
+}
