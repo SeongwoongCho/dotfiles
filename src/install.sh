@@ -106,9 +106,9 @@ npm install -g @cometix/ccline
 mkdir -p ~/.claude
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 if [ -f "$CLAUDE_SETTINGS" ]; then
-	jq '.statusLine = {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
+    jq '.statusLine = {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
 else
-	echo '{"statusLine": {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}}' >"$CLAUDE_SETTINGS"
+    echo '{"statusLine": {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}}' >"$CLAUDE_SETTINGS"
 fi
 
 # install codex
@@ -122,7 +122,6 @@ echo
 echo '** link opencode configuration.'
 mkdir -p $HOME/.config/opencode
 ln -sf $DOT_DIR/opencode/opencode.jsonc $HOME/.config/opencode/opencode.jsonc
-
 #==================================================
 # set zsh to the default shell
 echo

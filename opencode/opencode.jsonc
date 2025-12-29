@@ -18,12 +18,12 @@
   },
   
   // Global safety rules
-  "rules": [
-    "NEVER delete files without explicit user confirmation",
-    "NEVER run destructive commands (rm, sudo, chmod) without asking",
-    "Plan agent MUST NOT create or modify any files - analysis and planning only",
-    "Plan agent is read-only: no code changes, no file creation, no system modifications"
-  ],
+//  "rules": [
+//    "NEVER delete files without explicit user confirmation",
+//    "NEVER run destructive commands (rm, sudo, chmod) without asking",
+//    "Plan agent MUST NOT create or modify any files - analysis and planning only",
+//    "Plan agent is read-only: no code changes, no file creation, no system modifications"
+//  ],
   
   // Agent-specific configurations
   "agent": {
