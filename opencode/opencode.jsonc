@@ -1,13 +1,211 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@franlol/opencode-md-table-formatter@0.0.3"],
+  "plugin": [
+    "@franlol/opencode-md-table-formatter@0.0.3",
+    "opencode-gemini-auth@latest",
+    "opencode-sessions",
+    "opencode-ignore",
+    "@tarquinen/opencode-smart-title",
+    "@tarquinen/opencode-dcp@latest",
+    "@howaboua/opencode-roadmap-plugin@latest"
+  ],
   "theme": "nord",
   "autoupdate": true,
   "tui": {
-      "scroll_acceleration": {
-          "enabled": true
-      }
+    "scroll_acceleration": {
+      "enabled": true
+    }
   },
+  
+  // Global safety rules
+  "rules": [
+    "NEVER delete files without explicit user confirmation",
+    "NEVER run destructive commands (rm, sudo, chmod) without asking",
+    "Plan agent MUST NOT create or modify any files - analysis and planning only",
+    "Plan agent is read-only: no code changes, no file creation, no system modifications"
+  ],
+  
+  // Agent-specific configurations
+  "agent": {
+    "plan": {
+      "description": "Read-only planning and analysis agent with no write permissions",
+      "mode": "primary",
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          // Dangerous deletion commands - DENIED
+          "rm": "deny",
+          "rm -rf": "deny",
+          "rm *": "deny",
+          "rmdir": "deny",
+          "unlink": "deny",
+          
+          // Directory/file creation - DENIED
+          "mkdir": "deny",
+          "mkdir -p": "deny",
+          "touch": "deny",
+          
+          // Permission/ownership changes - DENIED
+          "chmod": "deny",
+          "chmod *": "deny",
+          "chown": "deny",
+          "chown *": "deny",
+          
+          // Administrator commands - DENIED
+          "sudo": "deny",
+          "sudo *": "deny",
+          "su": "deny",
+          
+          // System modification commands - DENIED
+          "mv": "deny",
+          "mv *": "deny",
+          "cp": "ask",
+          "dd": "deny",
+          "ln": "deny",
+          "ln -s": "deny",
+          
+          // Package management - DENIED
+          "npm install": "deny",
+          "npm uninstall": "deny",
+          "yarn install": "deny",
+          "yarn add": "deny",
+          "pnpm install": "deny",
+          "bun install": "deny",
+          "pip install": "deny",
+          "apt install": "deny",
+          "brew install": "deny",
+          
+          // Git write operations - DENIED
+          "git commit": "deny",
+          "git push": "deny",
+          "git pull": "deny",
+          "git merge": "deny",
+          "git rebase": "deny",
+          "git reset": "deny",
+          "git checkout -b": "deny",
+          "git branch -d": "deny",
+          "git stash pop": "deny",
+          
+          // Docker destructive operations - DENIED
+          "docker rm": "deny",
+          "docker rmi": "deny",
+          "docker system prune": "deny",
+          
+          // Safe read-only commands - ALLOWED
+          "ls": "allow",
+          "ls *": "allow",
+          "cat": "allow",
+          "cat *": "allow",
+          "head": "allow",
+          "head *": "allow",
+          "tail": "allow",
+          "tail *": "allow",
+          "grep": "allow",
+          "grep *": "allow",
+          "find": "allow",
+          "find *": "allow",
+          "git status": "allow",
+          "git log": "allow",
+          "git log *": "allow",
+          "git diff": "allow",
+          "git diff *": "allow",
+          "git show": "allow",
+          "git show *": "allow",
+          "git branch": "allow",
+          "pwd": "allow",
+          "echo": "allow",
+          "wc": "allow",
+          "wc *": "allow",
+          "sort": "allow",
+          "uniq": "allow",
+          "tree": "allow",
+          "tree *": "allow",
+          "which": "allow",
+          "whereis": "allow",
+          "file": "allow",
+          "stat": "allow",
+          "du": "allow",
+          "df": "allow",
+          
+          // Default: ask for unknown commands
+          "*": "ask"
+        }
+      },
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true
+      }
+    },
+    
+    "build": {
+      "description": "Full development agent with rm protection and dangerous command checks",
+      "mode": "primary",
+      "permission": {
+        "bash": {
+          // Deletion commands - ASK for confirmation
+          "rm": "ask",
+          "rm -rf": "ask",
+          "rm *": "ask",
+          "rmdir": "ask",
+          
+          // Catastrophic commands - DENIED
+          "sudo rm": "deny",
+          "sudo rm -rf": "deny",
+          "sudo rm -rf /": "deny",
+          "sudo rm -rf /*": "deny",
+          "rm -rf /": "deny",
+          "rm -rf /*": "deny",
+          "rm -rf ~": "deny",
+          "rm -rf ~/": "deny",
+          "> /dev/sda": "deny",
+          "dd if=*": "deny",
+          
+          // Administrator privileges - ASK
+          "sudo": "ask",
+          "sudo *": "ask",
+          "su": "ask",
+          
+          // Permission changes - ASK
+          "chmod": "ask",
+          "chmod *": "ask",
+          "chown": "ask",
+          "chown *": "ask",
+          
+          // Critical Git operations - ASK or DENY
+          "git push": "ask",
+          "git push --force": "deny",
+          "git push -f": "deny",
+          "git reset --hard": "ask",
+          "git clean -fd": "ask",
+          "git clean -fdx": "ask",
+          
+          // Docker destructive operations - ASK
+          "docker rm": "ask",
+          "docker rmi": "ask",
+          "docker system prune": "ask",
+          
+          // Kubernetes destructive operations - ASK
+          "kubectl delete": "ask",
+          "kubectl delete *": "ask",
+          
+          // Infrastructure as Code - ASK
+          "terraform destroy": "ask",
+          "terraform apply": "ask",
+          
+          // Everything else - ALLOWED
+          "*": "allow"
+        },
+        "edit": "allow"
+      },
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    }
+  },
+  
   "mcp": {
     "context7": {
       "type": "remote",
