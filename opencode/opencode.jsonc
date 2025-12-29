@@ -32,6 +32,12 @@
       "mode": "primary",
       "permission": {
         "edit": "deny",
+        
+        // Analysis and research tools - ALWAYS ALLOWED
+        "webfetch": "allow",
+        "skill": "allow",
+        "lsp": "allow",
+        
         "bash": {
           // Dangerous deletion commands - DENIED
           "rm": "deny",
@@ -134,7 +140,17 @@
       "tools": {
         "write": false,
         "edit": false,
-        "bash": true
+        "bash": true,
+        
+        // Read-only and analysis tools - ENABLED
+        "webfetch": true,
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "list": true,
+        "lsp": true,
+        "skill": true,
+        "todoread": true
       }
     },
     
@@ -142,6 +158,11 @@
       "description": "Full development agent with rm protection and dangerous command checks",
       "mode": "primary",
       "permission": {
+        // Analysis and research tools - ALWAYS ALLOWED
+        "webfetch": "allow",
+        "skill": "allow",
+        "lsp": "allow",
+        
         "bash": {
           // Deletion commands - ASK for confirmation
           "rm": "ask",
@@ -201,7 +222,19 @@
       "tools": {
         "write": true,
         "edit": true,
-        "bash": true
+        "bash": true,
+        
+        // All tools enabled for development
+        "webfetch": true,
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "list": true,
+        "lsp": true,
+        "skill": true,
+        "patch": true,
+        "todowrite": true,
+        "todoread": true
       }
     }
   },
