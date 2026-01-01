@@ -85,6 +85,7 @@ claude plugin install hookify@claude-plugins-official
 claude plugin install ralph-wiggum@claude-plugins-official
 claude plugin install greptile@claude-plugins-official
 claude plugin install playwright@claude-plugins-official
+
 claude plugin install typescript-lsp@claude-plugins-official
 claude plugin install pyright-lsp@claude-plugins-official
 claude plugin install gopls-lsp@claude-plugins-official
@@ -122,6 +123,10 @@ echo
 echo '** link opencode configuration.'
 mkdir -p $HOME/.config/opencode
 ln -sf $DOT_DIR/opencode/opencode.jsonc $HOME/.config/opencode/opencode.jsonc
+
+# chromium for playwright
+npx playwright install chromium
+
 #==================================================
 # set zsh to the default shell
 echo
