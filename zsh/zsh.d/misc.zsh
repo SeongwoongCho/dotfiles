@@ -107,11 +107,15 @@ alias jnlist='jupyter notebook list'
 alias tblist='ps -ef | grep "tensorboard"'
 alias pylist='ps -ef | grep "python"'
 
+# colorprint 
+alias cpr='colorprint'
+
 # ls, df
 alias ls='eza'
 alias df='duf'
 alias cd='z'
 alias bat='batcat'
+alias claude='SHELL=/bin/bash claude'
 
 # opencode
 function askai() {
