@@ -76,7 +76,7 @@ npm install -g @anthropic-ai/claude-code
 claude plugin marketplace add anthropics/claude-plugins-official
 claude plugin install context7@claude-plugins-official
 claude plugin install frontend-design@claude-plugins-official
-claude plugin install serena@claude-plugins-official
+# claude plugin install serena@claude-plugins-official
 claude plugin install feature-dev@claude-plugins-official
 claude plugin install code-review@claude-plugins-official
 claude plugin install security-guidance@claude-plugins-official
