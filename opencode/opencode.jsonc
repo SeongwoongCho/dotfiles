@@ -6,8 +6,8 @@
     "opencode-sessions",
     "opencode-ignore",
     "@tarquinen/opencode-smart-title",
-    "@tarquinen/opencode-dcp@latest",
-    "@howaboua/opencode-roadmap-plugin@latest"
+    "oh-my-opencode",
+    "opencode-openai-codex-auth"
   ],
   "theme": "nord",
   "autoupdate": true,
@@ -16,261 +16,139 @@
       "enabled": true
     }
   },
-  
-  // Agent-specific configurations
-  "agent": {
-    "plan": {
-      "description": "Read-only planning and analysis agent with no write permissions",
-      "mode": "primary",
-      "permission": {
-        "edit": "deny",
-        
-        // Analysis and research tools - ALWAYS ALLOWED
-        "webfetch": "allow",
-        "skill": "allow",
-        "lsp": "allow",
-        
-        "bash": {
-          // Dangerous deletion commands - DENIED
-          "rm": "deny",
-          "rm -rf": "deny",
-          "rm *": "deny",
-          "rmdir": "deny",
-          "unlink": "deny",
-          
-          // Directory/file creation - DENIED
-          "mkdir": "deny",
-          "mkdir -p": "deny",
-          "touch": "deny",
-          
-          // Permission/ownership changes - DENIED
-          "chmod": "deny",
-          "chmod *": "deny",
-          "chown": "deny",
-          "chown *": "deny",
-          
-          // Administrator commands - DENIED
-          "sudo": "deny",
-          "sudo *": "deny",
-          "su": "deny",
-          
-          // System modification commands - DENIED
-          "mv": "deny",
-          "mv *": "deny",
-          "cp": "ask",
-          "dd": "deny",
-          "ln": "deny",
-          "ln -s": "deny",
-          
-          // Package management - DENIED
-          "npm install": "deny",
-          "npm uninstall": "deny",
-          "yarn install": "deny",
-          "yarn add": "deny",
-          "pnpm install": "deny",
-          "bun install": "deny",
-          "pip install": "deny",
-          "apt install": "deny",
-          "brew install": "deny",
-          
-          // Git write operations - DENIED
-          "git commit": "deny",
-          "git push": "deny",
-          "git pull": "deny",
-          "git merge": "deny",
-          "git rebase": "deny",
-          "git reset": "deny",
-          "git checkout -b": "deny",
-          "git branch -d": "deny",
-          "git stash pop": "deny",
-          
-          // Docker destructive operations - DENIED
-          "docker rm": "deny",
-          "docker rmi": "deny",
-          "docker system prune": "deny",
-          
-          // Safe read-only commands - ALLOWED
-          "ls": "allow",
-          "ls *": "allow",
-          "cat": "allow",
-          "cat *": "allow",
-          "head": "allow",
-          "head *": "allow",
-          "tail": "allow",
-          "tail *": "allow",
-          "grep": "allow",
-          "grep *": "allow",
-          "find": "allow",
-          "find *": "allow",
-          "git status": "allow",
-          "git log": "allow",
-          "git log *": "allow",
-          "git diff": "allow",
-          "git diff *": "allow",
-          "git show": "allow",
-          "git show *": "allow",
-          "git branch": "allow",
-          "pwd": "allow",
-          "echo": "allow",
-          "wc": "allow",
-          "wc *": "allow",
-          "sort": "allow",
-          "uniq": "allow",
-          "tree": "allow",
-          "tree *": "allow",
-          "which": "allow",
-          "whereis": "allow",
-          "file": "allow",
-          "stat": "allow",
-          "du": "allow",
-          "df": "allow",
-          
-          // Default: ask for unknown commands
-          "*": "ask"
-        }
+  "provider": {
+    "openai": {
+      "name": "OpenAI",
+      "options": {
+        "reasoningEffort": "medium",
+        "reasoningSummary": "auto",
+        "textVerbosity": "medium",
+        "include": [
+          "reasoning.encrypted_content"
+        ],
+        "store": false
       },
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": true,
-        
-        // Read-only and analysis tools - ENABLED
-        "webfetch": true,
-        "read": true,
-        "grep": true,
-        "glob": true,
-        "list": true,
-        "lsp": true,
-        "skill": true,
-        "todoread": true
-      }
-    },
-    
-    "build": {
-      "description": "Full development agent with rm protection and dangerous command checks",
-      "mode": "primary",
-      "permission": {
-        // Analysis and research tools - ALWAYS ALLOWED
-        "webfetch": "allow",
-        "skill": "allow",
-        "lsp": "allow",
-        
-        "bash": {
-          // Deletion commands - ASK for confirmation
-          "rm": "ask",
-          "rm -rf": "ask",
-          "rm *": "ask",
-          "rmdir": "ask",
-          
-          // Catastrophic commands - DENIED
-          "sudo rm": "deny",
-          "sudo rm -rf": "deny",
-          "sudo rm -rf /": "deny",
-          "sudo rm -rf /*": "deny",
-          "rm -rf /": "deny",
-          "rm -rf /*": "deny",
-          "rm -rf ~": "deny",
-          "rm -rf ~/": "deny",
-          "> /dev/sda": "deny",
-          "dd if=*": "deny",
-          
-          // Administrator privileges - ASK
-          "sudo": "ask",
-          "sudo *": "ask",
-          "su": "ask",
-          
-          // Permission changes - ASK
-          "chmod": "ask",
-          "chmod *": "ask",
-          "chown": "ask",
-          "chown *": "ask",
-          
-          // Critical Git operations - ASK or DENY
-          "git push": "ask",
-          "git push --force": "deny",
-          "git push -f": "deny",
-          "git reset --hard": "ask",
-          "git clean -fd": "ask",
-          "git clean -fdx": "ask",
-          
-          // Docker destructive operations - ASK
-          "docker rm": "ask",
-          "docker rmi": "ask",
-          "docker system prune": "ask",
-          
-          // Kubernetes destructive operations - ASK
-          "kubectl delete": "ask",
-          "kubectl delete *": "ask",
-          
-          // Infrastructure as Code - ASK
-          "terraform destroy": "ask",
-          "terraform apply": "ask",
-          
-          // Everything else - ALLOWED
-          "*": "allow"
+      "models": {
+        "gpt-5.2": {
+          "name": "GPT 5.2 (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "variants": {
+            "none": {
+              "reasoningEffort": "none",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "low": {
+              "reasoningEffort": "low",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "medium": {
+              "reasoningEffort": "medium",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "high": {
+              "reasoningEffort": "high",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            }
+          }
         },
-        "edit": "allow"
-      },
-      "tools": {
-        "write": true,
-        "edit": true,
-        "bash": true,
-        
-        // All tools enabled for development
-        "webfetch": true,
-        "read": true,
-        "grep": true,
-        "glob": true,
-        "list": true,
-        "lsp": true,
-        "skill": true,
-        "patch": true,
-        "todowrite": true,
-        "todoread": true
+        "gpt-5.2-codex": {
+          "name": "GPT 5.2 Codex (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "variants": {
+            "low": {
+              "reasoningEffort": "low",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "medium": {
+              "reasoningEffort": "medium",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "high": {
+              "reasoningEffort": "high",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            }
+          }
+        },
+        "gpt-5.1-codex-max": {
+          "name": "GPT 5.1 Codex Max (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "variants": {
+            "low": {
+              "reasoningEffort": "low",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "medium": {
+              "reasoningEffort": "medium",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "high": {
+              "reasoningEffort": "high",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            }
+          }
+        }
       }
-    }
-  },
-  
-  "mcp": {
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "enabled": true
-    },
-    "serena": {
-      "type": "local",
-      "command": ["uvx", "--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"],
-      "enabled":false 
-    },
-    "greptile": {
-      "type": "remote",
-      "url": "https://api.greptile.com/mcp",
-      "enabled": true
-    },
-    "playwright": {
-      "type": "local",
-      "command": ["npx", "-y", "@playwright/mcp@latest", "--isolated", "--no-sandbox"],
-      "enabled": true
-    },
-    "sequential-thinking": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "enabled": true
-    },
-    "memory": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-memory"],
-      "enabled": true
-    },
-    "server-filesystem": {
-      "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem"],
-      "enabled": true
-    },
-    "apidog": {
-      "type": "local",
-      "command": ["npx", "-y", "apidog-mcp-server@latest", "--oas=https://petstore.swagger.io/v2/swagger.json"],
-      "enabled": true
     }
   }
 }

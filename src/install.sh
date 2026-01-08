@@ -117,12 +117,15 @@ npm i -g @openai/codex
 
 # install opencode
 curl -fsSL https://opencode.ai/install | bash
+curl -fsSL https://bun.com/install | bash
+bunx oh-my-opencode install
 
 # link opencode configuration
 echo
 echo '** link opencode configuration.'
 mkdir -p $HOME/.config/opencode
 ln -sf $DOT_DIR/opencode/opencode.jsonc $HOME/.config/opencode/opencode.jsonc
+### bunx oh-my-opencode install --no-tui --claude=<yes|no|max20> --chatgpt=<yes|no> --gemini=<yes|no>
 
 # chromium for playwright
 npx playwright install chromium
