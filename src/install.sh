@@ -73,7 +73,9 @@ nvim --headless "+TSUninstall python" -c "q"
 
 # install claude code
 npm install -g @anthropic-ai/claude-code
-npm install -g oh-my-claude-sisyphus
+
+claude plugin marketplace add Yeachan-Heo/oh-my-claude-sisyphus
+claude plugin install oh-my-claude-sisyphus
 
 # claude plugin marketplace add anthropics/claude-plugins-official
 # claude plugin install context7@claude-plugins-official
