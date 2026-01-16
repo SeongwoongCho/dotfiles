@@ -366,7 +366,8 @@ main() {
     install_by_cargo "git-delta" false
     install_by_cargo "eza" false
     install_by_cargo "du-dust" false
-
+    install_by_cargo "ast-grep" false
+    
     log_section "Custom Tools"
     install_by_script "shfmt" "https://webi.sh/shfmt" \
         '[[ -f ~/.config/envman/PATH.env ]] && source ~/.config/envman/PATH.env'

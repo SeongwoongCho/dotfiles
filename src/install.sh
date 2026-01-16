@@ -77,7 +77,7 @@ npm install -g @anthropic-ai/claude-code
 claude plugin marketplace add Yeachan-Heo/oh-my-claude-sisyphus
 claude plugin install oh-my-claude-sisyphus
 
-# claude plugin marketplace add anthropics/claude-plugins-official
+claude plugin marketplace add anthropics/claude-plugins-official
 # claude plugin install context7@claude-plugins-official
 # claude plugin install frontend-design@claude-plugins-official
 # # claude plugin install serena@claude-plugins-official
@@ -90,16 +90,16 @@ claude plugin install oh-my-claude-sisyphus
 # claude plugin install greptile@claude-plugins-official
 # claude plugin install playwright@claude-plugins-official
 #
-# claude plugin install typescript-lsp@claude-plugins-official
-# claude plugin install pyright-lsp@claude-plugins-official
-# claude plugin install gopls-lsp@claude-plugins-official
-# claude plugin install rust-analyzer-lsp@claude-plugins-official
-# claude plugin install csharp-lsp@claude-plugins-official
-# claude plugin install php-lsp@claude-plugins-official
-# claude plugin install swift-lsp@claude-plugins-official
-# claude plugin install jdtls-lsp@claude-plugins-official
-# claude plugin install clangd-lsp@claude-plugins-official
-# claude plugin install lua-lsp@claude-plugins-official
+claude plugin install typescript-lsp@claude-plugins-official
+claude plugin install pyright-lsp@claude-plugins-official
+claude plugin install gopls-lsp@claude-plugins-official
+claude plugin install rust-analyzer-lsp@claude-plugins-official
+claude plugin install csharp-lsp@claude-plugins-official
+claude plugin install php-lsp@claude-plugins-official
+claude plugin install swift-lsp@claude-plugins-official
+claude plugin install jdtls-lsp@claude-plugins-official
+claude plugin install clangd-lsp@claude-plugins-official
+claude plugin install lua-lsp@claude-plugins-official
 # claude mcp add sequential-thinking npx -- -y @modelcontextprotocol/server-sequential-thinking
 # claude mcp add apidog -- npx -y apidog-mcp-server@latest --oas=https://petstore.swagger.io/v2/swagger.json
 # claude mcp add memory -- npx -y @modelcontextprotocol/server-memory
