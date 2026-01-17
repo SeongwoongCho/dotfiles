@@ -113,9 +113,10 @@ alias cpr='colorprint'
 # ls, df
 alias ls='eza'
 alias df='duf'
-alias cd='z'
+if [[ $- == *i* ]]; then
+  alias cd='z'
+fi
 alias bat='batcat'
-alias claude='SHELL=/bin/bash claude'
 
 # opencode
 function askai() {
