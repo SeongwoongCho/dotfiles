@@ -117,6 +117,7 @@ if [[ $- == *i* ]]; then
   alias cd='z'
 fi
 alias bat='batcat'
+alias claude='IS_SANDBOX=1 claude --dangerously-skip-permissions'
 
 # opencode
 function askai() {
