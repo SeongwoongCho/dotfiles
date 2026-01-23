@@ -16,13 +16,13 @@ bash src/install.sh [profile]
 |---------|-------------|----------|
 | `minimal` | zsh + nvim + git | Basic dev environment |
 | `standard` | + tmux + LSP + plugins | Full local dev |
-| `full` | + Claude Code + AI tools + all LSPs | **Default** - Complete environment |
+| `full` | + Claude Code + all LSPs | **Default** - Complete environment |
 
 ```bash
 # Examples
 bash src/install.sh minimal   # Lightweight setup
-bash src/install.sh           # Standard (default)
-bash src/install.sh full      # Complete with AI tools
+bash src/install.sh standard  # Without AI tools
+bash src/install.sh           # Full (default)
 ```
 
 ### Docker Install
@@ -50,8 +50,7 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 │   └── zsh.d/               # Modular shell scripts
 │       ├── 10-functions.zsh # Utility functions
 │       ├── 20-aliases.zsh   # Common aliases
-│       ├── 30-git.zsh       # Git shortcuts
-│       └── 40-ai.zsh        # AI tools (claude, opencode)
+│       └── 30-git.zsh       # Git shortcuts
 ├── tmux/
 │   ├── tmux.conf            # Tmux configuration
 │   └── statusbar.tmux       # Dynamic status bar
@@ -96,9 +95,8 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 - `nvim-dap-ui` - Debugging
 - `codeium` - AI completion
 
-### AI Tools (full/work profiles)
+### AI Tools (full profile)
 - **Claude Code** with oh-my-claudecode plugin
-- **OpenCode** integration
 - LSP plugins for multiple languages
 
 ## Key Bindings
@@ -138,7 +136,6 @@ Create files in `zsh/zsh.d/` with numeric prefix:
 - `10-19`: Functions
 - `20-29`: Aliases
 - `30-39`: Git
-- `40-49`: AI tools
 
 ## Troubleshooting
 

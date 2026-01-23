@@ -83,7 +83,7 @@ install_full() {
 
     echo
     echo '** [FULL] Installing Claude Code...'
-    npm install -g @anthropic-ai/claude-code || true
+    curl -fsSL https://claude.ai/install.sh | bash || true
 
     echo
     echo '** [FULL] Setting up oh-my-claudecode...'

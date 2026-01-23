@@ -47,7 +47,7 @@ alias cudav='nvcc --version'
 alias cudnnv='cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2'
 
 # CMake presets (Mobilint)
-alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint'
-alias cmakeauto2='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
-alias cmakeauto_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint'
-alias cmakeauto2_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint -DINCLUDE_JSON=True -DCMAKE_EXPORT_COMPILE_COMMANDS=1'
+alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -G Ninja'
+alias cmakeauto_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint -G Ninja'
+alias cmo='cmakeauto'
+alias cmo_r='cmakeauto_r'

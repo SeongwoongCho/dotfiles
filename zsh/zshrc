@@ -9,7 +9,6 @@ path=(
     "$HOME/.local/bin"
     "$HOME/bin"
     "$HOME/.bun/bin"
-    "$HOME/.opencode/bin"
     "$HOME/.cargo/bin"
     "$MYDOTFILES/tmux"
     "$HOME/.mbltmon/build/src/mbltmon"
