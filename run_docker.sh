@@ -54,12 +54,13 @@ START_HOST_PORT=${available_ports[0]}  # The first available port
 END_HOST_PORT=$((START_HOST_PORT + N - 1))  # Last available port
 
 # Define the container port range starting from target port
-if [ $TP < 0 ]; then
-  START_CONTAINER_PORT=$TP
-  END_CONTAINER_PORT=$((TP + N - 1))
-else
+# if TP < 0, use same port as host (source port)
+if [ $TP -lt 0 ]; then
   START_CONTAINER_PORT=$START_HOST_PORT
   END_CONTAINER_PORT=$END_HOST_PORT
+else
+  START_CONTAINER_PORT=$TP
+  END_CONTAINER_PORT=$((TP + N - 1))
 fi
 
 # Construct the docker run -p option with port ranges
