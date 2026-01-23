@@ -2,139 +2,175 @@
 set -euo pipefail
 
 #==================================================#
+# Installation Profiles:
+#   minimal  - zsh + nvim + git (basic dev environment)
+#   standard - minimal + tmux + LSP + plugins
+#   full     - standard + AI tools + all LSP plugins (default)
+#==================================================#
+
+PROFILE="${1:-full}"
 DOT_DIR="$PWD"
+
 echo
-echo "** DOT_DIR: $DOT_DIR"
+echo "=============================================="
+echo "  Dotfiles Installation (Profile: $PROFILE)"
+echo "=============================================="
+echo "  DOT_DIR: $DOT_DIR"
+echo "=============================================="
 
 #==================================================#
-echo
-echo '** download prerequisite libraries.'
-bash "$DOT_DIR/src/install-prerequisite.sh"
+# Helper functions
+#==================================================#
+install_minimal() {
+    echo
+    echo '** [MINIMAL] Installing prerequisite libraries...'
+    bash "$DOT_DIR/src/install-prerequisite.sh"
+
+    echo
+    echo '** [MINIMAL] Linking configurations...'
+    ln -sf "$DOT_DIR/assets/Xmodmap" "$HOME/.Xmodmap"
+
+    # nvim configuration
+    rm -rf "$HOME/.config/nvim"
+    mkdir -p "$HOME/.config"
+    ln -sfn "$DOT_DIR/nvim" "$HOME/.config/nvim"
+
+    # shell and git
+    ln -sf "$DOT_DIR/zsh/zsh.d" "$HOME/.zsh.d"
+    ln -sf "$DOT_DIR/git/gitconfig" "$HOME/.gitconfig"
+    ln -sf "$DOT_DIR/zsh/zshrc" "$HOME/.zshrc"
+    ln -sf "$DOT_DIR/ssh/config" "$HOME/.ssh/config"
+
+    echo
+    echo '** [MINIMAL] Installing oh-my-zsh...'
+    bash "$DOT_DIR/src/install-omz.sh"
+    ln -sf "$DOT_DIR/assets/mrtazz_custom.zsh-theme" "$HOME/.oh-my-zsh/themes/"
+
+    echo
+    echo '** [MINIMAL] Installing zplug...'
+    [ -d "$HOME/.zplug" ] || git clone https://github.com/zplug/zplug "$HOME/.zplug"
+
+    echo
+    echo '** [MINIMAL] Installing neovim plugins...'
+    nvim --headless "+Lazy! install" +qa || true
+}
+
+install_standard() {
+    install_minimal
+
+    echo
+    echo '** [STANDARD] Installing tmux configuration...'
+    ln -sf "$DOT_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
+    [ -d "$HOME/.tmux/plugins/tpm" ] || git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+    ln -sf "$DOT_DIR/tmux/statusbar.tmux" "$HOME/.tmux/statusbar.tmux"
+    bash ~/.tmux/plugins/tpm/bin/install_plugins || true
+
+    echo
+    echo '** [STANDARD] Installing LSP servers via Mason...'
+    nvim --headless "+MasonInstall clangd" +qa || true
+    nvim --headless "+TSUninstall python" -c "q" || true
+
+    echo
+    echo '** [STANDARD] Setting up Codeium...'
+    mkdir -p ~/.cache/nvim/codeium
+    chown -R "$(whoami):$(whoami)" ~/.cache/nvim/codeium
+    echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' > ~/.cache/nvim/codeium/config.json
+    chmod -R 755 ~/.cache/nvim/codeium
+}
+
+install_full() {
+    install_standard
+
+    echo
+    echo '** [FULL] Installing Claude Code...'
+    npm install -g @anthropic-ai/claude-code || true
+
+    echo
+    echo '** [FULL] Setting up oh-my-claudecode...'
+    claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode || true
+    claude plugin install oh-my-claudecode || true
+
+    # Download CLAUDE.md
+    curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o ~/.claude/CLAUDE.md && \
+    echo "Downloaded CLAUDE.md to ~/.claude/CLAUDE.md"
+
+    # Build plugin for HUD
+    OMC_PLUGIN_VERSION=$(ls ~/.claude/plugins/cache/omc/oh-my-claudecode/ 2>/dev/null | sort -V | tail -1 || echo "")
+    if [ -n "$OMC_PLUGIN_VERSION" ]; then
+        echo "Building oh-my-claudecode plugin (version: $OMC_PLUGIN_VERSION)..."
+        cd ~/.claude/plugins/cache/omc/oh-my-claudecode/"$OMC_PLUGIN_VERSION" && npm install
+        cd "$DOT_DIR"
+    fi
+
+    # Setup HUD statusline
+    mkdir -p ~/.claude/hud
+    OMC_HUD_MD="$HOME/.claude/plugins/cache/omc/oh-my-claudecode/$OMC_PLUGIN_VERSION/commands/hud.md"
+    if [ -f "$OMC_HUD_MD" ]; then
+        echo "Extracting omc-hud.mjs from plugin's hud.md..."
+        sed -n '/^```javascript$/,/^```$/p' "$OMC_HUD_MD" | sed '1d;$d' > ~/.claude/hud/omc-hud.mjs
+        chmod +x ~/.claude/hud/omc-hud.mjs
+    fi
+
+    CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+    if [ -f "$CLAUDE_SETTINGS" ]; then
+        jq '.statusLine = {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
+    else
+        echo '{"statusLine": {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}}' >"$CLAUDE_SETTINGS"
+    fi
+
+    echo
+    echo '** [FULL] Installing Claude Code LSP plugins...'
+    claude plugin marketplace add anthropics/claude-plugins-official || true
+    claude plugin install typescript-lsp@claude-plugins-official || true
+    claude plugin install pyright-lsp@claude-plugins-official || true
+    claude plugin install gopls-lsp@claude-plugins-official || true
+    claude plugin install rust-analyzer-lsp@claude-plugins-official || true
+    claude plugin install clangd-lsp@claude-plugins-official || true
+    claude plugin install lua-lsp@claude-plugins-official || true
+    claude plugin install csharp-lsp@claude-plugins-official || true
+    claude plugin install php-lsp@claude-plugins-official || true
+    claude plugin install swift-lsp@claude-plugins-official || true
+    claude plugin install jdtls-lsp@claude-plugins-official || true
+
+    echo
+    echo '** [FULL] Setting up C++ debug tools...'
+    if [ -d "$HOME/cpptools-linux-x64" ]; then
+        ln -sf "$HOME/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7" /usr/bin/OpenDebugAD7
+        chmod +x /usr/bin/OpenDebugAD7
+    fi
+}
 
 #==================================================#
-echo
-echo '** link custom configurations.'
-source "$PWD/zsh/zsh.d/misc.zsh"
-ln -sf "$DOT_DIR/assets/Xmodmap" "$HOME/.Xmodmap"
-
-# Clean and link nvim configuration
-rm -rf "$HOME/.config/nvim"
-mkdir -p "$HOME/.config"
-ln -sfn "$DOT_DIR/nvim" "$HOME/.config/nvim"
-
-ln -sf "$DOT_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
-ln -sf "$DOT_DIR/zsh/zsh.d" "$HOME/.zsh.d"
-ln -sf "$DOT_DIR/git/gitconfig" "$HOME/.gitconfig"
-ln -sf "$DOT_DIR/zsh/zshrc" "$HOME/.zshrc"
-ln -sf "$DOT_DIR/ssh/config" "$HOME/.ssh/config"
+# Main installation based on profile
+#==================================================#
+case "$PROFILE" in
+    minimal)
+        install_minimal
+        ;;
+    standard)
+        install_standard
+        ;;
+    full)
+        install_full
+        ;;
+    *)
+        echo "Unknown profile: $PROFILE"
+        echo "Usage: $0 [minimal|standard|full]"
+        exit 1
+        ;;
+esac
 
 #==================================================#
-echo
-echo '** download oh-my-zsh.'
-bash "$DOT_DIR/src/install-omz.sh"
-ln -sf "$DOT_DIR/assets/mrtazz_custom.zsh-theme" "$HOME/.oh-my-zsh/themes/"
-
+# Finalize
 #==================================================#
-# download useful plugins
 echo
-echo '** download zsh plugin manager, zplug.'
-[ -d "$HOME/.zplug" ] || git clone https://github.com/zplug/zplug "$HOME/.zplug"
+echo '** Setting ZSH as default shell...'
+locale-gen en_US.UTF-8 || true
+grep -q "exec zsh" "$HOME/.bash_profile" 2>/dev/null || echo "exec zsh" >> "$HOME/.bash_profile"
 
-# download tmux plugin manager (TPM)
 echo
-echo '** download tmux plugin manager (TPM).'
-[ -d "$HOME/.tmux/plugins/tpm" ] || git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-ln -sf "$DOT_DIR/tmux/statusbar.tmux" "$HOME/.tmux/statusbar.tmux"
-
-# install tmux plugins via TPM (without entering tmux session)
-echo
-echo '** install tmux plugins.'
-bash ~/.tmux/plugins/tpm/bin/install_plugins
-
-# codeium
-mkdir -p ~/.cache/nvim/codeium
-chown -R "$(whoami):$(whoami)" ~/.cache/nvim/codeium
-
-# register codeium key automatically
-echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' > ~/.cache/nvim/codeium/config.json
-chmod -R 755 ~/.cache/nvim/codeium
-
-#==================================================#
-# download neovim plugins from lazy.nvim
-nvim --headless "+Lazy! install" +qa
-nvim --headless "+MasonInstall clangd" +qa
-
-# vscode symlink
-ln -sf "$DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7" /usr/bin/OpenDebugAD7
-chmod +x /usr/bin/OpenDebugAD7
-nvim --headless "+TSUninstall python" -c "q"
-
-# install claude code
-npm install -g @anthropic-ai/claude-code
-
-claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
-claude plugin install oh-my-claudecode
-
-# omc-setup: download CLAUDE.md (global)
-echo
-echo '** setup oh-my-claudecode (omc-setup equivalent).'
-curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o ~/.claude/CLAUDE.md && \
-echo "Downloaded CLAUDE.md to ~/.claude/CLAUDE.md"
-
-# omc-setup: build plugin (for HUD to work)
-OMC_PLUGIN_VERSION=$(ls ~/.claude/plugins/cache/omc/oh-my-claudecode/ 2>/dev/null | sort -V | tail -1)
-if [ -n "$OMC_PLUGIN_VERSION" ]; then
-    echo "Building oh-my-claudecode plugin (version: $OMC_PLUGIN_VERSION)..."
-    cd ~/.claude/plugins/cache/omc/oh-my-claudecode/"$OMC_PLUGIN_VERSION" && npm install
-    cd "$DOT_DIR"
-fi
-
-# statusline - OMC HUD (oh-my-claudecode)
-## Extract omc-hud.mjs from plugin's hud.md (auto-updates with plugin)
-mkdir -p ~/.claude/hud
-OMC_HUD_MD="$HOME/.claude/plugins/cache/omc/oh-my-claudecode/$OMC_PLUGIN_VERSION/commands/hud.md"
-if [ -f "$OMC_HUD_MD" ]; then
-    echo "Extracting omc-hud.mjs from plugin's hud.md..."
-    sed -n '/^```javascript$/,/^```$/p' "$OMC_HUD_MD" | sed '1d;$d' > ~/.claude/hud/omc-hud.mjs
-    chmod +x ~/.claude/hud/omc-hud.mjs
-else
-    echo "Warning: hud.md not found, HUD may not work properly"
-fi
-
-CLAUDE_SETTINGS="$HOME/.claude/settings.json"
-if [ -f "$CLAUDE_SETTINGS" ]; then
-    jq '.statusLine = {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
-else
-    echo '{"statusLine": {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}}' >"$CLAUDE_SETTINGS"
-fi
-
-claude plugin marketplace add anthropics/claude-plugins-official
-# claude plugin install context7@claude-plugins-official
-# claude plugin install frontend-design@claude-plugins-official
-# # claude plugin install serena@claude-plugins-official
-# claude plugin install feature-dev@claude-plugins-official
-# claude plugin install code-review@claude-plugins-official
-# claude plugin install security-guidance@claude-plugins-official
-# claude plugin install pr-review-toolkit@claude-plugins-official
-# claude plugin install hookify@claude-plugins-official
-# claude plugin install ralph-wiggum@claude-plugins-official
-# claude plugin install greptile@claude-plugins-official
-# claude plugin install playwright@claude-plugins-official
-claude plugin install typescript-lsp@claude-plugins-official
-claude plugin install pyright-lsp@claude-plugins-official
-claude plugin install gopls-lsp@claude-plugins-official
-claude plugin install rust-analyzer-lsp@claude-plugins-official
-claude plugin install csharp-lsp@claude-plugins-official
-claude plugin install php-lsp@claude-plugins-official
-claude plugin install swift-lsp@claude-plugins-official
-claude plugin install jdtls-lsp@claude-plugins-official
-claude plugin install clangd-lsp@claude-plugins-official
-claude plugin install lua-lsp@claude-plugins-official
-
-#==================================================
-# set zsh to the default shell
-echo
-echo '** set ZSH as default shell.'
-locale-gen en_US.UTF-8
-echo "exec zsh" >> "$HOME/.bash_profile"
-exec zsh
+echo "=============================================="
+echo "  Installation complete! (Profile: $PROFILE)"
+echo "=============================================="
+echo "  Run 'exec zsh' or restart your terminal."
+echo "=============================================="
