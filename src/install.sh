@@ -1,49 +1,50 @@
-#! /bin/bash
+#!/bin/bash
+set -euo pipefail
 
 #==================================================#
-DOT_DIR=$PWD
+DOT_DIR="$PWD"
 echo
-echo '** DOT_DIR: ' $DOT_DIR
+echo "** DOT_DIR: $DOT_DIR"
 
 #==================================================#
 echo
 echo '** download prerequisite libraries.'
-bash $DOT_DIR/src/install-prerequisite.sh
+bash "$DOT_DIR/src/install-prerequisite.sh"
 
 #==================================================#
 echo
 echo '** link custom configurations.'
 source "$PWD/zsh/zsh.d/misc.zsh"
-ln -sf $DOT_DIR/assets/Xmodmap $HOME/.Xmodmap
+ln -sf "$DOT_DIR/assets/Xmodmap" "$HOME/.Xmodmap"
 
 # Clean and link nvim configuration
-rm -rf $HOME/.config/nvim
-mkdir -p $HOME/.config
-ln -sfn $DOT_DIR/nvim $HOME/.config/nvim
+rm -rf "$HOME/.config/nvim"
+mkdir -p "$HOME/.config"
+ln -sfn "$DOT_DIR/nvim" "$HOME/.config/nvim"
 
-ln -sf $DOT_DIR/tmux/tmux.conf $HOME/.tmux.conf
-ln -sf $DOT_DIR/zsh/zsh.d $HOME/.zsh.d
-ln -sf $DOT_DIR/git/gitconfig $HOME/.gitconfig
-ln -sf $DOT_DIR/zsh/zshrc $HOME/.zshrc
-ln -sf $DOT_DIR/ssh/config $HOME/.ssh/config
+ln -sf "$DOT_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
+ln -sf "$DOT_DIR/zsh/zsh.d" "$HOME/.zsh.d"
+ln -sf "$DOT_DIR/git/gitconfig" "$HOME/.gitconfig"
+ln -sf "$DOT_DIR/zsh/zshrc" "$HOME/.zshrc"
+ln -sf "$DOT_DIR/ssh/config" "$HOME/.ssh/config"
 
-# #==================================================#
+#==================================================#
 echo
 echo '** download oh-my-zsh.'
-bash $DOT_DIR/src/install-omz.sh
-ln -sf $DOT_DIR/assets/mrtazz_custom.zsh-theme $HOME/.oh-my-zsh/themes/
+bash "$DOT_DIR/src/install-omz.sh"
+ln -sf "$DOT_DIR/assets/mrtazz_custom.zsh-theme" "$HOME/.oh-my-zsh/themes/"
 
 #==================================================#
 # download useful plugins
 echo
 echo '** download zsh plugin manager, zplug.'
-git clone https://github.com/zplug/zplug $HOME/.zplug
+[ -d "$HOME/.zplug" ] || git clone https://github.com/zplug/zplug "$HOME/.zplug"
 
 # download tmux plugin manager (TPM)
 echo
 echo '** download tmux plugin manager (TPM).'
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-ln -sf $DOT_DIR/tmux/statusbar.tmux ~/.tmux/statusbar.tmux
+[ -d "$HOME/.tmux/plugins/tpm" ] || git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+ln -sf "$DOT_DIR/tmux/statusbar.tmux" "$HOME/.tmux/statusbar.tmux"
 
 # install tmux plugins via TPM (without entering tmux session)
 echo
@@ -52,13 +53,10 @@ bash ~/.tmux/plugins/tpm/bin/install_plugins
 
 # codeium
 mkdir -p ~/.cache/nvim/codeium
-chown -R $(whoami):$(whoami) ~/.cache/nvim/codeium
-chmod -R 755 ~/.cache/nvim/codeium
+chown -R "$(whoami):$(whoami)" ~/.cache/nvim/codeium
 
 # register codeium key automatically
-rm -f ~/.cache/nvim/codeium/config.json
-touch ~/.cache/nvim/codeium/config.json
-echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' >>~/.cache/nvim/codeium/config.json
+echo '{"api_key": "sk-ws-01-dnDT0n46kqpivATCL6dOA65i_UTyF0y5ryAgBHoFGWgYPzDYFEzj14nutfqo8ACRwq_7p0V772sQ9VcosYnwWCqnjvouQQ"}' > ~/.cache/nvim/codeium/config.json
 chmod -R 755 ~/.cache/nvim/codeium
 
 #==================================================#
@@ -67,7 +65,7 @@ nvim --headless "+Lazy! install" +qa
 nvim --headless "+MasonInstall clangd" +qa
 
 # vscode symlink
-ln -sf $DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7 /usr/bin/OpenDebugAD7
+ln -sf "$DOT_DIR/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7" /usr/bin/OpenDebugAD7
 chmod +x /usr/bin/OpenDebugAD7
 nvim --headless "+TSUninstall python" -c "q"
 
@@ -87,8 +85,8 @@ echo "Downloaded CLAUDE.md to ~/.claude/CLAUDE.md"
 OMC_PLUGIN_VERSION=$(ls ~/.claude/plugins/cache/omc/oh-my-claudecode/ 2>/dev/null | sort -V | tail -1)
 if [ -n "$OMC_PLUGIN_VERSION" ]; then
     echo "Building oh-my-claudecode plugin (version: $OMC_PLUGIN_VERSION)..."
-    cd ~/.claude/plugins/cache/omc/oh-my-claudecode/$OMC_PLUGIN_VERSION && npm install
-    cd $DOT_DIR
+    cd ~/.claude/plugins/cache/omc/oh-my-claudecode/"$OMC_PLUGIN_VERSION" && npm install
+    cd "$DOT_DIR"
 fi
 
 # statusline - OMC HUD (oh-my-claudecode)
@@ -117,7 +115,7 @@ claude plugin marketplace add anthropics/claude-plugins-official
 # claude plugin install feature-dev@claude-plugins-official
 # claude plugin install code-review@claude-plugins-official
 # claude plugin install security-guidance@claude-plugins-official
-# claude plugin install pr-review-toolkit@claude-plugins-officia
+# claude plugin install pr-review-toolkit@claude-plugins-official
 # claude plugin install hookify@claude-plugins-official
 # claude plugin install ralph-wiggum@claude-plugins-official
 # claude plugin install greptile@claude-plugins-official
@@ -133,27 +131,10 @@ claude plugin install jdtls-lsp@claude-plugins-official
 claude plugin install clangd-lsp@claude-plugins-official
 claude plugin install lua-lsp@claude-plugins-official
 
-# install codex
-# npm i -g @openai/codex
-
-# install opencode
-# curl -fsSL https://opencode.ai/install | bash
-# bunx oh-my-opencode install
-
-# link opencode configuration
-echo
-echo '** link opencode configuration.'
-# mkdir -p $HOME/.config/opencode
-# ln -sf $DOT_DIR/opencode/opencode.jsonc $HOME/.config/opencode/opencode.jsonc
-### bunx oh-my-opencode install --no-tui --claude=<yes|no|max20> --chatgpt=<yes|no> --gemini=<yes|no>
-
-# chromium for playwright
-# npx playwright install chromium
-
 #==================================================
 # set zsh to the default shell
 echo
 echo '** set ZSH as default shell.'
 locale-gen en_US.UTF-8
-echo "exec zsh" >>$HOME/.bash_profile
+echo "exec zsh" >> "$HOME/.bash_profile"
 exec zsh
