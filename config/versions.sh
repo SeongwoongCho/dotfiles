@@ -31,6 +31,17 @@ else
     export DOTFILES_PYTHON_VERSION="unknown"
 fi
 
+# Check if environment-specific config exists
+_check_version_config() {
+    local versions_dir="${MYDOTFILES:-$HOME/.dotfiles}/config/versions.d"
+    if [[ ! -f "$versions_dir/${DOTFILES_DISTRO}-${DOTFILES_DISTRO_VERSION}.sh" ]] && \
+       [[ ! -f "$versions_dir/${DOTFILES_DISTRO_CODENAME}.sh" ]]; then
+        echo "[WARN] No version config for ${DOTFILES_DISTRO} ${DOTFILES_DISTRO_VERSION}" >&2
+        echo "[WARN] Using defaults. Create $versions_dir/${DOTFILES_DISTRO}-${DOTFILES_DISTRO_VERSION}.sh if needed." >&2
+        export DOTFILES_VERSION_CONFIG_MISSING=1
+    fi
+}
+
 #-------------------------------------------------#
 # Core Tools
 #-------------------------------------------------#
@@ -57,7 +68,8 @@ export VERSION_PRE_COMMIT="${VERSION_PRE_COMMIT:-latest}"
 export VERSION_BLACK="${VERSION_BLACK:-latest}"
 export VERSION_ISORT="${VERSION_ISORT:-latest}"
 export VERSION_THEFUCK="${VERSION_THEFUCK:-latest}"
-export VERSION_THEFUCK_PYTHON="${VERSION_THEFUCK_PYTHON:-3.11}"  # thefuck needs specific python
+# thefuck python: use system python by default (auto-detected)
+export VERSION_THEFUCK_PYTHON="${VERSION_THEFUCK_PYTHON:-${DOTFILES_PYTHON_VERSION:-3.11}}"
 
 #-------------------------------------------------#
 # Development Tools
@@ -83,6 +95,9 @@ fi
 if [[ -f "$VERSIONS_DIR/local.sh" ]]; then
     source "$VERSIONS_DIR/local.sh"
 fi
+
+# Warn if no environment-specific config found
+_check_version_config
 
 #-------------------------------------------------#
 # Version Info Display
