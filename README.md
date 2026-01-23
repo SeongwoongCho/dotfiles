@@ -1,18 +1,33 @@
 # dotfiles
 
-Personal development environment configuration using Neovim, Zsh, and various tools.
+Personal development environment configuration using Neovim, Zsh, Tmux, and AI tools.
 
 ## Quick Install
 
-###  Install by cli command line
 ```bash
 git clone git@github.com:SeongwoongCho/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-bash src/install.sh
+bash src/install.sh [profile]
 ```
-### Install by Docker 
+
+### Installation Profiles
+
+| Profile | Description | Use Case |
+|---------|-------------|----------|
+| `minimal` | zsh + nvim + git | Basic dev environment |
+| `standard` | + tmux + LSP + plugins | Full local dev |
+| `full` | + Claude Code + all LSPs | **Default** - Complete environment |
+
 ```bash
-#!/bin/bash
+# Examples
+bash src/install.sh minimal   # Lightweight setup
+bash src/install.sh standard  # Without AI tools
+bash src/install.sh           # Full (default)
+```
+
+### Docker Install
+
+```bash
 docker build \
   --build-arg USER_ID=$(id -u) \
   --build-arg USER_NAME=$(id -un) \
@@ -21,130 +36,123 @@ docker build \
 bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 ```
 
-## Core Features
-
-### 🖥️ Terminal Environment
-- **Shell**: Zsh with Oh-My-Zsh
-- **Theme**: TangoDark terminal color scheme
-- **Font**: D2Coding Mono Hack (Nerd Font compatible)
-
-### ⚡ Zsh Configuration
-- **Theme**: mrtazz_custom
-- **Plugins**: 
-  - alias-tips
-  - zsh-syntax-highlighting  
-  - zsh-autosuggestions
-- **Features**:
-  - Custom LS_COLORS
-  - FZF integration with fd
-  - History with timestamps
-  - Newline before each prompt
-
-### 🚀 Neovim Setup (Lazy.nvim)
-Modern Neovim configuration with LSP support and advanced features.
-
-#### LSP Servers & Language Support
-- **C/C++**: clangd with clang-tidy integration
-- **Python**: pylsp + jedi_language_server (dual setup)
-- **Lua**: lua_ls with Neovim-specific settings
-- **Auto-installation**: Mason + mason-lspconfig
-
-#### Key Plugins
-- **telescope.lua**: Fuzzy finder and file navigation
-- **nvim-cmp.lua**: Intelligent autocompletion with LSP
-- **treesitter.lua**: Advanced syntax highlighting and parsing
-- **gitsigns.lua**: Git integration with inline diff markers
-- **formatter.lua**: Code formatting with configurable timeout
-- **oceanic-next.lua**: Color scheme
-- **snacks.lua + lualine.lua**: Modern UI components
-- **nvim-tree.lua**: File explorer
-- **markview.lua**: Enhanced markdown rendering
-- **yanky.lua**: Enhanced yank/paste functionality
-- **nvim-dap-ui.lua**: Debug adapter protocol UI  
-
-## ⌨️ Key Bindings
-
-### Leader Keys
-- **Leader**: `,` (comma)
-- **Local Leader**: `.` (period) - used for debugger
-
-### Essential Shortcuts
-- **`,R`**: Reload vimrc configuration
-- **`@`**: Turn off search highlight  
-- **`,s`**: Save current file
-- **`F8`**: Toggle paste mode
-- **`F9`**: Toggle line numbers
-
-### Navigation & Buffers
-- **`[b`** / **`]b`**: Previous/Next buffer
-- **`,g`**: Go to previous location (after go-to-definition)
-
-### Development Tools
-- **`,b`** / **`,v`**: Insert Python ipdb breakpoint (above/below)
-- **`=G`**: Auto-fix indentation
-
-### Fuzzy Finding (Telescope)
-- **`<C-p>`**: Find files by name
-- **`<C-o>`**: Find files by content (live grep)
-
-### Visual Mode
-- **`<`** / **`>`**: Indent left/right while keeping selection
-
-## 🔧 Installation Details
-
-### Prerequisites
-The installation script (`src/install.sh`) automatically handles:
-- Oh-My-Zsh installation
-- Neovim plugin management via Lazy.nvim
-- LSP servers via Mason
-- Required dependencies and libraries
-
-## 🎨 Theme & Font Setup
-
-### Terminal Configuration
-- **Color Scheme**: TangoDark
-- **Font**: D2Coding Mono (Nerd Font)
-- **Font Features**: 
-  - Ligature support
-  - Powerline symbols
-  - Nerd Font icons
-
-### Neovim Color Scheme
-- **Main Theme**: Oceanic Next
-- **UI Components**: Modern statusline with lualine
-- **Syntax**: Enhanced with Treesitter
-
-## 🚨 Troubleshooting
-
-### Common Issues
-- **Special characters not displaying**: Install D2Coding Mono Hack Nerd Font
-- **LSP not working**: Restart Neovim after initial setup for Mason to install servers
-- **Formatter timeout**: Increased to 2000ms for better reliability
-
-### Known Limitations  
-- Image preview in Telescope may not work in all terminals
-- Auto-indentation (`=G`) may have issues with complex comment blocks
-
-### Codeium
-Please run the following code in case codeium is not properly working. 
-
-```
-chown -R root:root ~/.cache/nvim/codeium
-chmod -R 755 ~/.cache/nvim/codeium
-```
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 ~/.dotfiles/
-├── init.lua              # Neovim entry point
-├── lua/
-│   ├── config/           # Core configuration
-│   │   ├── keymaps.lua   # Key mappings
-│   │   ├── options.lua   # Neovim options  
-│   │   └── lazy.lua      # Plugin manager setup
-│   └── plugins/          # Plugin configurations
-├── src/                  # Installation scripts
-├── zshrc                 # Zsh configuration
-└── assets/              # Color schemes and resources
+├── nvim/                    # Neovim configuration (Lazy.nvim)
+│   ├── init.lua             # Entry point
+│   └── lua/
+│       ├── config/          # Core settings (keymaps, options)
+│       └── plugins/         # Plugin configurations
+├── zsh/
+│   ├── zshrc                # Main shell config
+│   └── zsh.d/               # Modular shell scripts
+│       ├── 10-functions.zsh # Utility functions
+│       ├── 20-aliases.zsh   # Common aliases
+│       └── 30-git.zsh       # Git shortcuts
+├── tmux/
+│   ├── tmux.conf            # Tmux configuration
+│   └── statusbar.tmux       # Dynamic status bar
+├── git/
+│   └── gitconfig            # Git settings
+├── ssh/
+│   └── config               # SSH configuration
+├── assets/                  # Themes, colors, keymaps
+└── src/                     # Installation scripts
+    ├── install.sh           # Main installer (profile-based)
+    ├── install-prerequisite.sh  # Dependencies
+    ├── install-omz.sh       # Oh-My-Zsh
+    └── cleanse.sh           # Cleanup script
 ```
+
+## Core Features
+
+### Terminal Environment
+- **Shell**: Zsh with Oh-My-Zsh + zplug
+- **Multiplexer**: Tmux with TPM (prefix: `Ctrl-A`)
+- **Theme**: mrtazz_custom + Oceanic Next
+
+### Zsh Plugins
+- `alias-tips` - Reminds you of aliases
+- `zsh-syntax-highlighting` - Command highlighting
+- `zsh-autosuggestions` - Fish-like suggestions
+- `fzf` + `fd` - Fuzzy finding
+
+### Neovim (Lazy.nvim)
+
+**LSP Support:**
+- C/C++: clangd
+- Python: pylsp + jedi_language_server
+- Lua: lua_ls
+- Auto-install via Mason
+
+**Key Plugins:**
+- `telescope.nvim` - Fuzzy finder
+- `nvim-cmp` - Autocompletion
+- `treesitter` - Syntax highlighting
+- `gitsigns` - Git integration
+- `nvim-dap-ui` - Debugging
+- `codeium` - AI completion
+
+### AI Tools (full profile)
+- **Claude Code** with oh-my-claudecode plugin
+- LSP plugins for multiple languages
+
+## Key Bindings
+
+### Leader Keys
+- **Leader**: `,` (comma)
+- **Local Leader**: `.` (period)
+
+### Essential
+| Key | Action |
+|-----|--------|
+| `,R` | Reload config |
+| `,s` | Save file |
+| `@` | Clear search highlight |
+| `<C-p>` | Find files |
+| `<C-o>` | Live grep |
+
+### Navigation
+| Key | Action |
+|-----|--------|
+| `[b` / `]b` | Previous/Next buffer |
+| `,g` | Go back (after goto-definition) |
+| `<C-h/j/k/l>` | Navigate splits (vim-tmux) |
+
+### Tmux (prefix: Ctrl-A)
+| Key | Action |
+|-----|--------|
+| `|` | Vertical split |
+| `-` | Horizontal split |
+| `r` | Reload config |
+| `hjkl` | Navigate panes |
+
+## Customization
+
+### Adding New Zsh Modules
+Create files in `zsh/zsh.d/` with numeric prefix:
+- `10-19`: Functions
+- `20-29`: Aliases
+- `30-39`: Git
+
+## Troubleshooting
+
+### Common Issues
+- **Special characters missing**: Install Nerd Font (D2Coding Mono Hack)
+- **LSP not working**: Restart Neovim for Mason to install servers
+- **Codeium permission error**:
+  ```bash
+  chown -R $(whoami):$(whoami) ~/.cache/nvim/codeium
+  chmod -R 755 ~/.cache/nvim/codeium
+  ```
+
+### Cleanup
+```bash
+bash src/cleanse.sh  # Remove all dotfiles symlinks
+```
+
+## License
+
+MIT

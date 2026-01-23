@@ -1,12 +1,31 @@
-## set default paths
+#==================================================#
+## PATH Configuration (consolidated, no duplicates)
+#==================================================#
+export MYDOTFILES="$HOME/.dotfiles"
 
-export MYDOTFILES=$HOME/.dotfiles
-export PATH=$HOME/bin:/usr/local/bin:/usr/local/cuda/bin:$PATH
-export PATH=$HOME/.local/bin:$PATH
-export PATH=$MYDOTFILES/tmux:$PATH
-export PATH=$HOME/.mbltmon/build/src/mbltmon:$PATH
-export SHELL=$(which zsh)
-export ZSH=$HOME/.oh-my-zsh # oh-my-zsh
+# Build PATH array (order matters: first = highest priority)
+typeset -U PATH  # -U ensures unique entries only
+path=(
+    "$HOME/.local/bin"
+    "$HOME/bin"
+    "$HOME/.bun/bin"
+    "$HOME/.cargo/bin"
+    "$MYDOTFILES/tmux"
+    "$HOME/.mbltmon/build/src/mbltmon"
+    /usr/local/bin
+    /usr/local/cuda/bin
+    $path
+)
+export PATH
+
+#==================================================#
+## Environment
+#==================================================#
+export SHELL="$(which zsh)"
+export ZSH="$HOME/.oh-my-zsh"
+export BUN_INSTALL="$HOME/.bun"
+
+# Locale
 export LANGUAGE=en_US.UTF-8
 export LC_CTYPE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -90,8 +109,7 @@ function fuzzyvim()
 }
 zle -N fuzzyvim 
 
-# remove duplicates in PATH
-export PATH="$(echo -n $PATH | awk -v RS=: -v ORS=: '!arr[$0]++')"
+# PATH duplicates handled by typeset -U at top of file
 
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
@@ -109,12 +127,5 @@ fi
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
 
-# opencode
-export PATH=/root/.opencode/bin:$PATH
-
 # bun completions
-[ -s "/root/.bun/_bun" ] && source "/root/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
