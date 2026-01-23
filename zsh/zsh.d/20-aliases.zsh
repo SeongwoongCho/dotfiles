@@ -51,3 +51,8 @@ alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobi
 alias cmakeauto_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint -G Ninja'
 alias cmo='cmakeauto'
 alias cmo_r='cmakeauto_r'
+
+# Dotfiles management
+alias dotup='bash $MYDOTFILES/src/update.sh'
+alias dotup-full='bash $MYDOTFILES/src/update.sh --full'
+alias dotcd='cd $MYDOTFILES'

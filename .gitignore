@@ -22,3 +22,6 @@ __pycache__/
 # Misc
 .DS_Store
 *.log
+
+# Local version overrides (machine-specific)
+config/versions.d/local.sh

@@ -1,6 +1,14 @@
 #!/bin/bash
 
 #####################################
+# Load Version Configuration
+#####################################
+DOT_DIR="${MYDOTFILES:-$HOME/.dotfiles}"
+if [[ -f "$DOT_DIR/config/versions.sh" ]]; then
+    source "$DOT_DIR/config/versions.sh"
+fi
+
+#####################################
 # Color Definitions
 #####################################
 RED='\033[0;31m'
@@ -188,7 +196,7 @@ install_rust() {
 }
 
 install_lua() {
-    local version="${1:-5.1.5}"
+    local version="${1:-${VERSION_LUA:-5.1.5}}"
     log_install "lua-$version" "source"
     local build_dir=$(mktemp -d)
     (
@@ -210,7 +218,7 @@ install_lua() {
 }
 
 install_luarocks() {
-    local version="${1:-3.11.1}"
+    local version="${1:-${VERSION_LUAROCKS:-3.11.1}}"
     log_install "luarocks-$version" "source"
     local build_dir=$(mktemp -d)
     (
@@ -232,7 +240,7 @@ install_luarocks() {
 }
 
 install_neovim() {
-    local version="${1:-v0.11.3}"
+    local version="${1:-${VERSION_NEOVIM:-v0.11.3}}"
     log_install "neovim-$version" "source"
 
     # Install build dependencies
@@ -255,7 +263,7 @@ install_neovim() {
 }
 
 install_vscode_cpptools() {
-    local version="${1:-v1.24.1}"
+    local version="${1:-${VERSION_VSCODE_CPPTOOLS:-v1.24.1}}"
     log_install "vscode-cpptools-$version" "github"
     local url="https://github.com/microsoft/vscode-cpptools/releases/download/$version/cpptools-linux-x64.vsix"
     local dest_dir="$HOME/cpptools-linux-x64"
@@ -337,12 +345,17 @@ print_summary() {
 #####################################
 
 main() {
+    # Print version configuration
+    if declare -f print_version_info &>/dev/null; then
+        print_version_info
+    fi
+
     log_section "APT Repository Setup"
     apt-get update >/dev/null 2>&1
     install_by_apt "software-properties-common"
     install_by_apt "curl"
     add-apt-repository -y ppa:neovim-ppa/unstable >/dev/null 2>&1
-    curl -s https://deb.nodesource.com/setup_20.x 2>/dev/null | bash >/dev/null 2>&1
+    curl -s "https://deb.nodesource.com/setup_${VERSION_NODE:-20}.x" 2>/dev/null | bash >/dev/null 2>&1
     apt-get update >/dev/null 2>&1
 
     log_section "APT Packages"
@@ -375,11 +388,11 @@ main() {
     install_by_script "bun" "https://bun.sh/install"
 
     log_section "Neovim"
-    install_neovim "v0.11.3"
+    install_neovim
 
     log_section "Lua & Luarocks"
-    install_lua "5.1.5"
-    install_luarocks "3.11.1"
+    install_lua
+    install_luarocks
 
     log_section "Image Support (Kitty & Magick)"
     install_kitty_magick
@@ -397,12 +410,12 @@ main() {
     install_by_uv "black"
     install_by_uv "jedi_language_server"
     install_by_uv "python-lsp-server"
-    install_by_uv "thefuck" --python 3.11 --with setuptools
+    install_by_uv "thefuck" --python "${VERSION_THEFUCK_PYTHON:-3.11}" --with setuptools
     install_by_uv "maccel"
     install_by_uv "pylatexenc"
 
     log_section "VSCode C++ Tools"
-    install_vscode_cpptools "v1.24.1"
+    install_vscode_cpptools
 
     log_section "Mobilint"
     install_mobilint
