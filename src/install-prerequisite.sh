@@ -372,6 +372,7 @@ main() {
     install_by_script "shfmt" "https://webi.sh/shfmt" \
         '[[ -f ~/.config/envman/PATH.env ]] && source ~/.config/envman/PATH.env'
     install_by_script "zoxide" "https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh"
+    install_by_script "bun" "https://bun.sh/install"
 
     log_section "Neovim"
     install_neovim "v0.11.3"

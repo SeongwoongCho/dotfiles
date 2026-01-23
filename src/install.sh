@@ -74,8 +74,41 @@ nvim --headless "+TSUninstall python" -c "q"
 # install claude code
 npm install -g @anthropic-ai/claude-code
 
-claude plugin marketplace add Yeachan-Heo/oh-my-claude-sisyphus
-claude plugin install oh-my-claude-sisyphus
+claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
+claude plugin install oh-my-claudecode
+
+# omc-setup: download CLAUDE.md (global)
+echo
+echo '** setup oh-my-claudecode (omc-setup equivalent).'
+curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o ~/.claude/CLAUDE.md && \
+echo "Downloaded CLAUDE.md to ~/.claude/CLAUDE.md"
+
+# omc-setup: build plugin (for HUD to work)
+OMC_PLUGIN_VERSION=$(ls ~/.claude/plugins/cache/omc/oh-my-claudecode/ 2>/dev/null | sort -V | tail -1)
+if [ -n "$OMC_PLUGIN_VERSION" ]; then
+    echo "Building oh-my-claudecode plugin (version: $OMC_PLUGIN_VERSION)..."
+    cd ~/.claude/plugins/cache/omc/oh-my-claudecode/$OMC_PLUGIN_VERSION && npm install
+    cd $DOT_DIR
+fi
+
+# statusline - OMC HUD (oh-my-claudecode)
+## Extract omc-hud.mjs from plugin's hud.md (auto-updates with plugin)
+mkdir -p ~/.claude/hud
+OMC_HUD_MD="$HOME/.claude/plugins/cache/omc/oh-my-claudecode/$OMC_PLUGIN_VERSION/commands/hud.md"
+if [ -f "$OMC_HUD_MD" ]; then
+    echo "Extracting omc-hud.mjs from plugin's hud.md..."
+    sed -n '/^```javascript$/,/^```$/p' "$OMC_HUD_MD" | sed '1d;$d' > ~/.claude/hud/omc-hud.mjs
+    chmod +x ~/.claude/hud/omc-hud.mjs
+else
+    echo "Warning: hud.md not found, HUD may not work properly"
+fi
+
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+if [ -f "$CLAUDE_SETTINGS" ]; then
+    jq '.statusLine = {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
+else
+    echo '{"statusLine": {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}}' >"$CLAUDE_SETTINGS"
+fi
 
 claude plugin marketplace add anthropics/claude-plugins-official
 # claude plugin install context7@claude-plugins-official
@@ -89,7 +122,6 @@ claude plugin marketplace add anthropics/claude-plugins-official
 # claude plugin install ralph-wiggum@claude-plugins-official
 # claude plugin install greptile@claude-plugins-official
 # claude plugin install playwright@claude-plugins-official
-#
 claude plugin install typescript-lsp@claude-plugins-official
 claude plugin install pyright-lsp@claude-plugins-official
 claude plugin install gopls-lsp@claude-plugins-official
@@ -100,39 +132,23 @@ claude plugin install swift-lsp@claude-plugins-official
 claude plugin install jdtls-lsp@claude-plugins-official
 claude plugin install clangd-lsp@claude-plugins-official
 claude plugin install lua-lsp@claude-plugins-official
-# claude mcp add sequential-thinking npx -- -y @modelcontextprotocol/server-sequential-thinking
-# claude mcp add apidog -- npx -y apidog-mcp-server@latest --oas=https://petstore.swagger.io/v2/swagger.json
-# claude mcp add memory -- npx -y @modelcontextprotocol/server-memory
-# claude mcp add server-filesystem-- npx -- -y @modelcontextprotocol/server-filesystem
-
-# ui
-## statusline
-npm install -g @cometix/ccline
-mkdir -p ~/.claude
-CLAUDE_SETTINGS="$HOME/.claude/settings.json"
-if [ -f "$CLAUDE_SETTINGS" ]; then
-    jq '.statusLine = {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
-else
-    echo '{"statusLine": {"type": "command", "command": "~/.claude/ccline/ccline", "padding": 0}}' >"$CLAUDE_SETTINGS"
-fi
 
 # install codex
-npm i -g @openai/codex
+# npm i -g @openai/codex
 
 # install opencode
-curl -fsSL https://opencode.ai/install | bash
-curl -fsSL https://bun.com/install | bash
-bunx oh-my-opencode install
+# curl -fsSL https://opencode.ai/install | bash
+# bunx oh-my-opencode install
 
 # link opencode configuration
 echo
 echo '** link opencode configuration.'
-mkdir -p $HOME/.config/opencode
-ln -sf $DOT_DIR/opencode/opencode.jsonc $HOME/.config/opencode/opencode.jsonc
+# mkdir -p $HOME/.config/opencode
+# ln -sf $DOT_DIR/opencode/opencode.jsonc $HOME/.config/opencode/opencode.jsonc
 ### bunx oh-my-opencode install --no-tui --claude=<yes|no|max20> --chatgpt=<yes|no> --gemini=<yes|no>
 
 # chromium for playwright
-npx playwright install chromium
+# npx playwright install chromium
 
 #==================================================
 # set zsh to the default shell
