@@ -31,8 +31,8 @@ alias jnlist='jupyter notebook list'
 alias tblist='ps -ef | grep "tensorboard"'
 alias pylist='ps -ef | grep "python"'
 
-# Claude Code
-alias claude='IS_SANDBOX=1 claude --dangerously-skip-permissions'
+# Claude Code (auto-update OMC before launch)
+alias claude='omcupdate --silent --setup && IS_SANDBOX=1 command claude --dangerously-skip-permissions'
 
 # GPU/NPU/HPU monitoring
 alias ug='usegpu'
@@ -56,3 +56,7 @@ alias cmo_r='cmakeauto_r'
 alias dotup='bash $MYDOTFILES/src/update.sh'
 alias dotup-full='bash $MYDOTFILES/src/update.sh --full'
 alias dotcd='cd $MYDOTFILES'
+
+# Oh-My-ClaudeCode
+alias omcup='omcupdate'
+alias omcup-s='omcupdate --setup'
