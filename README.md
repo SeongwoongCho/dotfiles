@@ -59,10 +59,18 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 ├── ssh/
 │   └── config               # SSH configuration
 ├── assets/                  # Themes, colors, keymaps
+├── config/                  # Version management
+│   ├── versions.sh          # Default versions + auto-detection
+│   └── versions.d/          # Environment-specific overrides
+│       ├── ubuntu-20.04.sh
+│       ├── ubuntu-22.04.sh
+│       ├── ubuntu-24.04.sh
+│       └── local.sh         # Local overrides (gitignored)
 └── src/                     # Installation scripts
     ├── install.sh           # Main installer (profile-based)
     ├── install-prerequisite.sh  # Dependencies
     ├── install-omz.sh       # Oh-My-Zsh
+    ├── update.sh            # Update without rebuilding
     └── cleanse.sh           # Cleanup script
 ```
 
@@ -136,6 +144,103 @@ Create files in `zsh/zsh.d/` with numeric prefix:
 - `10-19`: Functions
 - `20-29`: Aliases
 - `30-39`: Git
+
+## Update (Without Rebuilding Docker)
+
+Update dotfiles when remote repository changes, without rebuilding Docker image.
+
+### Quick Commands
+
+| Command | Description |
+|---------|-------------|
+| `dotup` | Fast update (git pull + relink + plugins) |
+| `dotup-full` | Full update (includes system packages) |
+| `dotup --versions` | Show current version configuration |
+| `dotcd` | Navigate to dotfiles directory |
+
+### What Each Command Does
+
+```bash
+dotup              # Daily use - quick sync
+├── git pull
+├── Relink symlinks (zshrc, gitconfig, nvim, tmux...)
+├── Detect version config changes → warn if --packages needed
+├── Sync Neovim plugins (Lazy)
+├── Update Tmux plugins (TPM)
+└── Update Zplug plugins
+
+dotup-full         # When packages changed
+├── (all above)
+└── Reinstall system packages with version management
+```
+
+### Usage Examples
+
+```bash
+# Regular update
+dotup
+
+# After install-prerequisite.sh changed
+dotup --packages
+
+# Check versions before updating
+dotup --versions
+
+# Override specific version
+VERSION_NEOVIM=v0.9.5 dotup --packages
+
+# Apply changes to current shell
+source ~/.zshrc  # or: exec zsh
+```
+
+## Version Management
+
+Package versions are managed per-environment to ensure compatibility.
+
+### How It Works
+
+```
+config/versions.sh           # Default versions
+         ↓
+config/versions.d/ubuntu-22.04.sh   # OS-specific override
+         ↓
+config/versions.d/local.sh   # Machine-specific (gitignored)
+         ↓
+Environment variable         # Highest priority
+```
+
+### Managed Packages
+
+| Package | Why Managed |
+|---------|-------------|
+| Neovim | Ubuntu repo version too old, built from source |
+| Lua/Luarocks | Specific version needed for plugins |
+| Node.js | Major version for compatibility |
+| VSCode C++ Tools | Downloaded from GitHub releases |
+| thefuck | Requires specific Python version |
+
+**Note:** apt packages use Ubuntu defaults (tested for that release).
+
+### Adding New Environment
+
+```bash
+# Create override for new Ubuntu version
+cat > config/versions.d/ubuntu-26.04.sh << 'EOF'
+#!/bin/bash
+export VERSION_NEOVIM="v0.12.0"
+export VERSION_THEFUCK_PYTHON="3.13"
+EOF
+```
+
+### Local Overrides
+
+```bash
+# Machine-specific settings (not tracked by git)
+cat > config/versions.d/local.sh << 'EOF'
+#!/bin/bash
+export VERSION_NEOVIM="v0.9.5"  # Use older version on this machine
+EOF
+```
 
 ## Troubleshooting
 
