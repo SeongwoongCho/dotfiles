@@ -116,7 +116,8 @@ function omcupdate() {
         local REMOTE_HEAD=$(cd "$MARKETPLACE_DIR" && git ls-remote origin main 2>/dev/null | cut -c1-8)
         if [[ "$force" == "true" || "$LOCAL_HEAD" != "$REMOTE_HEAD" ]]; then
             echo -ne "${BLUE}[OMC]${NC} Marketplace... "
-            if (cd "$MARKETPLACE_DIR" && git pull origin main --quiet 2>/dev/null); then
+            # Stash local changes, pull, then drop stash (marketplace shouldn't have user changes)
+            if (cd "$MARKETPLACE_DIR" && git stash -q 2>/dev/null; git pull origin main --ff-only --quiet 2>/dev/null; git stash drop -q 2>/dev/null); then
                 echo -e "${GREEN}updated${NC}"
                 updated=true
             else
