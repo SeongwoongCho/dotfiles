@@ -87,8 +87,8 @@ install_full() {
 
     echo
     echo '** [FULL] Setting up oh-my-claudecode...'
-    claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode || true
-    claude plugin install oh-my-claudecode || true
+    command claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode || true
+    command claude plugin install oh-my-claudecode || true
 
     # Download CLAUDE.md
     curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o ~/.claude/CLAUDE.md && \
@@ -120,17 +120,22 @@ install_full() {
 
     echo
     echo '** [FULL] Installing Claude Code LSP plugins...'
-    claude plugin marketplace add anthropics/claude-plugins-official || true
-    claude plugin install typescript-lsp@claude-plugins-official || true
-    claude plugin install pyright-lsp@claude-plugins-official || true
-    claude plugin install gopls-lsp@claude-plugins-official || true
-    claude plugin install rust-analyzer-lsp@claude-plugins-official || true
-    claude plugin install clangd-lsp@claude-plugins-official || true
-    claude plugin install lua-lsp@claude-plugins-official || true
-    claude plugin install csharp-lsp@claude-plugins-official || true
-    claude plugin install php-lsp@claude-plugins-official || true
-    claude plugin install swift-lsp@claude-plugins-official || true
-    claude plugin install jdtls-lsp@claude-plugins-official || true
+    command claude plugin marketplace add anthropics/claude-plugins-official || true
+    command claude plugin install typescript-lsp@claude-plugins-official || true
+    command claude plugin install pyright-lsp@claude-plugins-official || true
+    command claude plugin install gopls-lsp@claude-plugins-official || true
+    command claude plugin install rust-analyzer-lsp@claude-plugins-official || true
+    command claude plugin install clangd-lsp@claude-plugins-official || true
+    command claude plugin install lua-lsp@claude-plugins-official || true
+    command claude plugin install csharp-lsp@claude-plugins-official || true
+    command claude plugin install php-lsp@claude-plugins-official || true
+    command claude plugin install swift-lsp@claude-plugins-official || true
+    command claude plugin install jdtls-lsp@claude-plugins-official || true
+
+    echo
+    echo '** [FULL] Installing superpowers plugin...'
+    command claude plugin marketplace add obra/superpowers-marketplace || true
+    command claude plugin install superpowers@superpowers-marketplace || true
 
     echo
     echo '** [FULL] Setting up C++ debug tools...'
