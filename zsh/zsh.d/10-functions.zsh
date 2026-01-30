@@ -200,6 +200,23 @@ function usemaccel() {
 }
 alias um='usemaccel'
 
+# PYTHONPATH setting
+# Usage: up [path]
+#   up .        - Set PYTHONPATH to current directory
+#   up /path    - Set PYTHONPATH to specified path
+#   up          - Clear PYTHONPATH
+function up() {
+    if [ -n "$1" ]; then
+        if [ "$1" = "." ]; then
+            export PYTHONPATH="$(pwd)"
+        else
+            export PYTHONPATH="$1"
+        fi
+    else
+        unset PYTHONPATH
+    fi
+}
+
 # Oh-My-ClaudeCode update (with per-component version tracking)
 function omcupdate() {
     local force=false
