@@ -15,26 +15,20 @@ function conda_prompt_info(){
 }
 
 function cuda_prompt_info(){
-    if [[ ! -z "$CUDA_VISIBLE_DEVICES" ]]; then
-        echo "| %{$FG[141]%}cuda:${CUDA_VISIBLE_DEVICES}"
-    else
-        echo ""
+    if [[ -n "$CUDA_VISIBLE_DEVICES" ]]; then
+        echo " | %{$FG[141]%}cuda:${CUDA_VISIBLE_DEVICES}"
     fi
 }
 
 function habana_prompt_info(){
-    if [[ ! -z "$HABANA_VISIBLE_DEVICES" ]]; then
-        echo "| %{$FG[141]%}habana:${HABANA_VISIBLE_DEVICES}"
-    else
-        echo ""
+    if [[ -n "$HABANA_VISIBLE_DEVICES" ]]; then
+        echo " | %{$FG[141]%}habana:${HABANA_VISIBLE_DEVICES}"
     fi
 }
 
 function maccel_prompt_info(){
-    if [[ ! -z "$MACCEL_VISIBLE_DEVICES" ]]; then
-        echo "| %{$FG[141]%}maccel:${MACCEL_VISIBLE_DEVICES}"
-    else
-        echo ""
+    if [[ -n "$MACCEL_VISIBLE_DEVICES" ]]; then
+        echo " | %{$FG[141]%}maccel:${MACCEL_VISIBLE_DEVICES}"
     fi
 }
 
@@ -46,10 +40,7 @@ $(conda_prompt_info)\
 %{$FG[255]%} in \
 %{$FG[153]%}${PWD/#$HOME/~}\
 %{$reset_color%}\
- $(git_prompt_info)\
- $(cuda_prompt_info)\
- $(habana_prompt_info)\
- $(maccel_prompt_info)
+ $(git_prompt_info)$(cuda_prompt_info)$(habana_prompt_info)$(maccel_prompt_info)
 %{$fg_bold[blue]%}$ '
 
 ZSH_THEME_CONDA_PREFIX="%{$FG[226]%}("

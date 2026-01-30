@@ -80,7 +80,7 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 - **Shell**: Zsh with Oh-My-Zsh + zplug
 - **Multiplexer**: Tmux with TPM (prefix: `Ctrl-A`)
 - **Theme**: mrtazz_custom + Oceanic Next
-- **Auto-reload**: zshrc changes are automatically detected and applied
+- **Auto-reload**: Changes to zshrc, themes, and zsh.d modules are automatically detected and applied
 
 ### Zsh Plugins
 - `alias-tips` - Reminds you of aliases

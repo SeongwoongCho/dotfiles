@@ -133,16 +133,33 @@ fi
 #==================================================#
 ### zshrc auto-reload (detect changes automatically)
 #==================================================#
-# Checks ~/.zshrc modification time on each prompt.
-# If changed, automatically sources the new version.
-# Only runs when shell is idle (not during program execution).
+# Monitors zshrc, theme, and zsh.d modules for changes.
+# Automatically reloads on modification (checked at each prompt).
 if [[ -z "$ZSHRC_AUTORELOAD_INITIALIZED" ]]; then
     export ZSHRC_AUTORELOAD_INITIALIZED=1
-    export ZSHRC_LAST_MTIME=$(stat -c %Y ~/.zshrc 2>/dev/null || stat -f %m ~/.zshrc 2>/dev/null)
+
+    # Get max mtime from all monitored files
+    _zshrc_get_max_mtime() {
+        local max_mtime=0
+        local mtime
+        local files=(
+            ~/.zshrc
+            $MYDOTFILES/assets/*.zsh-theme
+            ~/.zsh.d/*.zsh
+        )
+        for f in $files; do
+            [[ -f "$f" ]] || continue
+            mtime=$(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f" 2>/dev/null)
+            (( mtime > max_mtime )) && max_mtime=$mtime
+        done
+        echo $max_mtime
+    }
+
+    export ZSHRC_LAST_MTIME=$(_zshrc_get_max_mtime)
 
     _zshrc_auto_reload() {
-        local current_mtime=$(stat -c %Y ~/.zshrc 2>/dev/null || stat -f %m ~/.zshrc 2>/dev/null)
-        if [[ "$current_mtime" -gt "$ZSHRC_LAST_MTIME" ]]; then
+        local current_mtime=$(_zshrc_get_max_mtime)
+        if (( current_mtime > ZSHRC_LAST_MTIME )); then
             export ZSHRC_LAST_MTIME=$current_mtime
             echo "\033[0;36m[zshrc]\033[0m Auto-reloading..."
             source ~/.zshrc
