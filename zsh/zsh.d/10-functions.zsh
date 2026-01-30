@@ -142,23 +142,63 @@ function fuzzyvim() {
     vim "$(fzf)"
 }
 
-# GPU device selection
+# =============================================================================
+# Accelerator Device Selection Functions
+# =============================================================================
+# Device visibility control for hardware accelerators:
+# - NVIDIA GPU:       CUDA_VISIBLE_DEVICES
+# - Intel Gaudi/HPU:  HABANA_VISIBLE_DEVICES
+# - Mobilint NPU:     MACCEL_VISIBLE_DEVICES
+#
+# Short aliases: ug (GPU), uh (HPU), um (Mobilint NPU)
+# Selected devices are displayed in the shell prompt (see zsh-theme).
+# =============================================================================
+
+# GPU device selection (NVIDIA CUDA)
+# Usage: ug [device_ids]
+#   ug 0      - Use GPU 0 only
+#   ug 0,1    - Use GPUs 0 and 1
+#   ug        - Clear selection (use all available)
 function usegpu() {
     if [ -n "$1" ]; then
         export CUDA_VISIBLE_DEVICES="$1"
     else
-        export CUDA_VISIBLE_DEVICES=''
+        unset CUDA_VISIBLE_DEVICES
     fi
 }
+alias ug='usegpu'
 
-# HPU device selection (Habana)
+# HPU device selection (Intel Gaudi / Habana)
+# Usage: uh [device_ids]
+#   uh 0      - Use HPU 0 only
+#   uh 0,1    - Use HPUs 0 and 1
+#   uh        - Clear selection (use all available)
 function usehpu() {
     if [ -n "$1" ]; then
-        export HABANA_VISIBLE_MODULES="$1"
+        export HABANA_VISIBLE_DEVICES="$1"
     else
-        export HABANA_VISIBLE_MODULES=''
+        unset HABANA_VISIBLE_DEVICES
     fi
 }
+alias uh='usehpu'
+
+# Mobilint NPU device selection
+# Usage: um [device_ids]
+#   um 0      - Use NPU 0 only
+#   um 0,1    - Use NPUs 0 and 1
+#   um        - Clear selection (use all available)
+#
+# MACCEL_VISIBLE_DEVICES: Environment variable for Mobilint Inc. NPU accelerators.
+# Similar to CUDA_VISIBLE_DEVICES, this controls which NPU devices are visible
+# to Mobilint's runtime and frameworks.
+function usemaccel() {
+    if [ -n "$1" ]; then
+        export MACCEL_VISIBLE_DEVICES="$1"
+    else
+        unset MACCEL_VISIBLE_DEVICES
+    fi
+}
+alias um='usemaccel'
 
 # Oh-My-ClaudeCode update (with per-component version tracking)
 function omcupdate() {

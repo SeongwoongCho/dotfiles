@@ -139,12 +139,27 @@ omcup -f         # Force update all components
 claude           # Launch Claude Code (auto-updates OMC first)
 ```
 
+### Accelerator Device Selection
+
+Set visible devices for hardware accelerators. Selected devices are displayed in the shell prompt.
+
+| Command | Environment Variable | Prompt Display |
+|---------|---------------------|----------------|
+| `ug <ids>` / `usegpu` | `CUDA_VISIBLE_DEVICES` | `cuda:0,1` |
+| `uh <ids>` / `usehpu` | `HABANA_VISIBLE_DEVICES` | `habana:0` |
+| `um <ids>` / `usemaccel` | `MACCEL_VISIBLE_DEVICES` | `maccel:0,1` |
+
+```bash
+ug 0,1    # Use NVIDIA GPU 0 and 1
+uh 0      # Use Intel Gaudi HPU 0
+um 0      # Use Mobilint NPU 0
+ug        # Clear selection (use all)
+```
+
 ### Other Functions
 
 | Function | Description |
 |----------|-------------|
-| `usegpu <id>` | Set CUDA_VISIBLE_DEVICES |
-| `usehpu <id>` | Set HABANA_VISIBLE_MODULES |
 | `pyclean` | Remove Python cache files |
 | `howmany <dir> "*.ext"` | Count files matching pattern |
 | `fuzzyvim` | Open file with fzf + vim |
