@@ -80,6 +80,7 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 - **Shell**: Zsh with Oh-My-Zsh + zplug
 - **Multiplexer**: Tmux with TPM (prefix: `Ctrl-A`)
 - **Theme**: mrtazz_custom + Oceanic Next
+- **Auto-reload**: zshrc changes are automatically detected and applied
 
 ### Zsh Plugins
 - `alias-tips` - Reminds you of aliases
@@ -111,7 +112,6 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 - `nvim-cmp` - Autocompletion
 - `treesitter` - Syntax highlighting
 - `gitsigns` - Git integration
-- `nvim-dap-ui` - Debugging
 - `codeium` - AI completion
 
 ### AI Tools (full profile)
