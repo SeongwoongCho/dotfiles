@@ -414,8 +414,8 @@ main() {
     install_by_uv "maccel"
     install_by_uv "pylatexenc"
 
-    log_section "VSCode C++ Tools"
-    install_vscode_cpptools
+    # log_section "VSCode C++ Tools"
+    # install_vscode_cpptools
 
     log_section "Mobilint"
     install_mobilint
