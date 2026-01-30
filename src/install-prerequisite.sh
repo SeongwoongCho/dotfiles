@@ -279,6 +279,42 @@ install_vscode_cpptools() {
     return 1
 }
 
+optimize_dns() {
+    log_install "dns-optimization" "resolv.conf"
+
+    # Measure DNS latency
+    local dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s --connect-timeout 10 https://api.anthropic.com 2>/dev/null)
+
+    if [[ -z "$dns_time" ]]; then
+        log_info "Could not measure DNS latency (network unavailable)"
+        return 0
+    fi
+
+    # Check if DNS is slow (threshold: 1 second)
+    local is_slow=$(echo "$dns_time > 1.0" | bc 2>/dev/null || echo "0")
+
+    if [[ "$is_slow" != "1" ]]; then
+        log_info "DNS resolution is fast (${dns_time}s). No optimization needed."
+        return 0
+    fi
+
+    log_warn "dns" "DNS resolution slow (${dns_time}s), adding Google DNS..."
+
+    # Check if already has Google DNS
+    if grep -q "^nameserver 8.8.8.8" /etc/resolv.conf 2>/dev/null; then
+        log_info "Google DNS already configured"
+        return 0
+    fi
+
+    # Add Google DNS
+    echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+
+    # Verify
+    local new_dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s --connect-timeout 10 https://api.anthropic.com 2>/dev/null)
+    log_success "dns-optimization" "resolv.conf (${dns_time}s → ${new_dns_time}s)"
+    return 0
+}
+
 install_mobilint() {
     log_install "mobilint-cli" "mobilint repo"
 
@@ -349,6 +385,9 @@ main() {
     if declare -f print_version_info &>/dev/null; then
         print_version_info
     fi
+
+    log_section "DNS Optimization"
+    optimize_dns
 
     log_section "APT Repository Setup"
     apt-get update >/dev/null 2>&1

@@ -1,6 +1,94 @@
 #!/bin/zsh
 # Utility functions
 
+# fix-dns: Fix slow DNS resolution in Docker containers
+# Usage: fix-dns [--check] [--force]
+#   --check: Only diagnose, don't fix
+#   --force: Apply fix without confirmation
+function fix-dns() {
+    local check_only=false
+    local force=false
+    local GREEN='\033[0;32m' YELLOW='\033[1;33m' RED='\033[0;31m' BLUE='\033[0;34m' NC='\033[0m'
+
+    for arg in "$@"; do
+        case "$arg" in
+            --check) check_only=true ;;
+            --force) force=true ;;
+            -h|--help)
+                echo "fix-dns: Fix slow DNS resolution in Docker containers"
+                echo ""
+                echo "Usage: fix-dns [--check] [--force]"
+                echo "  --check  Only diagnose DNS latency, don't fix"
+                echo "  --force  Apply fix without confirmation"
+                echo ""
+                echo "Adds Google DNS (8.8.8.8) to /etc/resolv.conf if DNS is slow"
+                return 0
+                ;;
+        esac
+    done
+
+    # Measure DNS latency
+    echo -ne "${BLUE}[DNS]${NC} Measuring DNS latency... "
+    local dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s https://api.anthropic.com 2>/dev/null)
+
+    if [[ -z "$dns_time" ]]; then
+        echo -e "${RED}failed${NC} (curl error)"
+        return 1
+    fi
+
+    # Convert to milliseconds for display
+    local dns_ms=$(echo "$dns_time * 1000" | bc 2>/dev/null || echo "$dns_time")
+    echo -e "${dns_time}s (${dns_ms}ms)"
+
+    # Check if DNS is slow (threshold: 1 second)
+    local is_slow=$(echo "$dns_time > 1.0" | bc 2>/dev/null)
+    if [[ "$is_slow" != "1" ]]; then
+        echo -e "${GREEN}[DNS]${NC} DNS resolution is fast (<1s). No fix needed."
+        return 0
+    fi
+
+    echo -e "${YELLOW}[DNS]${NC} DNS resolution is slow (>1s)."
+
+    if [[ "$check_only" == "true" ]]; then
+        echo -e "${BLUE}[DNS]${NC} Run 'fix-dns' (without --check) to apply fix."
+        return 0
+    fi
+
+    # Check if already has Google DNS
+    if grep -q "^nameserver 8.8.8.8" /etc/resolv.conf 2>/dev/null; then
+        echo -e "${YELLOW}[DNS]${NC} Google DNS (8.8.8.8) already configured but still slow."
+        echo -e "${BLUE}[DNS]${NC} Consider checking network connectivity."
+        return 1
+    fi
+
+    # Confirm before applying
+    if [[ "$force" != "true" ]]; then
+        echo -ne "${YELLOW}[DNS]${NC} Add Google DNS (8.8.8.8) to /etc/resolv.conf? [y/N] "
+        read -r response
+        [[ "$response" != [yY] ]] && { echo "Cancelled."; return 0; }
+    fi
+
+    # Apply fix (requires root)
+    if [[ $EUID -ne 0 ]]; then
+        echo -e "${BLUE}[DNS]${NC} Applying fix with sudo..."
+        echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf >/dev/null
+    else
+        echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+    fi
+
+    # Verify fix
+    echo -ne "${BLUE}[DNS]${NC} Verifying... "
+    local new_dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s https://api.anthropic.com 2>/dev/null)
+    echo -e "${new_dns_time}s"
+
+    local is_fixed=$(echo "$new_dns_time < 1.0" | bc 2>/dev/null)
+    if [[ "$is_fixed" == "1" ]]; then
+        echo -e "${GREEN}[DNS]${NC} DNS resolution fixed! (${dns_time}s → ${new_dns_time}s)"
+    else
+        echo -e "${YELLOW}[DNS]${NC} DNS still slow. May need additional network configuration."
+    fi
+}
+
 # backup existing dotfiles (buo: back-up-original)
 function buo() {
     backup_dir="$HOME/dotfiles_backup"

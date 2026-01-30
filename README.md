@@ -86,6 +86,17 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 - `zsh-syntax-highlighting` - Command highlighting
 - `zsh-autosuggestions` - Fish-like suggestions
 - `fzf` + `fd` - Fuzzy finding
+- `zoxide` - Smarter cd command
+
+### Modern CLI Tools
+| Original | Replacement | Description |
+|----------|-------------|-------------|
+| `ls` | `eza` | Modern ls with colors and icons |
+| `cd` | `z` (zoxide) | Smart directory jumping |
+| `cat` | `batcat` | Syntax highlighting |
+| `df` | `duf` | Disk usage with better UI |
+| `grep` | `rg` (ripgrep) | Faster grep |
+| `find` | `fd` | Faster find |
 
 ### Neovim (Lazy.nvim)
 
@@ -105,7 +116,39 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 
 ### AI Tools (full profile)
 - **Claude Code** with oh-my-claudecode plugin
-- LSP plugins for multiple languages
+- **superpowers** plugin for enhanced workflows
+- LSP plugins for multiple languages (TypeScript, Python, Go, Rust, C/C++, etc.)
+
+## Utility Functions
+
+### DNS Optimization (Docker)
+
+Docker containers often have slow DNS resolution. This is automatically fixed during installation, but you can also run it manually:
+
+```bash
+fix-dns          # Diagnose and fix DNS latency
+fix-dns --check  # Diagnose only (no changes)
+fix-dns --force  # Fix without confirmation
+```
+
+### Oh-My-ClaudeCode Management
+
+```bash
+omcup            # Update OMC (CLAUDE.md, plugin, HUD)
+omcup -f         # Force update all components
+claude           # Launch Claude Code (auto-updates OMC first)
+```
+
+### Other Functions
+
+| Function | Description |
+|----------|-------------|
+| `usegpu <id>` | Set CUDA_VISIBLE_DEVICES |
+| `usehpu <id>` | Set HABANA_VISIBLE_MODULES |
+| `pyclean` | Remove Python cache files |
+| `howmany <dir> "*.ext"` | Count files matching pattern |
+| `fuzzyvim` | Open file with fzf + vim |
+| `buo <files>` | Backup files before overwriting |
 
 ## Key Bindings
 
@@ -157,6 +200,8 @@ Update dotfiles when remote repository changes, without rebuilding Docker image.
 | `dotup-full` | Full update (includes system packages) |
 | `dotup --versions` | Show current version configuration |
 | `dotcd` | Navigate to dotfiles directory |
+| `omcup` | Update Oh-My-ClaudeCode components |
+| `omcup -f` | Force update all OMC components |
 
 ### What Each Command Does
 
@@ -245,8 +290,20 @@ EOF
 ## Troubleshooting
 
 ### Common Issues
+
+- **Claude Code slow in Docker**: DNS resolution delay. Run `fix-dns` or check manually:
+  ```bash
+  # Diagnose
+  curl -w "DNS: %{time_namelookup}s\n" -o /dev/null -s https://api.anthropic.com
+
+  # Fix (if DNS > 1s)
+  fix-dns --force
+  ```
+
 - **Special characters missing**: Install Nerd Font (D2Coding Mono Hack)
+
 - **LSP not working**: Restart Neovim for Mason to install servers
+
 - **Codeium permission error**:
   ```bash
   chown -R $(whoami):$(whoami) ~/.cache/nvim/codeium
