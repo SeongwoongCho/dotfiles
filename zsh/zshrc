@@ -14,6 +14,8 @@ path=(
     "$HOME/.mbltmon/build/src/mbltmon"
     /usr/local/bin
     /usr/local/cuda/bin
+    /usr/bin
+    /bin
     $path
 )
 export PATH
@@ -160,9 +162,8 @@ if [[ -z "$ZSHRC_AUTORELOAD_INITIALIZED" ]]; then
     _zshrc_auto_reload() {
         local current_mtime=$(_zshrc_get_max_mtime)
         if (( current_mtime > ZSHRC_LAST_MTIME )); then
-            export ZSHRC_LAST_MTIME=$current_mtime
             echo "\033[0;36m[zshrc]\033[0m Auto-reloading..."
-            source ~/.zshrc
+            exec zsh
         fi
     }
 
