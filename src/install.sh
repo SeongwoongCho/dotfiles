@@ -90,33 +90,10 @@ install_full() {
     command claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode || true
     command claude plugin install oh-my-claudecode || true
 
-    # Download CLAUDE.md
-    curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o ~/.claude/CLAUDE.md && \
-    echo "Downloaded CLAUDE.md to ~/.claude/CLAUDE.md"
-
-    # Build plugin for HUD
-    OMC_PLUGIN_VERSION=$(ls ~/.claude/plugins/cache/omc/oh-my-claudecode/ 2>/dev/null | sort -V | tail -1 || echo "")
-    if [ -n "$OMC_PLUGIN_VERSION" ]; then
-        echo "Building oh-my-claudecode plugin (version: $OMC_PLUGIN_VERSION)..."
-        cd ~/.claude/plugins/cache/omc/oh-my-claudecode/"$OMC_PLUGIN_VERSION" && npm install
-        cd "$DOT_DIR"
-    fi
-
-    # Setup HUD statusline
-    mkdir -p ~/.claude/hud
-    OMC_HUD_MD="$HOME/.claude/plugins/cache/omc/oh-my-claudecode/$OMC_PLUGIN_VERSION/commands/hud.md"
-    if [ -f "$OMC_HUD_MD" ]; then
-        echo "Extracting omc-hud.mjs from plugin's hud.md..."
-        sed -n '/^```javascript$/,/^```$/p' "$OMC_HUD_MD" | sed '1d;$d' > ~/.claude/hud/omc-hud.mjs
-        chmod +x ~/.claude/hud/omc-hud.mjs
-    fi
-
-    CLAUDE_SETTINGS="$HOME/.claude/settings.json"
-    if [ -f "$CLAUDE_SETTINGS" ]; then
-        jq '.statusLine = {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}' "$CLAUDE_SETTINGS" >"${CLAUDE_SETTINGS}.tmp" && mv "${CLAUDE_SETTINGS}.tmp" "$CLAUDE_SETTINGS"
-    else
-        echo '{"statusLine": {"type": "command", "command": "node ~/.claude/hud/omc-hud.mjs"}}' >"$CLAUDE_SETTINGS"
-    fi
+    # Use omcupdate function for CLAUDE.md, HUD, and settings setup
+    # Source zsh.d to get omcupdate function, then run it
+    echo '** [FULL] Running omcupdate for OMC configuration...'
+    zsh -c "source $DOT_DIR/zsh/zsh.d/10-functions.zsh && omcupdate -f" || true
 
     echo
     echo '** [FULL] Installing Claude Code LSP plugins...'
