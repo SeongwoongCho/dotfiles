@@ -114,12 +114,13 @@ install_full() {
     command claude plugin marketplace add obra/superpowers-marketplace || true
     command claude plugin install superpowers@superpowers-marketplace || true
 
-    echo
-    echo '** [FULL] Setting up C++ debug tools...'
-    if [ -d "$HOME/cpptools-linux-x64" ]; then
-        ln -sf "$HOME/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7" /usr/bin/OpenDebugAD7
-        chmod +x /usr/bin/OpenDebugAD7
-    fi
+    # C++ debug tools disabled (nvim-dap-ui not used)
+    # echo
+    # echo '** [FULL] Setting up C++ debug tools...'
+    # if [ -d "$HOME/cpptools-linux-x64" ]; then
+    #     ln -sf "$HOME/cpptools-linux-x64/extension/debugAdapters/bin/OpenDebugAD7" /usr/bin/OpenDebugAD7
+    #     chmod +x /usr/bin/OpenDebugAD7
+    # fi
 }
 
 #==================================================#
