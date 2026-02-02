@@ -416,6 +416,10 @@ function dothelp() {
         _key "<C-o>" "Live grep"
         _key "[b / ]b" "Prev/Next buffer"
         _key ",g" "Go back (after goto-def)"
+        _key "<F8>" "Toggle paste mode"
+        _key "<F9>" "Toggle line numbers"
+        _key "y / yy" "Yank to system clipboard"
+        _key ",b / ,v" "Insert ipdb breakpoint"
     fi
 
     # Tmux Keybindings
@@ -424,7 +428,14 @@ function dothelp() {
         _key "v" "Vertical split (side by side)"
         _key "s" "Horizontal split (top/bottom)"
         _key "h/j/k/l" "Navigate panes"
+        _key "c" "New window"
+        _key "0-9" "Select window by number"
+        _key "q" "Display pane numbers"
         _key "r" "Reload config"
+        _key "e" "Toggle sync mode"
+        _key "> / <" "Resize pane width"
+        _key "+ / -" "Resize pane height"
+        _key "Esc/Enter" "Enter copy mode"
     fi
 
     # Footer

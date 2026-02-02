@@ -206,6 +206,8 @@ up            # Clear PYTHONPATH
 | `@` | Clear search highlight |
 | `<C-p>` | Find files |
 | `<C-o>` | Live grep |
+| `<F8>` | Toggle paste mode |
+| `<F9>` | Toggle line numbers |
 
 ### Navigation
 | Key | Action |
@@ -214,13 +216,28 @@ up            # Clear PYTHONPATH
 | `,g` | Go back (after goto-definition) |
 | `<C-h/j/k/l>` | Navigate splits (vim-tmux) |
 
+### Editing
+| Key | Action |
+|-----|--------|
+| `y` / `yy` | Yank to system clipboard |
+| `,b` | Insert ipdb breakpoint above |
+| `,v` | Insert ipdb breakpoint below |
+| `<` / `>` (visual) | Indent and keep selection |
+
 ### Tmux (prefix: Ctrl-A)
 | Key | Action |
 |-----|--------|
 | `v` | Vertical split (side by side) |
 | `s` | Horizontal split (top/bottom) |
-| `r` | Reload config |
 | `hjkl` | Navigate panes |
+| `c` | New window |
+| `0-9` | Select window by number |
+| `q` | Display pane numbers |
+| `r` | Reload config |
+| `e` | Toggle sync mode (all panes) |
+| `>/<` | Resize pane width |
+| `+/-` | Resize pane height |
+| `Esc/Enter` | Enter copy mode |
 
 ## Customization
 
