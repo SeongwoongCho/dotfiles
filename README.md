@@ -156,6 +156,20 @@ um 0      # Use Mobilint NPU 0
 ug        # Clear selection (use all)
 ```
 
+### Python Environment
+
+Set PYTHONPATH easily. The path is displayed in the shell prompt when set.
+
+| Command | Environment Variable | Prompt Display |
+|---------|---------------------|----------------|
+| `up <path>` | `PYTHONPATH` | `pypath:~/project` |
+
+```bash
+up .          # Set PYTHONPATH to current directory
+up /path/to   # Set PYTHONPATH to specified path
+up            # Clear PYTHONPATH
+```
+
 ### Other Functions
 
 | Function | Description |
