@@ -217,8 +217,8 @@ up            # Clear PYTHONPATH
 ### Tmux (prefix: Ctrl-A)
 | Key | Action |
 |-----|--------|
-| `|` | Vertical split |
-| `-` | Horizontal split |
+| `v` | Vertical split (side by side) |
+| `s` | Horizontal split (top/bottom) |
 | `r` | Reload config |
 | `hjkl` | Navigate panes |
 

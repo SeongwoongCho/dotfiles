@@ -421,8 +421,8 @@ function dothelp() {
     # Tmux Keybindings
     if [[ "$show_all" == true || "$1" == "key" || "$1" == "tmux" ]]; then
         _header "Tmux Keys (Prefix: Ctrl-A)"
-        _key "|" "Vertical split"
-        _key "-" "Horizontal split"
+        _key "v" "Vertical split (side by side)"
+        _key "s" "Horizontal split (top/bottom)"
         _key "h/j/k/l" "Navigate panes"
         _key "r" "Reload config"
     fi
