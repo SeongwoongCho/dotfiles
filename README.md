@@ -156,6 +156,19 @@ um 0      # Use Mobilint NPU 0
 ug        # Clear selection (use all)
 ```
 
+### Hardware Monitoring
+
+Real-time monitoring aliases for accelerators. NPU usage is also displayed in tmux statusbar when `npustat` is available.
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `gpu` | `watch gpustat --color` | NVIDIA GPU monitoring |
+| `gpusmi` | `watch nvidia-smi` | nvidia-smi output |
+| `npu` | `watch npustat --color` | Mobilint NPU monitoring |
+| `hpusmi` | `watch hl-smi` | Intel Gaudi HPU monitoring |
+
+**Note:** `npustat` is a custom tool (similar to gpustat) installed from `~/.dotfiles/npustat`.
+
 ### Python Environment
 
 Set PYTHONPATH easily. The path is displayed in the shell prompt when set.
