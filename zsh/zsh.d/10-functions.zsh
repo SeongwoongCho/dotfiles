@@ -344,3 +344,90 @@ EOF
         echo -e "${GREEN}[OMC]${NC} Already up to date (v$VERSION)"
     fi
 }
+
+# Dotfiles Quick Reference
+# Usage: dothelp [category]
+#   dothelp         - Show all categories
+#   dothelp alias   - Show aliases only
+#   dothelp func    - Show functions only
+#   dothelp key     - Show keybindings only
+#   dothelp accel   - Show accelerator commands
+function dothelp() {
+    local CYAN='\033[0;36m' GREEN='\033[0;32m' YELLOW='\033[1;33m'
+    local MAGENTA='\033[0;35m' BLUE='\033[0;34m' BOLD='\033[1m'
+    local DIM='\033[2m' NC='\033[0m'
+
+    _header() { echo -e "\n${BOLD}${CYAN}━━━ $1 ━━━${NC}"; }
+    _cmd() { printf "  ${GREEN}%-14s${NC} %s\n" "$1" "$2"; }
+    _key() { printf "  ${YELLOW}%-14s${NC} %s\n" "$1" "$2"; }
+
+    local show_all=true
+    [[ -n "$1" ]] && show_all=false
+
+    # Header
+    echo -e "${BOLD}${MAGENTA}╔════════════════════════════════════════╗${NC}"
+    echo -e "${BOLD}${MAGENTA}║       ${CYAN}dotfiles Quick Reference${MAGENTA}         ║${NC}"
+    echo -e "${BOLD}${MAGENTA}╚════════════════════════════════════════╝${NC}"
+
+    # Accelerator & Environment
+    if [[ "$show_all" == true || "$1" == "accel" || "$1" == "env" ]]; then
+        _header "Accelerator & Environment"
+        _cmd "ug <ids>" "Set CUDA_VISIBLE_DEVICES (prompt: cuda:X)"
+        _cmd "uh <ids>" "Set HABANA_VISIBLE_DEVICES (prompt: habana:X)"
+        _cmd "um <ids>" "Set MACCEL_VISIBLE_DEVICES (prompt: maccel:X)"
+        _cmd "up <path>" "Set PYTHONPATH (prompt: pypath:~)"
+        _cmd "gpu" "Watch gpustat (NVIDIA)"
+        _cmd "npu" "Watch npustat (Mobilint)"
+        _cmd "hpusmi" "Watch hl-smi (Intel Gaudi)"
+    fi
+
+    # Common Aliases
+    if [[ "$show_all" == true || "$1" == "alias" ]]; then
+        _header "Common Aliases"
+        _cmd "vim" "nvim"
+        _cmd "ls" "eza (modern ls)"
+        _cmd "cd" "zoxide (smart cd)"
+        _cmd "bat" "batcat (syntax highlight)"
+        _cmd "df" "duf (disk usage)"
+        _cmd "jl / jla" "Jupyter Lab (local / all IPs)"
+        _cmd "claude" "Claude Code (auto-updates OMC)"
+    fi
+
+    # Utility Functions
+    if [[ "$show_all" == true || "$1" == "func" ]]; then
+        _header "Utility Functions"
+        _cmd "dotup" "Update dotfiles (git + plugins)"
+        _cmd "dotup-full" "Full update (+ packages)"
+        _cmd "dotcd" "cd to ~/.dotfiles"
+        _cmd "omcup [-f]" "Update Oh-My-ClaudeCode"
+        _cmd "fix-dns" "Fix slow DNS in Docker"
+        _cmd "pyclean" "Remove __pycache__ files"
+        _cmd "fuzzyvim" "Open file with fzf + vim"
+        _cmd "howmany" "Count files matching pattern"
+    fi
+
+    # Neovim Keybindings
+    if [[ "$show_all" == true || "$1" == "key" || "$1" == "vim" ]]; then
+        _header "Neovim Keys (Leader: ,)"
+        _key ",s" "Save file"
+        _key ",R" "Reload config"
+        _key "@" "Clear search highlight"
+        _key "<C-p>" "Find files (Telescope)"
+        _key "<C-o>" "Live grep"
+        _key "[b / ]b" "Prev/Next buffer"
+        _key ",g" "Go back (after goto-def)"
+    fi
+
+    # Tmux Keybindings
+    if [[ "$show_all" == true || "$1" == "key" || "$1" == "tmux" ]]; then
+        _header "Tmux Keys (Prefix: Ctrl-A)"
+        _key "|" "Vertical split"
+        _key "-" "Horizontal split"
+        _key "h/j/k/l" "Navigate panes"
+        _key "r" "Reload config"
+    fi
+
+    # Footer
+    echo -e "\n${DIM}Usage: dothelp [alias|func|key|accel|vim|tmux]${NC}"
+    echo -e "${DIM}Full docs: cat ~/.dotfiles/README.md${NC}"
+}
