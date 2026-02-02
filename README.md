@@ -183,6 +183,21 @@ up /path/to   # Set PYTHONPATH to specified path
 up            # Clear PYTHONPATH
 ```
 
+### Quick Reference
+
+View dotfiles commands, aliases, keybindings, and plugins at a glance.
+
+```bash
+dothelp            # Show all categories
+dothelp alias      # Aliases only
+dothelp func       # Functions only
+dothelp key        # All keybindings
+dothelp vim        # Neovim keys only
+dothelp tmux       # Tmux keys only
+dothelp accel      # Accelerator commands
+dothelp plugin     # Installed plugins
+```
+
 ### Other Functions
 
 | Function | Description |
