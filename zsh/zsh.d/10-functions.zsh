@@ -438,7 +438,32 @@ function dothelp() {
         _key "Esc/Enter" "Enter copy mode"
     fi
 
+    # Plugins
+    if [[ "$show_all" == true || "$1" == "plugin" || "$1" == "plugins" ]]; then
+        _header "Neovim Plugins (Lazy.nvim)"
+        _cmd "telescope" "Fuzzy finder (<C-p>, <C-o>)"
+        _cmd "nvim-cmp" "Autocompletion"
+        _cmd "treesitter" "Syntax highlighting"
+        _cmd "gitsigns" "Git integration"
+        _cmd "codeium" "AI code completion"
+        _cmd "nvim-tree" "File explorer"
+        _cmd "barbar" "Buffer tabs"
+        _cmd "mason" "LSP auto-installer"
+
+        _header "Zsh Plugins (zplug)"
+        _cmd "alias-tips" "Shows alias hints"
+        _cmd "syntax-hl" "Command highlighting"
+        _cmd "autosugg" "Fish-like suggestions"
+        _cmd "fzf + fd" "Fuzzy file finding"
+        _cmd "zoxide" "Smart cd (z command)"
+
+        _header "Tmux Plugins (TPM)"
+        _cmd "resurrect" "Session save/restore"
+        _cmd "continuum" "Auto save sessions"
+        _cmd "extrakto" "Text extraction (prefix+tab)"
+    fi
+
     # Footer
-    echo -e "\n${DIM}Usage: dothelp [alias|func|key|accel|vim|tmux]${NC}"
+    echo -e "\n${DIM}Usage: dothelp [alias|func|key|accel|vim|tmux|plugin]${NC}"
     echo -e "${DIM}Full docs: cat ~/.dotfiles/README.md${NC}"
 }
