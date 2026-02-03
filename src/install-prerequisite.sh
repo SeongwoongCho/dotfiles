@@ -450,7 +450,7 @@ main() {
     install_by_uv "jedi_language_server"
     install_by_uv "python-lsp-server"
     install_by_uv "thefuck" --python "${VERSION_THEFUCK_PYTHON:-3.11}" --with setuptools
-    install_by_uv "maccel"
+    install_by_uv "mobilint-qb-runtime"
     install_by_uv "pylatexenc"
 
     # log_section "VSCode C++ Tools"
