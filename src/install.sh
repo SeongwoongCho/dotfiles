@@ -39,6 +39,7 @@ install_minimal() {
     ln -sf "$DOT_DIR/zsh/zsh.d" "$HOME/.zsh.d"
     ln -sf "$DOT_DIR/git/gitconfig" "$HOME/.gitconfig"
     ln -sf "$DOT_DIR/zsh/zshrc" "$HOME/.zshrc"
+    mkdir -p "$HOME/.ssh"
     ln -sf "$DOT_DIR/ssh/config" "$HOME/.ssh/config"
 
     echo
