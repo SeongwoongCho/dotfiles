@@ -83,6 +83,14 @@ install_full() {
     install_standard
 
     echo
+    echo '** [FULL] Updating npm to latest...'
+    npm install -g npm@latest || true
+
+    echo
+    echo '** [FULL] Installing OpenAI Codex CLI...'
+    npm install -g @openai/codex || true
+
+    echo
     echo '** [FULL] Installing Claude Code...'
     curl -fsSL https://claude.ai/install.sh | bash || true
 
