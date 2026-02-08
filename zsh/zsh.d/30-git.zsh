@@ -15,6 +15,28 @@ alias gcl='git clone'
 alias gps='git push'
 alias gpl='git pull'
 
+# Setup git user name and email
+# Usage: gitsetup --name "John Doe" --email "john@example.com"
+function gitsetup() {
+    local name="" email=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --name)  name="$2"; shift 2 ;;
+            --email) email="$2"; shift 2 ;;
+            *) echo "Unknown option: $1"; echo "Usage: gitsetup --name <name> --email <email>"; return 1 ;;
+        esac
+    done
+    if [[ -z "$name" || -z "$email" ]]; then
+        echo "Usage: gitsetup --name <name> --email <email>"
+        return 1
+    fi
+    git config --file ~/.gitconfig.secret user.name "$name"
+    git config --file ~/.gitconfig.secret user.email "$email"
+    echo "Git user configured:"
+    echo "  name:  $name"
+    echo "  email: $email"
+}
+
 # Clone from GitHub
 function gclone() {
     local user="$1"
