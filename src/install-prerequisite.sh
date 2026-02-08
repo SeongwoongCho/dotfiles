@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# When running under sudo, use the real user's HOME directory
+if [[ -n "${SUDO_USER:-}" ]]; then
+    HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    export HOME
+fi
+
 #####################################
 # Load Version Configuration
 #####################################
@@ -544,7 +550,6 @@ main() {
     install_by_uv "black"
     install_by_uv "jedi_language_server"
     install_by_uv "python-lsp-server"
-    install_by_uv "thefuck" --python "${VERSION_THEFUCK_PYTHON:-3.11}" --with setuptools
     install_by_uv "mobilint-qb-runtime"
     install_by_uv "pylatexenc"
 

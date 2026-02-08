@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+# When running under sudo, use the real user's HOME directory
+if [[ -n "${SUDO_USER:-}" ]]; then
+    HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    export HOME
+fi
+
 #==================================================#
 # Installation Profiles:
 #   minimal  - zsh + nvim + git (basic dev environment)
@@ -160,6 +166,19 @@ echo
 echo '** Setting ZSH as default shell...'
 locale-gen en_US.UTF-8 || true
 grep -q "exec zsh" "$HOME/.bash_profile" 2>/dev/null || echo "exec zsh" >> "$HOME/.bash_profile"
+
+# Fix ownership when running under sudo
+if [[ -n "${SUDO_USER:-}" ]]; then
+    echo '** Fixing file ownership for user '"$SUDO_USER"'...'
+    SUDO_GROUP=$(id -gn "$SUDO_USER")
+    for dir in "$HOME/.oh-my-zsh" "$HOME/.zplug" "$HOME/.zsh.d" \
+               "$HOME/.config" "$HOME/.tmux" "$HOME/.cache/nvim" \
+               "$HOME/.cargo" "$HOME/.local" "$HOME/.bun" \
+               "$HOME/.bash_profile" "$HOME/.zshrc" "$HOME/.gitconfig" \
+               "$HOME/.Xmodmap" "$HOME/.tmux.conf" "$HOME/.ssh"; do
+        [[ -e "$dir" ]] && chown -R "$SUDO_USER:$SUDO_GROUP" "$dir"
+    done
+fi
 
 echo
 echo "=============================================="
