@@ -93,6 +93,7 @@ install_full() {
     echo
     echo '** [FULL] Installing Claude Code...'
     curl -fsSL https://claude.ai/install.sh | bash || true
+    export PATH="$HOME/.local/bin:$PATH"
 
     echo
     echo '** [FULL] Setting up oh-my-claudecode...'
