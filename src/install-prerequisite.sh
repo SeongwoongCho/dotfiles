@@ -86,17 +86,25 @@ install_by_cargo() {
     local args=""
     [[ "$use_locked" == "true" ]] && args="--locked"
 
-    log_info "checking $pkg via cargo..."
-    local output
-    output=$(cargo install $args "$pkg" 2>&1)
-    local ret=$?
-    if echo "$output" | grep -q "already installed"; then
+    # Check if already installed via cargo install --list (avoids full recompilation)
+    if cargo install --list 2>/dev/null | grep -q "^$pkg "; then
         log_skip "$pkg"
         return 0
-    elif [[ $ret -eq 0 ]]; then
+    fi
+
+    log_install "$pkg" "cargo (compiling from source, this may take a few minutes...)"
+    if cargo install $args "$pkg"; then
         log_success "$pkg" "cargo"
         return 0
     else
+        # Retry without --locked if it failed
+        if [[ "$use_locked" == "true" ]]; then
+            log_warn "$pkg" "Retrying without --locked..."
+            if cargo install "$pkg"; then
+                log_success "$pkg" "cargo"
+                return 0
+            fi
+        fi
         log_error "$pkg" "cargo"
         return 1
     fi
@@ -205,17 +213,19 @@ install_by_script() {
     local post_cmd="${3:-}"
     local shell="${4:-bash}"
 
-    log_info "checking $pkg via script..."
+    # Skip if command already exists
+    if command -v "$pkg" >/dev/null 2>&1; then
+        log_skip "$pkg"
+        return 0
+    fi
+
+    log_install "$pkg" "script"
     local output
     output=$(curl -sSfL "$url" 2>/dev/null | "$shell" 2>&1)
     local ret=$?
     if [[ $ret -eq 0 ]]; then
         [[ -n "$post_cmd" ]] && eval "$post_cmd"
-        if echo "$output" | grep -qi "already.*installed\|up.to.date\|is already\|no changes"; then
-            log_skip "$pkg"
-        else
-            log_success "$pkg" "script"
-        fi
+        log_success "$pkg" "script"
         return 0
     fi
     log_error "$pkg" "script"
@@ -228,7 +238,12 @@ install_by_script() {
 
 install_rust() {
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
-    if command -v cargo >/dev/null 2>&1; then
+    if command -v rustup >/dev/null 2>&1; then
+        # Ensure a default toolchain is set
+        if ! rustup default >/dev/null 2>&1; then
+            log_info "no default rust toolchain, installing stable..."
+            rustup default stable >/dev/null 2>&1
+        fi
         log_info "rust/cargo found, checking for updates..."
         rustup update >/dev/null 2>&1
         log_skip "rust/cargo"
