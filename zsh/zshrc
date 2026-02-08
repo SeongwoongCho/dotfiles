@@ -120,7 +120,6 @@ bindkey "^[[1;3D" backward-word
 export CC='ccache gcc'
 export CXX='ccache g++'
 
-eval $(thefuck --alias)
 # Zoxide initialization
 if [[ -o INTERACTIVE ]]; then
     eval "$(zoxide init zsh)"
