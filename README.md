@@ -8,6 +8,7 @@ Personal development environment configuration using Neovim, Zsh, Tmux, and AI t
 git clone git@github.com:SeongwoongCho/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 bash src/install.sh [profile]
+gitsetup --name "Your Name" --email "your@email.com"
 ```
 
 ### Installation Profiles
