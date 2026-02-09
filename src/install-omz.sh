@@ -1,4 +1,10 @@
 main() {
+  # When running under sudo, use the real user's HOME directory
+  if [ -n "${SUDO_USER:-}" ]; then
+    HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    export HOME
+  fi
+
   # Use colors, but only if connected to a terminal, and that terminal
   # supports them.
   if which tput >/dev/null 2>&1; then

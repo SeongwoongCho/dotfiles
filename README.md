@@ -8,6 +8,7 @@ Personal development environment configuration using Neovim, Zsh, Tmux, and AI t
 git clone git@github.com:SeongwoongCho/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 bash src/install.sh [profile]
+gitsetup --name "Your Name" --email "your@email.com"
 ```
 
 ### Installation Profiles
@@ -96,8 +97,49 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 | `cd` | `z` (zoxide) | Smart directory jumping |
 | `cat` | `batcat` | Syntax highlighting |
 | `df` | `duf` | Disk usage with better UI |
+| `du` | `dust` | Disk usage tree view |
 | `grep` | `rg` (ripgrep) | Faster grep |
 | `find` | `fd` | Faster find |
+| `git diff` | `delta` | Side-by-side diffs with syntax highlighting |
+| - | `jq` | JSON processor |
+| - | `gh` | GitHub CLI |
+| - | `ast-grep` | AST-based code search/replace |
+| - | `shfmt` | Shell script formatter |
+| - | `bun` | Fast JavaScript runtime |
+
+### Git Configuration
+
+Git uses `delta` as the pager for beautiful side-by-side diffs with the `forest-night` theme.
+
+**Gitconfig aliases:**
+| Alias | Command |
+|-------|---------|
+| `co` | `checkout` |
+| `cob` | `checkout -b` |
+| `undo` | `reset --soft HEAD^` |
+| `cm` | `commit -m` |
+
+**Shell aliases:**
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `ga` | `git add` | Stage files |
+| `gst` | `git status` | Show status |
+| `gd` | `git diff` | Show diff |
+| `gcm` | `git commit -m` | Commit with message |
+| `gcmd` | `git commit -m "."` | Quick dot commit |
+| `gcl` | `git clone` | Clone repo |
+| `gps` | `git push` | Push |
+| `gpl` | `git pull` | Pull |
+| `guname` | `git config --file ~/.gitconfig.secret user.name` | Get/set git user name |
+| `guemail` | `git config --file ~/.gitconfig.secret user.email` | Get/set git user email |
+
+**Git functions:**
+| Function | Description |
+|----------|-------------|
+| `gitsetup --name <name> --email <email>` | Configure git user name and email |
+| `gclone <user> <repo>` | Clone from GitHub (`git@github.com:user/repo.git`) |
+| `gra <user> <repo>` | Add GitHub remote origin |
+| `vimconflicts` | Open all git conflict files in nvim |
 
 ### Neovim (Lazy.nvim)
 
@@ -115,8 +157,8 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 - `codeium` - AI completion
 
 ### AI Tools (full profile)
-- **Claude Code** with oh-my-claudecode plugin
-- **superpowers** plugin for enhanced workflows
+- **Claude Code** with oh-my-claudecode + superpowers plugins
+- **OpenAI Codex CLI** for code generation
 - LSP plugins for multiple languages (TypeScript, Python, Go, Rust, C/C++, etc.)
 
 ## Utility Functions
@@ -198,6 +240,27 @@ dothelp accel      # Accelerator commands
 dothelp plugin     # Installed plugins
 ```
 
+### Jupyter & Process Listing
+
+| Alias | Description |
+|-------|-------------|
+| `jn` | `jupyter notebook` |
+| `jna` | `jupyter notebook --ip 0.0.0.0` |
+| `jl` | `jupyter lab` |
+| `jla` | `jupyter lab --ip 0.0.0.0 --allow-root` |
+| `jnlist` | List running Jupyter notebooks |
+| `tblist` | List running TensorBoard processes |
+| `pylist` | List running Python processes |
+
+### CUDA / CMake
+
+| Alias | Description |
+|-------|-------------|
+| `cudav` | Show CUDA version (`nvcc --version`) |
+| `cudnnv` | Show cuDNN version |
+| `cmo` / `cmakeauto` | CMake preset for Mobilint Aries2 |
+| `cmo_r` / `cmakeauto_r` | CMake preset for Mobilint Regulus |
+
 ### Other Functions
 
 | Function | Description |
@@ -206,6 +269,8 @@ dothelp plugin     # Installed plugins
 | `howmany <dir> "*.ext"` | Count files matching pattern |
 | `fuzzyvim` | Open file with fzf + vim |
 | `buo <files>` | Backup files before overwriting |
+| `colorprint <file>` / `cpr` | Display file with ANSI color rendering |
+| `myrsync <port> <args>` | rsync with custom SSH port |
 
 ## Key Bindings
 
@@ -299,14 +364,15 @@ dotup-full         # When packages changed
 # Regular update
 dotup
 
-# After install-prerequisite.sh changed
-dotup --packages
+# Full update including system packages
+dotup-full              # alias for update.sh --full
+dotup --packages        # equivalent
 
 # Check versions before updating
 dotup --versions
 
 # Override specific version
-VERSION_NEOVIM=v0.9.5 dotup --packages
+VERSION_NEOVIM=v0.9.5 dotup-full
 
 # Apply changes to current shell
 source ~/.zshrc  # or: exec zsh
@@ -330,15 +396,16 @@ Environment variable         # Highest priority
 
 ### Managed Packages
 
-| Package | Why Managed |
-|---------|-------------|
-| Neovim | Ubuntu repo version too old, built from source |
-| Lua/Luarocks | Specific version needed for plugins |
-| Node.js | Major version for compatibility |
-| VSCode C++ Tools | Downloaded from GitHub releases |
-| thefuck | Requires specific Python version |
+| Category | Packages | Install Method |
+|----------|----------|----------------|
+| Core | Neovim, Lua, Luarocks, Node.js | Built from source / NodeSource |
+| Rust/Cargo | tree-sitter-cli, git-delta, eza, du-dust, ast-grep | `cargo install` |
+| Python (uv) | pynvim, gpustat, npustat, pre-commit, black, isort, jedi_language_server, python-lsp-server | `uv tool install` |
+| Scripts | zoxide, shfmt, bun, uv | Installer scripts |
+| Image | kitty, magick (luarocks) | Custom installers |
+| Mobilint | mobilint-cli, mobilint-qb-runtime | APT repo / uv |
 
-**Note:** apt packages use Ubuntu defaults (tested for that release).
+**Note:** apt packages use Ubuntu defaults (tested for that release). Rust is installed via `rustup` if not present.
 
 ### Adding New Environment
 
