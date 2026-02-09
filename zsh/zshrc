@@ -45,12 +45,13 @@ export COLORTERM='truecolor'
 
 #==================================================#
 ### zsh settings
-export LS_COLORS=$(cat $MYDOTFILES/assets/LS_COLORS)
+export LS_COLORS="$(<$MYDOTFILES/assets/LS_COLORS)"
 
 # OH-MY-ZSH
 # themes: https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="mrtazz_custom"   # set zsh theme
 DISABLE_AUTO_UPDATE="true"  # no automatically update oh-my-zsh
+DISABLE_COMPFIX="true"      # skip compaudit checks (faster startup)
 HIST_STAMPS="mm/dd/yyyy"    # history with date stamps
 
 
@@ -70,16 +71,17 @@ function precmd() {
 
 #==================================================#
 ### zsh plugins
-source ~/.zplug/init.zsh
-zplug "djui/alias-tips"
-zplug "zsh-users/zsh-syntax-highlighting"
-zplug "zsh-users/zsh-autosuggestions"
-zplug "junegunn/fzf"
-zplug "sharkdp/fd"
+source ~/.local/share/zinit/zinit.git/zinit.zsh
 
-# Then, source plugins and add commands to $PATH
-zplug check || zplug install
-zplug load
+# Synchronous (lightweight)
+zinit light djui/alias-tips
+
+# Turbo mode: deferred async loading (non-blocking)
+zinit ice wait lucid atload"_zsh_autosuggest_start"
+zinit light zsh-users/zsh-autosuggestions
+zinit ice wait lucid
+zinit light zsh-users/zsh-syntax-highlighting
+# fzf and fd are already installed as system binaries — no plugin needed
 
 
 #==================================================#
@@ -120,7 +122,6 @@ bindkey "^[[1;3D" backward-word
 export CC='ccache gcc'
 export CXX='ccache g++'
 
-eval $(thefuck --alias)
 # Zoxide initialization
 if [[ -o INTERACTIVE ]]; then
     eval "$(zoxide init zsh)"
@@ -160,6 +161,8 @@ if [[ -z "$ZSHRC_AUTORELOAD_INITIALIZED" ]]; then
     export ZSHRC_LAST_MTIME=$(_zshrc_get_max_mtime)
 
     _zshrc_auto_reload() {
+        # Only check every 10th prompt to reduce stat overhead
+        (( ++_zshrc_reload_count % 10 == 0 )) || return
         local current_mtime=$(_zshrc_get_max_mtime)
         if (( current_mtime > ZSHRC_LAST_MTIME )); then
             echo "\033[0;36m[zshrc]\033[0m Auto-reloading..."
