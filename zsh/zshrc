@@ -71,7 +71,12 @@ function precmd() {
 
 #==================================================#
 ### zsh plugins
-source ~/.local/share/zinit/zinit.git/zinit.zsh
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+if [[ ! -f "${ZINIT_HOME}/zinit.zsh" ]]; then
+    mkdir -p "$(dirname "$ZINIT_HOME")"
+    git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+fi
+source "${ZINIT_HOME}/zinit.zsh"
 
 # Synchronous (lightweight)
 zinit light djui/alias-tips
