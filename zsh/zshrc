@@ -166,8 +166,6 @@ if [[ -z "$ZSHRC_AUTORELOAD_INITIALIZED" ]]; then
     export ZSHRC_LAST_MTIME=$(_zshrc_get_max_mtime)
 
     _zshrc_auto_reload() {
-        # Only check every 10th prompt to reduce stat overhead
-        (( ++_zshrc_reload_count % 10 == 0 )) || return
         local current_mtime=$(_zshrc_get_max_mtime)
         if (( current_mtime > ZSHRC_LAST_MTIME )); then
             echo "\033[0;36m[zshrc]\033[0m Auto-reloading..."
