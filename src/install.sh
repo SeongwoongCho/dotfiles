@@ -106,10 +106,9 @@ install_full() {
     command claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode || true
     command claude plugin install oh-my-claudecode || true
 
-    # Use omcupdate function for CLAUDE.md, HUD, and settings setup
-    # Source zsh.d to get omcupdate function, then run it
-    echo '** [FULL] Running omcupdate for OMC configuration...'
-    zsh -c "source $DOT_DIR/zsh/zsh.d/10-functions.zsh && omcupdate -f" || true
+    # Use omc CLI for CLAUDE.md, HUD, and settings setup
+    echo '** [FULL] Running omc update for OMC configuration...'
+    command omc update || true
 
     echo
     echo '** [FULL] Installing Claude Code LSP plugins...'

@@ -32,7 +32,7 @@ alias tblist='ps -ef | grep "tensorboard"'
 alias pylist='ps -ef | grep "python"'
 
 # Claude Code (auto-update OMC before launch)
-alias claude='omcupdate && IS_SANDBOX=1 command claude --dangerously-skip-permissions'
+alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permissions'
 
 # GPU/NPU/HPU monitoring
 alias ug='usegpu'
@@ -57,6 +57,3 @@ alias dotup='bash $MYDOTFILES/src/update.sh'
 alias dotup-full='bash $MYDOTFILES/src/update.sh --full'
 alias dotcd='cd $MYDOTFILES'
 
-# Oh-My-ClaudeCode
-alias omcup='omcupdate'
-alias omcup-f='omcupdate --force'

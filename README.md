@@ -176,9 +176,8 @@ fix-dns --force  # Fix without confirmation
 ### Oh-My-ClaudeCode Management
 
 ```bash
-omcup            # Update OMC (CLAUDE.md, plugin, HUD)
-omcup -f         # Force update all components
-claude           # Launch Claude Code (auto-updates OMC first)
+omc update       # Update OMC (CLAUDE.md, plugin, HUD)
+claude           # Launch Claude Code
 ```
 
 ### Accelerator Device Selection
@@ -339,8 +338,7 @@ Update dotfiles when remote repository changes, without rebuilding Docker image.
 | `dotup-full` | Full update (includes system packages) |
 | `dotup --versions` | Show current version configuration |
 | `dotcd` | Navigate to dotfiles directory |
-| `omcup` | Update Oh-My-ClaudeCode components |
-| `omcup -f` | Force update all OMC components |
+| `omc update` | Update Oh-My-ClaudeCode components |
 
 ### What Each Command Does
 
