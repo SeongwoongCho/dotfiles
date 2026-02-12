@@ -103,6 +103,7 @@ install_full() {
 
     echo
     echo '** [FULL] Setting up oh-my-claudecode...'
+    npm install -g oh-my-claude-sisyphus
     command claude plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode || true
     command claude plugin install oh-my-claudecode || true
 
