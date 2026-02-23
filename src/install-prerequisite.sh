@@ -567,6 +567,7 @@ main() {
     install_by_uv "python-lsp-server"
     install_by_uv "mobilint-qb-runtime"
     install_by_uv "pylatexenc"
+    install_by_uv "jupyterlab"
 
     # log_section "VSCode C++ Tools"
     # install_vscode_cpptools

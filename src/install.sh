@@ -41,6 +41,10 @@ install_minimal() {
     mkdir -p "$HOME/.config"
     ln -sfn "$DOT_DIR/nvim" "$HOME/.config/nvim"
 
+    # jupyter
+    mkdir -p "$HOME/.jupyter"
+    ln -sf "$DOT_DIR/config/jupyter_lab_config.py" "$HOME/.jupyter/jupyter_lab_config.py"
+
     # shell and git
     ln -sf "$DOT_DIR/zsh/zsh.d" "$HOME/.zsh.d"
     ln -sf "$DOT_DIR/git/gitconfig" "$HOME/.gitconfig"
@@ -175,7 +179,8 @@ if [[ -n "${SUDO_USER:-}" ]]; then
                "$HOME/.config" "$HOME/.tmux" "$HOME/.cache/nvim" \
                "$HOME/.cargo" "$HOME/.local" "$HOME/.bun" \
                "$HOME/.bash_profile" "$HOME/.zshrc" "$HOME/.gitconfig" \
-               "$HOME/.Xmodmap" "$HOME/.tmux.conf" "$HOME/.ssh"; do
+               "$HOME/.Xmodmap" "$HOME/.tmux.conf" "$HOME/.ssh" \
+               "$HOME/.jupyter"; do
         [[ -e "$dir" ]] && chown -R "$SUDO_USER:$SUDO_GROUP" "$dir"
     done
 fi
