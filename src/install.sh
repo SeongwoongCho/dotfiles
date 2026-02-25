@@ -167,6 +167,10 @@ esac
 # Finalize
 #==================================================#
 echo
+echo '** Fixing DNS resolution (Docker containers)...'
+zsh -c "source '$DOT_DIR/zsh/zsh.d/10-functions.zsh' && fix-dns --force" || true
+
+echo
 echo '** Setting ZSH as default shell...'
 locale-gen en_US.UTF-8 || true
 grep -q "exec zsh" "$HOME/.bash_profile" 2>/dev/null || echo "exec zsh" >> "$HOME/.bash_profile"
