@@ -36,13 +36,12 @@ function fix-dns() {
         return 1
     fi
 
-    # Convert to milliseconds for display
-    local dns_ms=$(echo "$dns_time * 1000" | bc 2>/dev/null || echo "$dns_time")
-    echo -e "${dns_time}s (${dns_ms}ms)"
+    # Convert to milliseconds for display (zsh native float math, no bc needed)
+    local dns_ms=$(( ${dns_time} * 1000 ))
+    printf "%s\n" "${dns_time}s (${dns_ms%.*}ms)"
 
     # Check if DNS is slow (threshold: 1 second)
-    local is_slow=$(echo "$dns_time > 1.0" | bc 2>/dev/null)
-    if [[ "$is_slow" != "1" ]]; then
+    if (( ${dns_time} <= 1.0 )); then
         echo -e "${GREEN}[DNS]${NC} DNS resolution is fast (<1s). No fix needed."
         return 0
     fi
@@ -81,8 +80,7 @@ function fix-dns() {
     local new_dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s https://api.anthropic.com 2>/dev/null)
     echo -e "${new_dns_time}s"
 
-    local is_fixed=$(echo "$new_dns_time < 1.0" | bc 2>/dev/null)
-    if [[ "$is_fixed" == "1" ]]; then
+    if (( ${new_dns_time} < 1.0 )); then
         echo -e "${GREEN}[DNS]${NC} DNS resolution fixed! (${dns_time}s → ${new_dns_time}s)"
     else
         echo -e "${YELLOW}[DNS]${NC} DNS still slow. May need additional network configuration."
