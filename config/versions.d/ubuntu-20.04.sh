@@ -3,5 +3,5 @@
 # Older system may need older package versions
 
 export VERSION_NEOVIM="v0.9.5"          # Older neovim for compatibility
-export VERSION_THEFUCK_PYTHON="3.8"     # Use system python
+
 export VERSION_NODE="18"                 # LTS version

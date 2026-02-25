@@ -68,8 +68,6 @@ export VERSION_PRE_COMMIT="${VERSION_PRE_COMMIT:-latest}"
 export VERSION_BLACK="${VERSION_BLACK:-latest}"
 export VERSION_ISORT="${VERSION_ISORT:-latest}"
 export VERSION_THEFUCK="${VERSION_THEFUCK:-latest}"
-# thefuck python: use system python by default (auto-detected)
-export VERSION_THEFUCK_PYTHON="${VERSION_THEFUCK_PYTHON:-${DOTFILES_PYTHON_VERSION:-3.11}}"
 
 #-------------------------------------------------#
 # Development Tools
@@ -115,7 +113,7 @@ print_version_info() {
     echo "  Luarocks:     $VERSION_LUAROCKS"
     echo "  Node:         $VERSION_NODE.x"
     echo "  VSCode C++:   $VERSION_VSCODE_CPPTOOLS"
-    echo "  thefuck py:   $VERSION_THEFUCK_PYTHON"
+    echo "  thefuck:      $VERSION_THEFUCK"
     echo "======================================="
 }
 

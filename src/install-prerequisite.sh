@@ -578,4 +578,7 @@ main() {
     print_summary
 }
 
-main "$@"
+# Only run main when executed directly (not sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

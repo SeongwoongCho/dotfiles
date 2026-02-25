@@ -412,7 +412,6 @@ Environment variable         # Highest priority
 cat > config/versions.d/ubuntu-26.04.sh << 'EOF'
 #!/bin/bash
 export VERSION_NEOVIM="v0.12.0"
-export VERSION_THEFUCK_PYTHON="3.13"
 EOF
 ```
 
