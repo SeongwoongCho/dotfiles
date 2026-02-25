@@ -1,46 +1,72 @@
 #!/bin/zsh
 # Utility functions
 
-# fix-dns: Fix slow DNS resolution in Docker containers
-# Usage: fix-dns [--check] [--force]
-#   --check: Only diagnose, don't fix
-#   --force: Apply fix without confirmation
+# fix-dns: Fix slow DNS resolution using dnsmasq split DNS
+# Usage: fix-dns [--check] [--force] [--revert]
+#   --check:  Only diagnose, don't fix
+#   --force:  Apply fix without confirmation
+#   --revert: Restore original resolv.conf and stop dnsmasq
 function fix-dns() {
-    local check_only=false
-    local force=false
+    local check_only=false force=false revert=false
     local GREEN='\033[0;32m' YELLOW='\033[1;33m' RED='\033[0;31m' BLUE='\033[0;34m' NC='\033[0m'
 
     for arg in "$@"; do
         case "$arg" in
             --check) check_only=true ;;
             --force) force=true ;;
+            --revert) revert=true ;;
             -h|--help)
-                echo "fix-dns: Fix slow DNS resolution in Docker containers"
+                echo "fix-dns: Fix slow DNS resolution using dnsmasq split DNS"
                 echo ""
-                echo "Usage: fix-dns [--check] [--force]"
-                echo "  --check  Only diagnose DNS latency, don't fix"
-                echo "  --force  Apply fix without confirmation"
+                echo "Usage: fix-dns [--check] [--force] [--revert]"
+                echo "  --check   Only diagnose DNS latency, don't fix"
+                echo "  --force   Apply fix without confirmation"
+                echo "  --revert  Restore original resolv.conf and stop dnsmasq"
                 echo ""
-                echo "Adds Google DNS (8.8.8.8) to /etc/resolv.conf if DNS is slow"
+                echo "Parses /etc/resolv.conf for custom nameservers and search domains,"
+                echo "then configures dnsmasq to route internal domains via original DNS"
+                echo "and public domains via Google DNS (8.8.8.8) for speed."
                 return 0
                 ;;
         esac
     done
 
+    local _sudo=""
+    [[ $EUID -ne 0 ]] && _sudo="sudo"
+
+    # Revert mode: restore original resolv.conf and stop dnsmasq
+    if [[ "$revert" == "true" ]]; then
+        if [[ -f /etc/resolv.conf.pre-dnsmasq ]]; then
+            echo -e "${BLUE}[DNS]${NC} Stopping dnsmasq..."
+            $_sudo kill $(pidof dnsmasq) 2>/dev/null
+            echo -e "${BLUE}[DNS]${NC} Restoring original resolv.conf..."
+            $_sudo cp /etc/resolv.conf.pre-dnsmasq /etc/resolv.conf
+            echo -e "${GREEN}[DNS]${NC} Reverted to original DNS configuration."
+        else
+            echo -e "${YELLOW}[DNS]${NC} No backup found (/etc/resolv.conf.pre-dnsmasq). Nothing to revert."
+        fi
+        return 0
+    fi
+
+    # Already configured check
+    if grep -q "^nameserver 127.0.0.1" /etc/resolv.conf 2>/dev/null && pidof dnsmasq >/dev/null 2>&1; then
+        echo -e "${GREEN}[DNS]${NC} dnsmasq split DNS is already active."
+        echo -e "${BLUE}[DNS]${NC} Use 'fix-dns --revert' to restore original config."
+        return 0
+    fi
+
     # Measure DNS latency
     echo -ne "${BLUE}[DNS]${NC} Measuring DNS latency... "
-    local dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s https://api.anthropic.com 2>/dev/null)
+    local dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s --connect-timeout 10 https://api.anthropic.com 2>/dev/null)
 
     if [[ -z "$dns_time" ]]; then
         echo -e "${RED}failed${NC} (curl error)"
         return 1
     fi
 
-    # Convert to milliseconds for display (zsh native float math, no bc needed)
     local dns_ms=$(( ${dns_time} * 1000 ))
     printf "%s\n" "${dns_time}s (${dns_ms%.*}ms)"
 
-    # Check if DNS is slow (threshold: 1 second)
     if (( ${dns_time} <= 1.0 )); then
         echo -e "${GREEN}[DNS]${NC} DNS resolution is fast (<1s). No fix needed."
         return 0
@@ -53,54 +79,132 @@ function fix-dns() {
         return 0
     fi
 
-    # Check if Google DNS is already the first nameserver
-    if head -n 1 /etc/resolv.conf 2>/dev/null | grep -q "^nameserver 8.8.8.8"; then
-        echo -e "${YELLOW}[DNS]${NC} Google DNS (8.8.8.8) is already first but still slow."
-        echo -e "${BLUE}[DNS]${NC} Consider checking network connectivity."
-        return 1
+    # Parse /etc/resolv.conf for custom nameservers and search domains
+    local -a custom_ns=()
+    local -a search_domains=()
+    local search_line=""
+
+    while IFS= read -r line; do
+        case "$line" in
+            nameserver\ *)
+                local ns="${line#nameserver }"
+                ns="${ns// /}"
+                case "$ns" in
+                    8.8.8.8|8.8.4.4|1.1.1.1|1.0.0.1|127.0.0.1|::1) ;;
+                    *) custom_ns+=("$ns") ;;
+                esac
+                ;;
+            search\ *)
+                search_line="$line"
+                local domains="${line#search }"
+                for d in ${=domains}; do
+                    search_domains+=("$d")
+                done
+                ;;
+        esac
+    done < /etc/resolv.conf
+
+    echo -e "${BLUE}[DNS]${NC} Custom nameservers: ${custom_ns[*]:-none}"
+    echo -e "${BLUE}[DNS]${NC} Search domains: ${search_domains[*]:-none}"
+
+    # If no search domains or no custom nameservers, fall back to simple prepend
+    if [[ ${#search_domains[@]} -eq 0 || ${#custom_ns[@]} -eq 0 ]]; then
+        echo -e "${YELLOW}[DNS]${NC} No internal domains detected. Using simple Google DNS prepend."
+        if [[ "$force" != "true" ]]; then
+            echo -ne "${YELLOW}[DNS]${NC} Prepend Google DNS (8.8.8.8) to /etc/resolv.conf? [y/N] "
+            read -r response
+            [[ "$response" != [yY] ]] && { echo "Cancelled."; return 0; }
+        fi
+        local tmp=$(mktemp)
+        grep -v "^nameserver 8.8.8.8$" /etc/resolv.conf > "$tmp" 2>/dev/null
+        { echo "nameserver 8.8.8.8"; cat "$tmp"; } > "${tmp}.new"
+        $_sudo cp "${tmp}.new" /etc/resolv.conf
+        rm -f "$tmp" "${tmp}.new"
+        local new_time=$(curl -w "%{time_namelookup}" -o /dev/null -s --connect-timeout 10 https://api.anthropic.com 2>/dev/null)
+        echo -e "${GREEN}[DNS]${NC} Google DNS prepended. (${dns_time}s → ${new_time}s)"
+        return 0
     fi
 
-    # Remove existing 8.8.8.8 entry if present (will be re-added at top)
-    local has_existing=false
-    if grep -q "^nameserver 8.8.8.8" /etc/resolv.conf 2>/dev/null; then
-        has_existing=true
-        echo -e "${BLUE}[DNS]${NC} Google DNS found but not first. Moving to top..."
+    # Install dnsmasq if needed
+    if ! command -v dnsmasq >/dev/null 2>&1; then
+        echo -e "${BLUE}[DNS]${NC} Installing dnsmasq..."
+        $_sudo apt-get update -qq >/dev/null 2>&1
+        $_sudo apt-get install -y -qq dnsmasq >/dev/null 2>&1
+        # Prevent auto-start from interfering
+        $_sudo kill $(pidof dnsmasq) 2>/dev/null
+        if ! command -v dnsmasq >/dev/null 2>&1; then
+            echo -e "${RED}[DNS]${NC} Failed to install dnsmasq."
+            return 1
+        fi
+        echo -e "${GREEN}[DNS]${NC} dnsmasq installed."
     fi
 
     # Confirm before applying
     if [[ "$force" != "true" ]]; then
-        echo -ne "${YELLOW}[DNS]${NC} Add Google DNS (8.8.8.8) to /etc/resolv.conf? [y/N] "
+        echo -e "${BLUE}[DNS]${NC} Will configure split DNS:"
+        echo -e "  Public domains → Google DNS (8.8.8.8, 8.8.4.4)"
+        for d in "${search_domains[@]}"; do
+            echo -e "  *.${d} → ${custom_ns[*]}"
+        done
+        echo -ne "${YELLOW}[DNS]${NC} Apply? [y/N] "
         read -r response
         [[ "$response" != [yY] ]] && { echo "Cancelled."; return 0; }
     fi
 
-    # Apply fix: prepend Google DNS so it's tried first
-    # Note: sed -i fails on Docker bind-mounted /etc/resolv.conf, so use temp file + cp
-    local tmp=$(mktemp)
-    if [[ "$has_existing" == "true" ]]; then
-        grep -v "^nameserver 8.8.8.8$" /etc/resolv.conf > "$tmp"
-    else
-        cat /etc/resolv.conf > "$tmp"
-    fi
-    { echo "nameserver 8.8.8.8"; cat "$tmp"; } > "${tmp}.new"
+    # Stop existing dnsmasq
+    $_sudo kill $(pidof dnsmasq) 2>/dev/null
+    sleep 0.5
 
-    echo -e "${BLUE}[DNS]${NC} Applying fix..."
-    if [[ $EUID -ne 0 ]]; then
-        sudo cp "${tmp}.new" /etc/resolv.conf
-    else
-        cp "${tmp}.new" /etc/resolv.conf
-    fi
-    rm -f "$tmp" "${tmp}.new"
+    # Backup original resolv.conf (only first time)
+    [[ ! -f /etc/resolv.conf.pre-dnsmasq ]] && $_sudo cp /etc/resolv.conf /etc/resolv.conf.pre-dnsmasq
 
-    # Verify fix
-    echo -ne "${BLUE}[DNS]${NC} Verifying... "
-    local new_dns_time=$(curl -w "%{time_namelookup}" -o /dev/null -s https://api.anthropic.com 2>/dev/null)
-    echo -e "${new_dns_time}s"
+    # Generate dnsmasq split-dns config
+    local conf="/etc/dnsmasq.d/split-dns.conf"
+    local tmp_conf=$(mktemp)
+    {
+        echo "# Split DNS (generated by fix-dns)"
+        echo "no-resolv"
+        echo "server=8.8.8.8"
+        echo "server=8.8.4.4"
+        for d in "${search_domains[@]}"; do
+            for ns in "${custom_ns[@]}"; do
+                echo "server=/${d}/${ns}"
+            done
+        done
+        echo "listen-address=127.0.0.1"
+        echo "bind-interfaces"
+        echo "cache-size=1000"
+    } > "$tmp_conf"
+    $_sudo mkdir -p /etc/dnsmasq.d
+    $_sudo cp "$tmp_conf" "$conf"
+    rm -f "$tmp_conf"
 
-    if (( ${new_dns_time} < 1.0 )); then
-        echo -e "${GREEN}[DNS]${NC} DNS resolution fixed! (${dns_time}s → ${new_dns_time}s)"
+    # Update resolv.conf to use local dnsmasq
+    local tmp_resolv=$(mktemp)
+    {
+        echo "nameserver 127.0.0.1"
+        [[ -n "$search_line" ]] && echo "$search_line"
+    } > "$tmp_resolv"
+    $_sudo cp "$tmp_resolv" /etc/resolv.conf
+    rm -f "$tmp_resolv"
+
+    # Start dnsmasq with our config only (avoid default config conflicts)
+    echo -e "${BLUE}[DNS]${NC} Starting dnsmasq..."
+    if $_sudo dnsmasq -C "$conf" 2>&1; then
+        echo -ne "${BLUE}[DNS]${NC} Verifying... "
+        local new_time=$(curl -w "%{time_namelookup}" -o /dev/null -s --connect-timeout 10 https://api.anthropic.com 2>/dev/null)
+        echo "${new_time}s"
+
+        echo -e "${GREEN}[DNS]${NC} Split DNS active! (${dns_time}s → ${new_time}s)"
+        echo -e "${BLUE}[DNS]${NC}   Public  → Google DNS (8.8.8.8)"
+        for d in "${search_domains[@]}"; do
+            echo -e "${BLUE}[DNS]${NC}   *.${d} → ${custom_ns[*]}"
+        done
+        echo -e "${BLUE}[DNS]${NC}   Revert: fix-dns --revert"
     else
-        echo -e "${YELLOW}[DNS]${NC} DNS still slow. May need additional network configuration."
+        echo -e "${RED}[DNS]${NC} Failed to start dnsmasq. Reverting..."
+        $_sudo cp /etc/resolv.conf.pre-dnsmasq /etc/resolv.conf 2>/dev/null
+        return 1
     fi
 }
 
@@ -287,7 +391,7 @@ function dothelp() {
         _cmd "dotup-full" "Full update (+ packages)"
         _cmd "dotcd" "cd to ~/.dotfiles"
         _cmd "omc update" "Update Oh-My-ClaudeCode"
-        _cmd "fix-dns" "Fix slow DNS in Docker"
+        _cmd "fix-dns" "Fix slow DNS (dnsmasq split DNS)"
         _cmd "pyclean" "Remove __pycache__ files"
         _cmd "fuzzyvim" "Open file with fzf + vim"
         _cmd "howmany" "Count files matching pattern"
