@@ -37,6 +37,16 @@ vim.opt.lazyredraw = true -- don't update screen during macro and script executi
 vim.opt.equalalways = false
 vim.opt.signcolumn = "yes"
 
--- clipboard
--- vim.opt.clipboard:append("unnamedplus")
-vim.g.clipboard = "osc52"
+-- clipboard (OSC52 — works over SSH, tmux, etc.)
+vim.g.clipboard = {
+	name = "OSC 52",
+	copy = {
+		["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+		["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+	},
+	paste = {
+		["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+		["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+	},
+}
+vim.opt.clipboard:append("unnamedplus")
