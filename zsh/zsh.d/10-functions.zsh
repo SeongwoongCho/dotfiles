@@ -53,11 +53,18 @@ function fix-dns() {
         return 0
     fi
 
-    # Check if already has Google DNS
-    if grep -q "^nameserver 8.8.8.8" /etc/resolv.conf 2>/dev/null; then
-        echo -e "${YELLOW}[DNS]${NC} Google DNS (8.8.8.8) already configured but still slow."
+    # Check if Google DNS is already the first nameserver
+    if head -n 1 /etc/resolv.conf 2>/dev/null | grep -q "^nameserver 8.8.8.8"; then
+        echo -e "${YELLOW}[DNS]${NC} Google DNS (8.8.8.8) is already first but still slow."
         echo -e "${BLUE}[DNS]${NC} Consider checking network connectivity."
         return 1
+    fi
+
+    # Remove existing 8.8.8.8 entry if present (will be re-added at top)
+    local has_existing=false
+    if grep -q "^nameserver 8.8.8.8" /etc/resolv.conf 2>/dev/null; then
+        has_existing=true
+        echo -e "${BLUE}[DNS]${NC} Google DNS found but not first. Moving to top..."
     fi
 
     # Confirm before applying
@@ -67,13 +74,23 @@ function fix-dns() {
         [[ "$response" != [yY] ]] && { echo "Cancelled."; return 0; }
     fi
 
-    # Apply fix (requires root)
-    if [[ $EUID -ne 0 ]]; then
-        echo -e "${BLUE}[DNS]${NC} Applying fix with sudo..."
-        echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf >/dev/null
+    # Apply fix: prepend Google DNS so it's tried first
+    # Note: sed -i fails on Docker bind-mounted /etc/resolv.conf, so use temp file + cp
+    local tmp=$(mktemp)
+    if [[ "$has_existing" == "true" ]]; then
+        grep -v "^nameserver 8.8.8.8$" /etc/resolv.conf > "$tmp"
     else
-        echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+        cat /etc/resolv.conf > "$tmp"
     fi
+    { echo "nameserver 8.8.8.8"; cat "$tmp"; } > "${tmp}.new"
+
+    echo -e "${BLUE}[DNS]${NC} Applying fix..."
+    if [[ $EUID -ne 0 ]]; then
+        sudo cp "${tmp}.new" /etc/resolv.conf
+    else
+        cp "${tmp}.new" /etc/resolv.conf
+    fi
+    rm -f "$tmp" "${tmp}.new"
 
     # Verify fix
     echo -ne "${BLUE}[DNS]${NC} Verifying... "
