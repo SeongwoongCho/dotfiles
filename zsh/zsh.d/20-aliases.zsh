@@ -55,5 +55,6 @@ alias cmo_r='cmakeauto_r'
 # Dotfiles management
 alias dotup='bash $MYDOTFILES/src/update.sh'
 alias dotup-full='bash $MYDOTFILES/src/update.sh --full'
+alias dotsecret='bash $MYDOTFILES/src/install-secrets.sh --save'
 alias dotcd='cd $MYDOTFILES'
 

@@ -387,8 +387,9 @@ function dothelp() {
     # Utility Functions
     if [[ "$show_all" == true || "$1" == "func" ]]; then
         _header "Utility Functions"
-        _cmd "dotup" "Update dotfiles (git + plugins)"
+        _cmd "dotup" "Update dotfiles (git + plugins + secrets)"
         _cmd "dotup-full" "Full update (+ packages)"
+        _cmd "dotsecret" "Save secrets to private repo"
         _cmd "dotcd" "cd to ~/.dotfiles"
         _cmd "omc update" "Update Oh-My-ClaudeCode"
         _cmd "fix-dns" "Fix slow DNS (dnsmasq split DNS)"

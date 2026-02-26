@@ -357,8 +357,9 @@ Update dotfiles when remote repository changes, without rebuilding Docker image.
 
 | Command | Description |
 |---------|-------------|
-| `dotup` | Fast update (git pull + relink + plugins) |
+| `dotup` | Fast update (git pull + relink + secrets + plugins) |
 | `dotup-full` | Full update (includes system packages) |
+| `dotsecret` | Save secrets to private repo |
 | `dotup --versions` | Show current version configuration |
 | `dotcd` | Navigate to dotfiles directory |
 | `omc update` | Update Oh-My-ClaudeCode components |
