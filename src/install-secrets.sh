@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 #==================================================#
 # Fetch and install secrets from private GitLab repo
