@@ -70,6 +70,7 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 └── src/                     # Installation scripts
     ├── install.sh           # Main installer (profile-based)
     ├── install-prerequisite.sh  # Dependencies
+    ├── install-secrets.sh   # Secrets fetch/save (private repo)
     ├── install-omz.sh       # Oh-My-Zsh
     ├── update.sh            # Update without rebuilding
     └── cleanse.sh           # Cleanup script
@@ -103,6 +104,7 @@ bash run_docker.sh ${IMAGE_NAME} ${CONTAINER_NAME}
 | `git diff` | `delta` | Side-by-side diffs with syntax highlighting |
 | - | `jq` | JSON processor |
 | - | `gh` | GitHub CLI |
+| - | `glab` | GitLab CLI |
 | - | `ast-grep` | AST-based code search/replace |
 | - | `shfmt` | Shell script formatter |
 | - | `bun` | Fast JavaScript runtime |
@@ -160,6 +162,27 @@ Git uses `delta` as the pager for beautiful side-by-side diffs with the `forest-
 - **Claude Code** with oh-my-claudecode + superpowers plugins
 - **OpenAI Codex CLI** for code generation
 - LSP plugins for multiple languages (TypeScript, Python, Go, Rust, C/C++, etc.)
+
+## Secrets Management
+
+Sensitive config files (tokens, credentials) are stored in a separate private repository and automatically fetched during installation.
+
+```bash
+# Fetch secrets (runs automatically during install/update)
+bash src/install-secrets.sh
+
+# Save current secrets to private repo
+bash src/install-secrets.sh --save
+```
+
+Secret file mapping is defined in `src/install-secrets.sh` (`SECRET_MAP`). To add a new secret, append an entry in the format `"path_in_repo:destination:permissions"`.
+
+| Secret | Destination | Description |
+|--------|-------------|-------------|
+| `config/glab-cli/config.yml` | `~/.config/glab-cli/config.yml` | GitLab CLI auth token |
+| `git/gitconfig.secret` | `~/.gitconfig.secret` | Git user name/email |
+
+**Setup**: Create a private repo (e.g., `dotfiles-secret`) and set `DOTFILES_SECRETS_REPO` env var if using a non-default URL.
 
 ## Utility Functions
 
@@ -346,6 +369,7 @@ Update dotfiles when remote repository changes, without rebuilding Docker image.
 dotup              # Daily use - quick sync
 ├── git pull
 ├── Relink symlinks (zshrc, gitconfig, nvim, tmux...)
+├── Fetch secrets from private repo
 ├── Detect version config changes → warn if --packages needed
 ├── Sync Neovim plugins (Lazy)
 ├── Update Tmux plugins (TPM)
@@ -401,6 +425,7 @@ Environment variable         # Highest priority
 | Python (uv) | pynvim, gpustat, npustat, pre-commit, black, isort, jedi_language_server, python-lsp-server | `uv tool install` |
 | Scripts | zoxide, shfmt, bun, uv | Installer scripts |
 | Image | kitty, magick (luarocks) | Custom installers |
+| WakeMeOps | glab | APT repo (WakeMeOps) |
 | Mobilint | mobilint-cli, mobilint-qb-runtime | APT repo / uv |
 
 **Note:** apt packages use Ubuntu defaults (tested for that release). Rust is installed via `rustup` if not present.
