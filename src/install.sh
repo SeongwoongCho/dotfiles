@@ -52,6 +52,9 @@ install_minimal() {
     mkdir -p "$HOME/.ssh"
     ln -sf "$DOT_DIR/ssh/config" "$HOME/.ssh/config"
 
+    # secrets (glab config, gitconfig.secret, etc.)
+    bash "$DOT_DIR/src/install-secrets.sh" || true
+
     echo
     echo '** [MINIMAL] Installing oh-my-zsh...'
     bash "$DOT_DIR/src/install-omz.sh"

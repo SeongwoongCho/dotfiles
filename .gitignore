@@ -25,3 +25,6 @@ __pycache__/
 
 # Local version overrides (machine-specific)
 config/versions.d/local.sh
+
+# glab config (managed by install-secrets.sh)
+config/glab-cli/

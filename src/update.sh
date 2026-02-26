@@ -161,6 +161,9 @@ link_if_needed "$DOT_DIR/git/gitconfig" "$HOME/.gitconfig"
 link_if_needed "$DOT_DIR/ssh/config" "$HOME/.ssh/config"
 link_if_needed "$DOT_DIR/assets/mrtazz_custom.zsh-theme" "$HOME/.oh-my-zsh/themes/mrtazz_custom.zsh-theme"
 
+# secrets (glab config, gitconfig.secret, etc.)
+bash "$DOT_DIR/src/install-secrets.sh" || true
+
 # Neovim
 mkdir -p "$HOME/.config"
 link_dir_if_needed "$DOT_DIR/nvim" "$HOME/.config/nvim"

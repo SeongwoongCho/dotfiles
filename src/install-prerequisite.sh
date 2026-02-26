@@ -590,6 +590,19 @@ main() {
     install_by_apt "curl"
     add-apt-repository -y ppa:neovim-ppa/unstable >/dev/null 2>&1
     curl -s "https://deb.nodesource.com/setup_${VERSION_NODE:-20}.x" 2>/dev/null | bash >/dev/null 2>&1
+
+    # WakeMeOps repository (provides glab)
+    if ! grep -q "wakemeops" /etc/apt/sources.list.d/*.list 2>/dev/null; then
+        log_install "wakemeops-repo" "script"
+        if curl -sSL "https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository" 2>/dev/null | bash >/dev/null 2>&1; then
+            log_success "wakemeops-repo" "script"
+        else
+            log_warn "wakemeops-repo" "Failed to add WakeMeOps repository"
+        fi
+    else
+        log_skip "wakemeops-repo"
+    fi
+
     apt-get update >/dev/null 2>&1
 
     log_section "APT Packages"
@@ -598,7 +611,7 @@ main() {
         unzip zip zsh ssh wget curl git htop rsync fzf
         tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
         clang-format clang clangd llvm libclang-dev libclang1 libomp-dev gdb
-        python3-venv bat duf jq gh mold
+        python3-venv bat duf jq gh glab mold
     )
     for pkg in "${apt_packages[@]}"; do
         install_by_apt "$pkg"
