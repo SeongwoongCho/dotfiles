@@ -58,3 +58,4 @@
     colorMoved = default
 [safe]
 	directory = /home/seongwoong/.claude/plugins/marketplaces/omc
+	directory = /data01/work_sw/workspace/compile-infer-recipes
