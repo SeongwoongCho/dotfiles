@@ -495,6 +495,36 @@ optimize_dns() {
     fi
 }
 
+install_docker() {
+    if command -v docker >/dev/null 2>&1; then
+        log_skip "docker ($(docker --version 2>/dev/null | grep -oP '\d+\.\d+\.\d+'))"
+        return 0
+    fi
+    log_install "docker" "docker repo"
+
+    DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl >/dev/null 2>&1
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc 2>/dev/null
+    chmod a+r /etc/apt/keyrings/docker.asc
+
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${VERSION_CODENAME}") stable" |
+        tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+    apt-get update >/dev/null 2>&1
+    if DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin >/dev/null 2>&1; then
+        # DinD: overlayfs-on-overlayfs fails; use fuse-overlayfs if running inside a container
+        if [[ -f /.dockerenv ]] && command -v fuse-overlayfs >/dev/null 2>&1; then
+            mkdir -p /etc/docker
+            echo '{"storage-driver":"fuse-overlayfs"}' > /etc/docker/daemon.json
+            log_info "DinD detected: configured fuse-overlayfs storage driver"
+        fi
+        log_success "docker" "docker repo"
+        return 0
+    fi
+    log_error "docker" "docker repo"
+    return 1
+}
+
 install_mobilint() {
     if dpkg -s mobilint-cli &>/dev/null; then
         local installed candidate
@@ -611,11 +641,14 @@ main() {
         unzip zip zsh ssh wget curl git htop rsync fzf
         tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
         clang-format clang clangd llvm libclang-dev libclang1 libomp-dev gdb
-        python3-venv bat duf jq gh glab mold
+        python3-venv bat duf jq gh glab mold fuse-overlayfs
     )
     for pkg in "${apt_packages[@]}"; do
         install_by_apt "$pkg"
     done
+
+    log_section "Docker"
+    install_docker
 
     log_section "Rust & Cargo"
     install_rust
