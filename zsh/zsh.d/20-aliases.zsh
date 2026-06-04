@@ -33,7 +33,9 @@ alias pylist='ps -ef | grep "python"'
 
 # Claude Code (auto-update OMC before launch)
 alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-4-6[1m]" --effort max'
-alias codex='codex --yolo'
+# alias codex='omx update && command codex --yolo --search -m gpt-5.5 -c model_reasoning_effort=\"xhigh\" --disable fast_mode'
+alias codex='command codex --yolo --search -m gpt-5.5 -c model_reasoning_effort=\"xhigh\" --disable fast_mode'
+
 # GPU/NPU/HPU monitoring
 alias ug='usegpu'
 alias gpu="watch --color -n.5 gpustat --color"

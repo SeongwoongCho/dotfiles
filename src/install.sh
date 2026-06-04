@@ -119,6 +119,11 @@ install_full() {
     command omc update || true
 
     echo
+    echo '** [FULL] Installing oh-my-codex...'
+    npm install -g oh-my-codex || true
+    printf '1' | omx setup || true
+
+    echo
     echo '** [FULL] Installing Claude Code LSP plugins...'
     command claude plugin marketplace add anthropics/claude-plugins-official || true
     command claude plugin install typescript-lsp@claude-plugins-official || true
