@@ -1,0 +1,136 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1779456034425,
+  "projectRoot": "/home/seongwoong/.dotfiles",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets",
+      "src"
+    ],
+    "gitBranches": {
+      "defaultBranch": "master",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 3,
+      "lastAccessed": 1779456034422,
+      "keyFiles": [
+        "LS_COLORS",
+        "Xmodmap",
+        "mrtazz_custom.zsh-theme"
+      ]
+    },
+    "config": {
+      "path": "config",
+      "purpose": "Configuration files",
+      "fileCount": 2,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "jupyter_lab_config.py",
+        "versions.sh"
+      ]
+    },
+    "git": {
+      "path": "git",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "gitconfig"
+      ]
+    },
+    "npustat": {
+      "path": "npustat",
+      "purpose": null,
+      "fileCount": 10,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "CHANGELOG.md",
+        "LICENSE",
+        "MANIFEST.in",
+        "README.md",
+        "pyproject.toml"
+      ]
+    },
+    "nvim": {
+      "path": "nvim",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "coc-settings.json",
+        "init.lua",
+        "lazy-lock.json"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 7,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "cleanse.sh",
+        "install-omz.sh",
+        "install-prerequisite.sh",
+        "install-secrets.sh",
+        "install.sh"
+      ]
+    },
+    "ssh": {
+      "path": "ssh",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "config"
+      ]
+    },
+    "tmux": {
+      "path": "tmux",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "statusbar.tmux",
+        "tmux.conf"
+      ]
+    },
+    "zsh": {
+      "path": "zsh",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1779456034424,
+      "keyFiles": [
+        "zshrc"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

@@ -142,6 +142,11 @@ install_full() {
     command claude plugin marketplace add obra/superpowers-marketplace || true
     command claude plugin install superpowers@superpowers-marketplace || true
 
+    echo
+    echo '** [FULL] Installing caveman plugin...'
+    command claude plugin marketplace add JuliusBrussee/caveman || true
+    command claude plugin install caveman@caveman || true
+
     # C++ debug tools disabled (nvim-dap-ui not used)
     # echo
     # echo '** [FULL] Setting up C++ debug tools...'
