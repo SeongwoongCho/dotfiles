@@ -5,7 +5,11 @@ export MYDOTFILES="$HOME/.dotfiles"
 
 # Build PATH array (order matters: first = highest priority)
 typeset -U PATH  # -U ensures unique entries only
+export GOROOT="$HOME/go-sdk/go"
+export GOPATH="$HOME/go"
 path=(
+    "$GOROOT/bin"
+    "$GOPATH/bin"
     "$HOME/.local/bin"
     "$HOME/bin"
     "$HOME/.bun/bin"
@@ -176,3 +180,5 @@ if [[ -z "$ZSHRC_AUTORELOAD_INITIALIZED" ]]; then
     autoload -Uz add-zsh-hook
     add-zsh-hook precmd _zshrc_auto_reload
 fi
+
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"

@@ -336,6 +336,46 @@ function up() {
     fi
 }
 
+# cc_schedule: Open Claude Code in current tmux pane and auto-send message
+# Usage: cc_schedule <delay> <message>
+#   cc_schedule 1h "run tests"    - In 1h, open claude and send "run tests"
+#   cc_schedule 30m "deploy"      - In 30m, open claude and send "deploy"
+#   cc_schedule 0 "hi"            - Immediately open claude and send "hi"
+function cc_schedule() {
+    if [[ -z "$1" || -z "$2" ]]; then
+        echo "Usage: cc_schedule <delay> <message>"
+        echo "  cc_schedule 1h \"run all tests\""
+        echo "  cc_schedule 30m \"deploy to prod\""
+        echo "  cc_schedule 0 \"hi\"  (immediate)"
+        return 1
+    fi
+
+    if [[ -z "$TMUX_PANE" ]]; then
+        echo "[cc_schedule] Error: not inside tmux"
+        return 1
+    fi
+
+    local delay="$1"
+    shift
+    local msg="$*"
+    local pane="$TMUX_PANE"
+
+    if [[ "$delay" == "0" ]]; then
+        (while ! tmux capture-pane -t "$pane" -p 2>/dev/null | grep -q "❯"; do sleep 0.5; done && sleep 2 && tmux send-keys -t "$pane" "$msg" C-m) &
+        claude
+    else
+        echo "[cc_schedule] Will run in $delay"
+        echo "[cc_schedule] Message: $msg"
+        (sleep "$delay" && \
+            tmux send-keys -t "$pane" "claude" C-m && \
+            sleep 1 && \
+            while ! tmux capture-pane -t "$pane" -p 2>/dev/null | grep -q "❯"; do sleep 0.5; done && \
+            sleep 2 && \
+            tmux send-keys -t "$pane" "$msg" C-m) &
+        echo "[cc_schedule] Background PID: $!"
+    fi
+}
+
 # Dotfiles Quick Reference
 # Usage: dothelp [category]
 #   dothelp         - Show all categories
@@ -396,6 +436,7 @@ function dothelp() {
         _cmd "pyclean" "Remove __pycache__ files"
         _cmd "fuzzyvim" "Open file with fzf + vim"
         _cmd "howmany" "Count files matching pattern"
+        _cmd "cc_schedule" "Schedule Claude Code (delay + msg)"
     fi
 
     # Neovim Keybindings
