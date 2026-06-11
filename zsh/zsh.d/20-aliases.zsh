@@ -32,7 +32,7 @@ alias tblist='ps -ef | grep "tensorboard"'
 alias pylist='ps -ef | grep "python"'
 
 # Claude Code (auto-update OMC before launch)
-alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-4-6[1m]" --effort max'
+alias claude='omc update && ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-6" CLAUDE_CODE_EFFORT_LEVEL="max" IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-fable-5" --effort xhigh'
 # alias codex='omx update && command codex --yolo --search -m gpt-5.5 -c model_reasoning_effort=\"xhigh\" --disable fast_mode'
 alias codex='command codex --yolo --search -m gpt-5.5 -c model_reasoning_effort=\"xhigh\" --disable fast_mode'
 
@@ -49,9 +49,9 @@ alias cudav='nvcc --version'
 alias cudnnv='cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2'
 
 # CMake presets (Mobilint)
-alias cmakeauto='cmake .. -DPRODUCT=aries2-v4 -DDRIVER_TYPE=aries2 -DVENDOR=mobilint -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
-alias cmakeauto_r='cmake .. -DPRODUCT=regulus-v4 -DDRIVER_TYPE=regulus -DVENDOR=mobilint -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
-alias cmakeauto_a3='cmake .. -DPRODUCT=aries3-v5 -DDRIVER_TYPE=aries3 -DVENDOR=mobilint -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
+alias cmakeauto='cmake .. -DDRIVER_TYPE=aries2 -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
+alias cmakeauto_r='cmake .. -DDRIVER_TYPE=regulus -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
+alias cmakeauto_a3='cmake .. -DDRIVER_TYPE=aries3 -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
 
 # Dotfiles management
 alias dotup='bash $MYDOTFILES/src/update.sh'
