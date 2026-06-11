@@ -181,4 +181,6 @@ if [[ -z "$ZSHRC_AUTORELOAD_INITIALIZED" ]]; then
     add-zsh-hook precmd _zshrc_auto_reload
 fi
 
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+fi
