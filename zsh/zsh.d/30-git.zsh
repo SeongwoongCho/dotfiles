@@ -8,12 +8,100 @@ alias guemail="git config --file ~/.gitconfig.secret user.email"
 # Common operations
 alias ga='git add'
 alias gst='git status'
-alias gd='git diff'
 alias gcm='git commit -m'
 alias gcmd='git commit -m "."'
 alias gcl='git clone'
 alias gps='git push'
 alias gpl='git pull'
+
+# gd: zoom-aware git diff — re-renders on tmux pane resize with position restore
+function gd() {
+    if [[ -z "$TMUX" ]]; then
+        git diff "$@"
+        return
+    fi
+
+    setopt localoptions no_monitor no_notify
+
+    local raw=$(mktemp)
+    git diff --no-color "$@" > "$raw"
+    if [[ ! -s "$raw" ]]; then
+        rm -f "$raw"
+        return 0
+    fi
+
+    local search=""
+    while true; do
+        local w1=$(tmux display-message -p '#{pane_width}')
+
+        (
+            while true; do
+                sleep 0.2
+                local w=$(tmux display-message -p '#{pane_width}' 2>/dev/null)
+                if [[ "$w" != "$w1" ]]; then
+                    [[ ! -f /tmp/.tmux_pane_capture ]] && \
+                        tmux capture-pane -p > /tmp/.tmux_pane_capture 2>/dev/null
+                    sleep 0.05
+                    tmux send-keys -t "$TMUX_PANE" q 2>/dev/null
+                    break
+                fi
+            done
+        ) &
+        local monitor_pid=$!
+
+        if [[ -n "$search" ]]; then
+            local target_line=$(
+                COLUMNS="$w1" delta --width="$w1" < "$raw" \
+                | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/\x1b\][^\x07]*\x07//g' \
+                | grep -nm1 "$search" | cut -d: -f1
+            )
+            if [[ -n "$target_line" ]]; then
+                COLUMNS="$w1" delta --width="$w1" < "$raw" | less -R "+${target_line}g"
+            else
+                COLUMNS="$w1" delta --width="$w1" < "$raw" | less -R
+            fi
+        else
+            COLUMNS="$w1" delta --width="$w1" < "$raw" | less -R
+        fi
+
+        kill $monitor_pid 2>/dev/null
+        wait $monitor_pid 2>/dev/null
+
+        local w2=$(tmux display-message -p '#{pane_width}')
+        [[ "$w1" == "$w2" ]] && break
+
+        search=""
+        if [[ -f /tmp/.tmux_pane_capture ]]; then
+            search=$(_gd_extract_anchor /tmp/.tmux_pane_capture)
+            rm -f /tmp/.tmux_pane_capture
+        fi
+    done
+
+    rm -f "$raw"
+}
+
+_gd_extract_anchor() {
+    local f="$1" total mid anchor
+    total=$(wc -l < "$f")
+    mid=$((total / 2))
+
+    anchor=$(
+        head -n "$((mid + 3))" "$f" \
+        | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/\x1b\][^\x07]*\x07//g' \
+        | sed 's/│//g' \
+        | grep -oE '[a-zA-Z0-9_][a-zA-Z0-9_./-]*/[a-zA-Z0-9_./-]+' \
+        | tail -1
+    )
+    [[ -n "$anchor" ]] && { echo "$anchor"; return; }
+
+    anchor=$(
+        sed -n "${mid}p" "$f" \
+        | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' \
+        | sed 's/│/ /g; s/^[[:space:]]*[0-9]*[[:space:]]*//' \
+        | xargs | cut -c1-40
+    )
+    [[ -n "$anchor" && ${#anchor} -ge 4 ]] && echo "$anchor"
+}
 
 # Setup git user name and email
 # Usage: gitsetup --name "John Doe" --email "john@example.com"
