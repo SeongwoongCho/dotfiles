@@ -32,8 +32,7 @@ alias tblist='ps -ef | grep "tensorboard"'
 alias pylist='ps -ef | grep "python"'
 
 # Claude Code (auto-update OMC before launch)
-# alias claude='omc update && ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-6" CLAUDE_CODE_EFFORT_LEVEL="max" IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-fable-5" --effort xhigh'
-alias claude='omc update && ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-6[1m]" CLAUDE_CODE_EFFORT_LEVEL="max" IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-4-6[1m]" --effort max'
+alias claude='omc update && ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-5[1m]" CLAUDE_CODE_EFFORT_LEVEL="max" IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-5[1m]" --effort max'
 alias codex='command codex --yolo --search -m gpt-5.5 -c model_reasoning_effort=\"xhigh\" --disable fast_mode'
 
 # GPU/NPU/HPU monitoring
