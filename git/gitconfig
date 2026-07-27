@@ -19,10 +19,6 @@
 [user]
 	name = seongwoong
 	email = seongwoong@mobilint.com
-
-[credential]
-	helper = store
-
 [core]
     pager = delta
 
@@ -59,3 +55,8 @@
 [safe]
 	directory = /home/seongwoong/.claude/plugins/marketplaces/omc
 	directory = /data01/work_sw/workspace/compile-infer-recipes
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential]
+	helper = store
