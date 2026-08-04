@@ -69,6 +69,17 @@ main() {
 #[fg=#9e9e9e,bg=#303030] %m/%d %H:%M \
 "
 
+  # [right status] tmux-continuum save timer
+  # This function rewrites status-right from scratch, which is exactly where
+  # tmux-continuum installs its periodic save hook -- rebuilding the statusbar
+  # therefore deletes the hook and auto-saving dies silently. Re-add it here.
+  # The path must match continuum's own interpolation string verbatim, so that
+  # continuum sees it as already installed instead of adding a second copy.
+  local continuum_save="$HOME/.tmux/plugins/tmux-continuum/scripts/continuum_save.sh"
+  if [ -x "$continuum_save" ]; then
+    tmux set -ga status-right "#($continuum_save)"
+  fi
+
   # [window] number (#I), window flag (#F), window name (#W, max 20 chars)
   tmux setw -g window-status-format "\
 #[fg=#0087af,bg=#1c1c1c] #{?#{m:*M*,#F},#[fg=#121212]#[bg=#5faf5f],}#I#F\

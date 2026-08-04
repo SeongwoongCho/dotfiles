@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# tmux-resurrect restore target for nvim panes.
+#
+# auto-session stores one session per cwd under ~/.local/share/nvim/sessions,
+# but is configured with `auto_restore = false` on purpose, so a plain `nvim`
+# starts empty. Only panes restored by tmux-resurrect go through this wrapper,
+# which asks auto-session to reload the session belonging to $PWD -- launching
+# nvim by hand keeps the manual, opt-in behaviour.
+#
+# Any arguments tmux-resurrect recovered from the original command line (e.g.
+# `nvim main_v2.tex`) are passed through.
+
+exec nvim -c 'AutoSession restore' "$@"

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# tmux-resurrect restore target for claude panes.
+#
+# Continues the most recent conversation recorded for $PWD when one exists, and
+# starts a fresh session otherwise -- `claude --continue` fails outright in a
+# directory with no history. Claude Code keeps per-directory transcripts in
+# ~/.claude/projects/<cwd with every non-alphanumeric byte turned into '-'>.
+#
+# The flags are hardcoded rather than recovered from the saved command line
+# because `--model claude-opus-5[1m]` would be glob-expanded (and rejected) by
+# zsh when tmux-resurrect types the command into the restored pane.
+
+set -u
+
+claude_flags=(--dangerously-skip-permissions --model 'claude-opus-5[1m]' --effort max)
+
+project_dir="$HOME/.claude/projects/$(printf '%s' "$PWD" | sed 's/[^A-Za-z0-9]/-/g')"
+if compgen -G "$project_dir/*.jsonl" >/dev/null; then
+  claude_flags=(--continue "${claude_flags[@]}")
+fi
+
+exec claude "${claude_flags[@]}"

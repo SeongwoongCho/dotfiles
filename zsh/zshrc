@@ -184,3 +184,16 @@ fi
 if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
 fi
+
+#==================================================#
+## tmux auto-start (container restart -> session restore)
+#==================================================#
+# An interactive login lands in tmux session "0", creating it if the container
+# was just restarted. Starting the server is what triggers tmux-continuum's
+# auto-restore, so the previous windows, pane layout and programs come back
+# without any manual `prefix + Ctrl-r`.
+# The guards keep non-interactive shells (scripts, editor tasks, agent tools)
+# out of tmux -- they have no tty and must not be hijacked into a session.
+if [[ -o interactive ]] && [[ -z "$TMUX" ]] && [[ -t 1 ]] && (( $+commands[tmux] )); then
+    tmux new-session -A -s 0
+fi
