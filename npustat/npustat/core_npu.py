@@ -55,9 +55,44 @@ class NPUStat:
         return self.entry.name
 
     @property
+    def node_name(self) -> str:
+        """Returns the device node, e.g. /dev/aries0."""
+        return self.entry.node_name
+
+    @property
+    def chip_name(self) -> str:
+        """Returns the chip revision name, e.g. Aries2."""
+        return self.entry.chip_name
+
+    @property
     def firmware_version(self) -> str:
         """Returns the firmware version."""
         return self.entry.firmware_version
+
+    @property
+    def firmware_version_str(self) -> str:
+        """Returns the firmware version including its revision."""
+        return self.entry.firmware_version_str
+
+    @property
+    def firmware_crc_str(self) -> str:
+        """Returns the firmware CRC as a hex string."""
+        return self.entry.firmware_crc_str
+
+    @property
+    def signal_type_str(self) -> str:
+        """Returns the signal type (Interrupt / Polling)."""
+        return self.entry.signal_type_str
+
+    @property
+    def fan_duty(self) -> Optional[int]:
+        """Returns the fan duty cycle in percent, if supported."""
+        return self.entry.fan_duty
+
+    @property
+    def pcie(self) -> Dict[str, int]:
+        """Returns the PCI Express properties."""
+        return self.entry.pcie
 
     @property
     def temperature(self) -> int:
@@ -85,14 +120,34 @@ class NPUStat:
         return self.entry.utilization
 
     @property
-    def power_npu(self) -> float:
-        """Returns the NPU power consumption in Watts."""
+    def power_npu(self) -> Optional[float]:
+        """Returns the NPU rail power in Watts, if that rail is selected."""
         return self.entry.power_npu
 
     @property
     def power_total(self) -> float:
         """Returns the total power consumption in Watts."""
         return self.entry.power_total
+
+    @property
+    def current_total(self) -> float:
+        """Returns the total current draw in Amps."""
+        return self.entry.current_total
+
+    @property
+    def voltage_total(self) -> float:
+        """Returns the total voltage in Volts."""
+        return self.entry.voltage_total
+
+    @property
+    def extra_rail_name(self) -> Optional[str]:
+        """Returns the name of the currently sampled extra PMIC rail."""
+        return self.entry.extra_rail_name
+
+    @property
+    def extra_rail_power(self) -> Optional[float]:
+        """Returns the extra PMIC rail power in Watts."""
+        return self.entry.extra_rail_power
 
     @property
     def clock_npu(self) -> int:
@@ -110,9 +165,14 @@ class NPUStat:
         return self.entry.processes
 
     @property
-    def cores(self) -> Dict[int, NPUCore]:
-        """Returns the cores dictionary."""
+    def cores(self) -> List[NPUCore]:
+        """Returns the per-core usage records."""
         return self.entry.cores
+
+    @property
+    def clusters(self) -> Dict[int, List[NPUCore]]:
+        """Returns the per-core usage records grouped by cluster."""
+        return self.entry.clusters
 
     def print_to(self, fp, *,
                  with_colors=True,
@@ -123,6 +183,8 @@ class NPUStat:
                  show_pid=False,
                  show_power=None,
                  show_clock=False,
+                 show_fan_speed=False,
+                 show_extra=False,
                  show_core_status=True,
                  npuname_width=None,
                  eol_char=os.linesep,
@@ -137,11 +199,13 @@ class NPUStat:
             show_cmd: Show command name of running processes
             show_full_cmd: Show full command line
             no_processes: Hide process information
-            show_user: Show username (not available for NPU)
+            show_user: Show username of running processes
             show_pid: Show PID of running processes
             show_power: Show power consumption
             show_clock: Show clock frequencies
-            show_core_status: Show per-core status
+            show_fan_speed: Show fan duty cycle
+            show_extra: Show chip/firmware/PCIe/rail details on an extra line
+            show_core_status: Show per-cluster, per-core utilization
             npuname_width: Width for NPU name column
             eol_char: End of line character
             term: Terminal instance for color output
@@ -169,14 +233,17 @@ class NPUStat:
         colors['CUser'] = term.bold_black
         colors['CUtil'] = _conditional(lambda: self.utilization < 30, term.green, term.bold_green)
         colors['CPowU'] = _conditional(
-            lambda: self.power_npu / self.power_total < 0.4 if self.power_total > 0 else True,
+            lambda: (self.power_npu or 0.0) / self.power_total < 0.4
+            if self.power_total > 0 else True,
             term.magenta, term.bold_magenta
         )
         colors['CPowL'] = term.magenta
+        colors['CFan'] = term.cyan
         colors['CClock'] = term.cyan
         colors['CCore'] = term.bold_cyan
         colors['CCoreActive'] = term.bold_green
         colors['CCoreIdle'] = term.bold_black
+        colors['CExtra'] = term.bold_black
         colors['CCmd'] = term.color(24)
         colors['CNPU'] = term.bold_magenta  # NPU 구분용 색상
 
@@ -213,19 +280,25 @@ class NPUStat:
                    color='CName')
             _write(" |")
 
+        # Fan duty
+        if show_fan_speed and self.fan_duty is not None:
+            _write(rjustify(self.fan_duty, 3), " %", color='CFan', end=', ')
+
         # Temperature
         _write(rjustify(self.temperature, 3), "°C", color='CTemp', end=', ')
 
         # Utilization (integer to match GPU format)
         _write(rjustify(int(self.utilization), 3), " %", color='CUtil')
 
-        # Power
+        # Power. The per-rail reading is only available while that rail is the
+        # selected extra PMIC rail, so it is shown next to the total draw only
+        # when the NPU rail happens to be the live one.
         if show_power:
             _write(",  ")
-            _write(rjustify(f"{self.power_npu:.1f}", 5), color='CPowU')
-            if show_power is True or 'limit' in str(show_power):
+            if self.power_npu is not None:
+                _write(rjustify(f"{self.power_npu:.1f}", 5), color='CPowU')
                 _write(" / ")
-                _write(rjustify(f"{self.power_total:.1f}", 5), ' W', color='CPowL')
+            _write(rjustify(f"{self.power_total:.1f}", 5), ' W', color='CPowL')
 
         # Clock
         if show_clock:
@@ -247,35 +320,52 @@ class NPUStat:
 
         # Show processes
         if not no_processes:
-            processes = self.processes
-            if processes:
-                for p in processes:
-                    _write(' ')
-                    if show_pid:
-                        _write(f"{p.pid}/", color='CUser')
-                    if show_cmd:
-                        _write(f"{p.process_name}", color='C1')
-                    else:
-                        _write(f"{p.process_name}", color='CUser')
-                    _write('(', color='C0')
-                    _write(f"{p.npu_memory}M", color='CMemP')
-                    _write(')', color='C0')
+            for p in self.processes:
+                _write(' ')
+                if show_pid:
+                    _write(f"{p.pid}/", color='CUser')
+                if show_user:
+                    _write(_repr(p.username, '?'), color='CUser')
+                elif show_full_cmd and p.full_command:
+                    _write(' '.join(p.full_command), color='CCmd')
+                elif show_cmd:
+                    _write(f"{p.process_name}", color='C1')
+                else:
+                    _write(_repr(p.username, p.process_name), color='CUser')
+                _write('(', color='C0')
+                _write(f"{p.npu_memory}M", color='CMemP')
+                _write(')', color='C0')
 
-        # Show per-core status summary
-        if show_core_status and self.cores:
+        # Chip / firmware / PCIe / rail details
+        if show_extra:
             _write(eol_char)
-            for core_idx in sorted(self.cores.keys()):
-                core = self.cores[core_idx]
-                status_color = 'CCoreActive' if core.is_active else 'CCoreIdle'
-                status_text = f"{core.utilization:.1f}%" if core.is_active else "idle"
+            extra = [
+                f"{self.chip_name} fw {self.firmware_version_str}",
+                f"crc {self.firmware_crc_str}",
+                f"signal {self.signal_type_str}",
+            ]
+            if self.pcie.get('generation') and self.pcie.get('lanes'):
+                extra.append(f"PCIe Gen{self.pcie['generation']} "
+                             f"x{self.pcie['lanes']}")
+            if self.extra_rail_name and self.extra_rail_power is not None:
+                extra.append(f"{self.extra_rail_name} rail "
+                             f"{self.extra_rail_power:.2f}W")
+            extra.append(f"total {self.current_total:.2f}A "
+                         f"{self.voltage_total:.2f}V")
+            _write("    ├─ " + " | ".join(extra), color='CExtra')
 
-                _write(f"    └─ Core {core_idx}/{core.processes[0].total_cores if core.processes else 0}: ", color='CCore')
-                _write(status_text, color=status_color)
-
-                if core.is_active:
-                    for proc in core.processes:
-                        _write(f" [{proc.process_name}:{proc.pid}]", color='CCmd')
+        # Show per-cluster, per-core utilization
+        if show_core_status and self.cores:
+            clusters = self.clusters
+            for cluster_idx in sorted(clusters):
                 _write(eol_char)
+                _write(f"    └─ Cluster{cluster_idx}:", color='CCore')
+                for core in clusters[cluster_idx]:
+                    label = 'G' if core.is_global else f"c{core.core}"
+                    _write(f" {label}")
+                    _write(rjustify(f"{core.utilization:.1f}", 5), "%",
+                           color='CCoreActive' if core.is_active
+                           else 'CCoreIdle')
 
         fp.write(''.join(reps))
         return fp
@@ -285,41 +375,47 @@ class NPUStat:
         return {
             'index': self.index,
             'name': self.name,
+            'node_name': self.node_name,
+            'chip': self.chip_name,
             'firmware_version': self.firmware_version,
+            'firmware_revision': self.entry.firmware_revision,
+            'firmware_crc': self.firmware_crc_str,
+            'signal_type': self.signal_type_str,
             'temperature': self.temperature,
+            'fan_duty': self.fan_duty,
             'memory.used': self.memory_used,
             'memory.total': self.memory_total,
             'utilization': self.utilization,
             'power.npu': self.power_npu,
             'power.total': self.power_total,
+            'current.total': self.current_total,
+            'voltage.total': self.voltage_total,
+            'rail.name': self.extra_rail_name,
+            'rail.power': self.extra_rail_power,
+            'rail.current': self.entry.extra_rail_current,
+            'rail.voltage': self.entry.extra_rail_voltage,
             'clock.npu': self.clock_npu,
             'clock.bus': self.clock_bus,
-            'cores': {
-                idx: {
-                    'index': core.core_index,
+            'pcie': self.pcie,
+            'cores': [
+                {
+                    'cluster': core.cluster,
+                    'core': core.core,
+                    'is_global': core.is_global,
                     'is_active': core.is_active,
                     'utilization': core.utilization,
-                    'processes': [
-                        {
-                            'pid': p.pid,
-                            'process_name': p.process_name,
-                            'npu_memory': p.npu_memory,
-                            'count': p.count,
-                            'utilization': p.utilization,
-                            'total_cores': p.total_cores,
-                        }
-                        for p in core.processes
-                    ]
+                    'npu_time_us': core.npu_time_us,
+                    'interval_us': core.interval_us,
                 }
-                for idx, core in self.cores.items()
-            },
+                for core in self.cores
+            ],
             'processes': [
                 {
                     'npu_index': p.npu_index,
-                    'core_index': p.core_index,
-                    'total_cores': p.total_cores,
                     'pid': p.pid,
                     'process_name': p.process_name,
+                    'username': p.username,
+                    'full_command': p.full_command,
                     'npu_memory': p.npu_memory,
                     'count': p.count,
                     'utilization': p.utilization,
@@ -354,15 +450,20 @@ class NPUStatCollection(Sequence[NPUStat]):
 
         Returns:
             NPUStatCollection with all NPU stats
+
+        Raises:
+            RuntimeError: If mbltml is unavailable or the query fails. The
+                caller decides whether a missing NPU is fatal (``--npu-only``)
+                or simply means "GPU only" (the default mode).
         """
         try:
             npus, drivers = query_npu_status()
-            npu_stats = [NPUStat(npu) for npu in npus]
-            return NPUStatCollection(npu_stats, driver_versions=drivers)
         except RuntimeError as e:
             if debug:
                 print(f"NPU query error: {e}", file=sys.stderr)
-            return NPUStatCollection([], driver_versions=NPUDriverVersions())
+            raise
+        npu_stats = [NPUStat(npu) for npu in npus]
+        return NPUStatCollection(npu_stats, driver_versions=drivers)
 
     def __len__(self):
         return len(self.npus)
@@ -385,16 +486,17 @@ class NPUStatCollection(Sequence[NPUStat]):
         parts = []
         if self.driver_versions.aries:
             parts.append(f"Aries:{self.driver_versions.aries}")
-        if self.driver_versions.aries2:
-            parts.append(f"Aries2:{self.driver_versions.aries2}")
         if self.driver_versions.regulus:
             parts.append(f"Regulus:{self.driver_versions.regulus}")
+        if self.driver_versions.regulus_usb:
+            parts.append(f"Regulus-USB:{self.driver_versions.regulus_usb}")
         return ' '.join(parts) if parts else 'N/A'
 
     def print_formatted(self, fp=sys.stdout, *,
                         force_color=False, no_color=False,
                         show_cmd=False, show_full_cmd=False, show_user=False,
                         show_pid=False, show_power=None, show_clock=False,
+                        show_fan_speed=False, show_extra=False,
                         show_core_status=True,
                         npuname_width=None, show_header=True,
                         no_processes=False,
@@ -413,7 +515,9 @@ class NPUStatCollection(Sequence[NPUStat]):
             show_pid: Show process IDs
             show_power: Show power consumption
             show_clock: Show clock frequencies
-            show_core_status: Show per-core status
+            show_fan_speed: Show fan duty cycle
+            show_extra: Show chip/firmware/PCIe/rail details
+            show_core_status: Show per-cluster, per-core utilization
             npuname_width: Width for NPU name column
             show_header: Show header line
             no_processes: Hide process information
@@ -465,16 +569,13 @@ class NPUStatCollection(Sequence[NPUStat]):
                        show_pid=show_pid,
                        show_power=show_power,
                        show_clock=show_clock,
+                       show_fan_speed=show_fan_speed,
+                       show_extra=show_extra,
                        show_core_status=show_core_status,
                        npuname_width=npuname_width,
                        eol_char=eol_char,
                        term=t_color)
-            # Core status가 표시되면 이미 줄바꿈이 포함됨
-            if not show_core_status or not n.cores:
-                fp.write(eol_char)
-
-        if len(self.npus) == 0:
-            pass  # No NPUs available, silently skip
+            fp.write(eol_char)
 
         fp.flush()
 
@@ -485,8 +586,8 @@ class NPUStatCollection(Sequence[NPUStat]):
             'query_time': self.query_time,
             'driver_versions': {
                 'aries': self.driver_versions.aries,
-                'aries2': self.driver_versions.aries2,
                 'regulus': self.driver_versions.regulus,
+                'regulus_usb': self.driver_versions.regulus_usb,
             },
             'npus': [n.jsonify() for n in self]
         }
@@ -507,7 +608,7 @@ class NPUStatCollection(Sequence[NPUStat]):
 
 def new_npu_query() -> NPUStatCollection:
     """
-    Obtain a new NPUStatCollection instance by querying mobilint-cli.
+    Obtain a new NPUStatCollection instance by querying mbltml.
 
     Returns:
         NPUStatCollection with current NPU stats

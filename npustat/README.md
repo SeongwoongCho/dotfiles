@@ -24,8 +24,12 @@ Requirements
 
 ### Mobilint NPU Support
 
-- Requires `mobilint-cli` to be installed and accessible in PATH
+- Requires the `mbltml` bindings (`pip install mbltml`, Linux only)
 - Mobilint SDK with proper drivers installed
+
+NPU status is read straight from `mbltml`, Mobilint's monitoring library and
+the same one `mblt-status` and `mblt-tracker` are built on. No CLI output is
+parsed, so vendor changes to `mobilint-cli`'s table layout cannot break it.
 
 
 Usage
@@ -38,10 +42,12 @@ $ npustat
 **Example output:**
 
 ```
-cce2fabef351                        Wed Dec 10 14:35:47 2025  GPU:580.95.05  NPU:Aries2:1.9.0
+cce2fabef351                        Wed Dec 10 14:35:47 2025  GPU:580.95.05  NPU:Aries:1.13.0(Rev:1)
 [G0] NVIDIA RTX 6000 Ada Generation | 32°C,   0 % |    14 / 46068 MB |
 [G1] NVIDIA RTX 6000 Ada Generation | 81°C,  97 % | 27004 / 46068 MB | root(26982M)
-[N0] Aries2(aries0)                 | 38°C,   0 % |     0 / 16384 MB |
+[N0] Aries(aries0)                  | 46°C,   8 % |   426 / 16384 MB | root(426M)
+    └─ Cluster0: G  0.0% c0 67.6% c1  0.0% c2  0.0% c3  0.0%
+    └─ Cluster1: G  0.0% c0  0.0% c1  0.0% c2  0.0% c3  0.0%
 ```
 
 Options
@@ -75,7 +81,8 @@ Options
 | `-n`, `--no-npu` | Hide NPU status (NPU is shown by default) |
 | `--npu-only` | Only display NPU status (hide GPU) |
 | `--npu-clock` | Display NPU clock frequencies |
-| `--no-npu-core-status` | Hide per-core status for NPU |
+| `--npu-extra` | Display chip, firmware, PCIe and power rail details |
+| `--no-npu-core-status` | Hide per-cluster, per-core utilization |
 
 
 Display Format
@@ -97,21 +104,41 @@ Display Format
 ### NPU Display
 
 ```
-[N0] Aries2(aries0) | 38°C,   0 % |     0 / 16384 MB |
+[N0] Aries(aries0) | 46°C,   8 % |   426 / 16384 MB | root(426M)
+    └─ Cluster0: G  0.0% c0 67.6% c1  0.0% c2  0.0% c3  0.0%
+    └─ Cluster1: G  0.0% c0  0.0% c1  0.0% c2  0.0% c3  0.0%
 ```
 
 - `[N0]`: NPU index (N = NPU)
-- `Aries2(aries0)`: NPU name
-- `38°C`: Temperature (Celsius)
-- `0 %`: NPU Utilization
-- `0 / 16384 MB`: Memory Usage (Used / Total)
+- `Aries(aries0)`: device family and device node
+- `46°C`: Temperature (Celsius)
+- `8 %`: NPU Utilization
+- `426 / 16384 MB`: Memory Usage (Used / Total)
+- `root(426M)`: Running processes (owner and NPU memory usage)
+- `Cluster0`: per-cluster utilization; `G` is the cluster's global core,
+  `c0`–`c3` its individual cores. Hide with `--no-npu-core-status`.
+
+Process owners resolve to `?` when the NPU driver reports host PIDs that the
+current PID namespace cannot see (e.g. inside a container). `mblt-status`
+reports the same processes as `Not Found` in that situation.
+
+### With Extra Details (`--npu-extra`)
+
+```
+[N0] Aries(aries0) | 46°C,   8 % |   426 / 16384 MB | root(426M)
+    ├─ Aries2 fw 1.1 (Rev: 0) | crc 0xFB9A5980 | signal Interrupt | PCIe Gen4 x8 | NPU rail 6.95W | total 1.37A 12.18V
+```
 
 ### With Power Option (`-P`)
 
 ```
 [G0] NVIDIA RTX 6000 Ada Generation | 32°C,   0 %,   21 / 300 W |    14 / 46068 MB |
-[N0] Aries2(aries0)                 | 38°C,   0 %,    3.9 /  12.7 W |     0 / 16384 MB |
+[N0] Aries(aries0)                  | 46°C,   8 %,    7.0 /  16.7 W |   426 / 16384 MB |
 ```
+
+The first power figure is the NPU rail, the second the board total. Only one
+extra PMIC rail is sampled by firmware at a time, so the rail figure is shown
+only while the NPU rail is the selected one.
 
 
 Examples
@@ -134,6 +161,9 @@ npustat -P
 # Show with NPU clock frequencies
 npustat --npu-clock
 
+# Show NPU chip, firmware, PCIe and power rail details
+npustat --npu-extra
+
 # Show all details
 npustat -a
 
@@ -148,16 +178,16 @@ npustat --json
 Behavior without NPU/GPU
 ------------------------
 
-### When `mobilint-cli` is not installed
+### When `mbltml` or a Mobilint driver is not available
 
 - **Default mode (`npustat`)**: Automatically shows GPU only, NPU section is silently skipped.
 - **With `--npu-only`**: Shows error message and exits with code 1.
 - **With `--debug`**: Shows "NPU query skipped" message with the reason.
 
 ```bash
-# If mobilint-cli is not installed:
+# If mbltml is missing or no NPU is present:
 $ npustat              # Shows GPU only (no error)
-$ npustat --npu-only   # Error: mobilint-cli not found
+$ npustat --npu-only   # Error, exits 1
 $ npustat --debug      # Shows GPU + debug message about NPU
 ```
 

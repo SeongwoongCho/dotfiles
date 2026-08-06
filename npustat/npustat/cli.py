@@ -63,7 +63,7 @@ def get_complete_for_one_or_zero(input):
 
 def print_gpustat(*, id=None, json=False, debug=False,
                   no_npu=False, npu_only=False, show_npu_clock=False,
-                  show_npu_core_status=True, **kwargs):
+                  show_npu_extra=False, show_npu_core_status=True, **kwargs):
     '''Display the GPU and NPU query results into standard output.'''
     gpu_stats = None
     npu_stats = None
@@ -110,6 +110,11 @@ def print_gpustat(*, id=None, json=False, debug=False,
             elif debug:
                 sys.stderr.write(f'NPU query skipped: {e}\n')
 
+        if npu_only and not npu_stats:
+            # mbltml loaded fine but reported no Mobilint device.
+            sys.stderr.write('No Mobilint NPU was detected.\n')
+            sys.exit(1)
+
     # Build NPU-specific kwargs
     npu_kwargs = {
         'force_color': kwargs.get('force_color', False),
@@ -120,6 +125,8 @@ def print_gpustat(*, id=None, json=False, debug=False,
         'show_pid': kwargs.get('show_pid', False),
         'show_power': kwargs.get('show_power', None),
         'show_clock': show_npu_clock,
+        'show_fan_speed': kwargs.get('show_fan_speed', False),
+        'show_extra': show_npu_extra,
         'show_core_status': show_npu_core_status,
         'show_header': False,  # Header is printed separately
         'no_processes': kwargs.get('no_processes', False),
@@ -348,6 +355,10 @@ def main(*argv):
         help='Display NPU clock frequencies'
     )
     npu_group.add_argument(
+        '--npu-extra', dest='show_npu_extra', action='store_true',
+        help='Display NPU chip, firmware, PCIe and power rail details'
+    )
+    npu_group.add_argument(
         '--no-npu-core-status', dest='show_npu_core_status',
         action='store_false', default=True,
         help='Hide per-core status for NPU'
@@ -367,6 +378,7 @@ def main(*argv):
         args.show_codec = 'enc,dec'
         args.show_power = 'draw,limit'
         args.show_npu_clock = True
+        args.show_npu_extra = True
     del args.show_all  # type: ignore
 
     # If npu_only is set, force no_npu to False

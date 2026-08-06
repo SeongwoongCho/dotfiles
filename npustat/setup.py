@@ -94,6 +94,9 @@ install_requires = [
     'psutil>=5.6.0',    # GH-1447
     'blessed>=1.17.1',  # GH-126
     'typing_extensions',
+    # Mobilint NPU monitoring bindings; only published for Linux. npustat
+    # degrades to GPU-only when the module or an NPU driver is missing.
+    'mbltml; platform_system == "Linux"',
 ]
 
 tests_requires = [

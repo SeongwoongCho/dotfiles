@@ -1,69 +1,172 @@
 """
 NPU (Mobilint) status monitoring module.
 
-This module provides functionality to parse and display NPU status
-from mobilint-cli command output.
+Queries Mobilint NPUs through the official ``mbltml`` bindings, the Mobilint
+counterpart of NVIDIA's NVML. This is the same library `mblt-tracker` and
+`mblt-status` are built on, so npustat reads the very same counters the vendor
+tools do -- no CLI output scraping is involved.
 """
 
-import re
-import subprocess
+import os
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
+import psutil
+
+from npustat.npuml import ensure_initialized, mbltml
+
+# Human-readable names for mbltmlDeviceType_t (device family).
+DEVICE_TYPE_NAMES = {
+    0x1: 'Aries',
+    0x2: 'Regulus',
+    0x4: 'Regulus(USB)',
+}
+
+# Human-readable names for mbltmlHardwareVersion_t (actual chip revision).
+HARDWARE_VERSION_NAMES = {
+    0x1: 'Aries',
+    0x2: 'Regulus',
+    0x3: 'Aries2',
+    0x4: 'Regulus2',
+}
+
+# Human-readable names for mbltmlExtraPmicId_t (selectable power rail).
+EXTRA_RAIL_NAMES = {
+    0: 'NPU',
+    1: 'DDR',
+    2: 'PMIC',
+    3: 'Goldfinger',
+}
+
+SIGNAL_TYPE_NAMES = {
+    0: 'Interrupt',
+    1: 'Polling',
+}
+
+# mbltmlCore_t sentinel for the aggregated (global) core of a cluster.
+CORE_GLOBAL = 0x0000FFFE
+
+_MB = 1024 * 1024
 
 
 @dataclass
 class NPUProcess:
-    """Represents a process running on an NPU core."""
+    """Represents a process running on an NPU."""
     npu_index: int
-    core_index: int  # Current core being used
-    total_cores: int  # Total cores allocated
     pid: int
     process_name: str
     npu_memory: int  # in MB
-    count: int
+    count: int  # number of NPU samples attributed to the process
     utilization: float  # percentage
+    username: Optional[str] = None
+    full_command: Optional[List[str]] = None
 
 
 @dataclass
 class NPUCore:
-    """Represents a single NPU core status."""
-    core_index: int
-    processes: List[NPUProcess] = field(default_factory=list)
+    """Represents a single NPU core's usage over the last sampling window."""
+    cluster: int  # cluster index (0, 1, ...)
+    core: int  # core index within the cluster, or -1 for the global core
+    npu_time_us: int  # accumulated NPU active time, microseconds
+    interval_us: int  # sampling window covered by npu_time_us, microseconds
 
     @property
-    def is_active(self) -> bool:
-        """Return True if any process is running on this core."""
-        return len(self.processes) > 0
+    def is_global(self) -> bool:
+        """Whether this record aggregates the whole cluster."""
+        return self.core < 0
 
     @property
     def utilization(self) -> float:
-        """Return total utilization for this core."""
-        return sum(p.utilization for p in self.processes)
+        """Utilization of this core over the sampling window, in percent."""
+        if self.interval_us <= 0:
+            return 0.0
+        return 100.0 * self.npu_time_us / self.interval_us
+
+    @property
+    def is_active(self) -> bool:
+        """Whether the core did any work during the sampling window."""
+        return self.npu_time_us > 0
+
+    @property
+    def label(self) -> str:
+        """Short display label, e.g. ``C0/G`` or ``C0/c2``."""
+        return f"C{self.cluster}/{'G' if self.is_global else f'c{self.core}'}"
 
 
 @dataclass
 class NPUInfo:
-    """
-    Represents a single NPU device's information.
-
-    Contains all hardware stats and running processes for one NPU.
-    """
+    """Represents a single NPU device's information."""
     index: int
-    name: str
+    node_name: str  # e.g. /dev/aries0
+    device_type: int  # mbltmlDeviceType_t
+    hardware_version: int  # mbltmlHardwareVersion_t
     firmware_version: str
-    signature: int
+    firmware_revision: int
+    firmware_crc: int
     temperature: int  # in Celsius
-    firmware_crc: str
-    power_npu: float  # in Watts
-    power_total: float  # in Watts
-    current_npu: float  # in Amps
-    current_total: float  # in Amps
+    signal_type: int
     clock_npu: int  # in MHz
     clock_bus: int  # in MHz
+    fan_duty: Optional[int]  # in percent
+    power_total: float  # in Watts
+    current_total: float  # in Amps
+    voltage_total: float  # in Volts
+    extra_rail: Optional[int]  # mbltmlExtraPmicId_t of the selected rail
+    extra_rail_power: Optional[float]  # in Watts
+    extra_rail_current: Optional[float]  # in Amps
+    extra_rail_voltage: Optional[float]  # in Volts
     memory_used: int  # in MB
     memory_total: int  # in MB
     utilization: float  # percentage
-    cores: Dict[int, NPUCore] = field(default_factory=dict)
+    pcie: Dict[str, int] = field(default_factory=dict)
+    cores: List[NPUCore] = field(default_factory=list)
+    processes: List[NPUProcess] = field(default_factory=list)
+
+    @property
+    def device_name(self) -> str:
+        """Device family name, e.g. ``Aries``."""
+        return DEVICE_TYPE_NAMES.get(self.device_type, 'NPU')
+
+    @property
+    def chip_name(self) -> str:
+        """Actual chip revision name, e.g. ``Aries2``."""
+        return HARDWARE_VERSION_NAMES.get(self.hardware_version, 'Unknown')
+
+    @property
+    def name(self) -> str:
+        """Display name, e.g. ``Aries(aries0)``."""
+        return f"{self.device_name}({os.path.basename(self.node_name)})"
+
+    @property
+    def firmware_version_str(self) -> str:
+        """Firmware version including its revision, e.g. ``1.1 (Rev: 0)``."""
+        return f"{self.firmware_version} (Rev: {self.firmware_revision})"
+
+    @property
+    def firmware_crc_str(self) -> str:
+        return f"0x{self.firmware_crc:08X}"
+
+    @property
+    def signal_type_str(self) -> str:
+        return SIGNAL_TYPE_NAMES.get(self.signal_type, str(self.signal_type))
+
+    @property
+    def extra_rail_name(self) -> Optional[str]:
+        if self.extra_rail is None:
+            return None
+        return EXTRA_RAIL_NAMES.get(self.extra_rail, str(self.extra_rail))
+
+    @property
+    def power_npu(self) -> Optional[float]:
+        """Power of the NPU rail, if that rail is the one currently selected.
+
+        Only one extra rail is sampled by the firmware at a time; switching
+        rails takes up to a second to take effect, so npustat reports the rail
+        that happens to be selected rather than forcing a switch.
+        """
+        if self.extra_rail == 0:
+            return self.extra_rail_power
+        return None
 
     @property
     def memory_free(self) -> int:
@@ -71,207 +174,218 @@ class NPUInfo:
         return max(self.memory_total - self.memory_used, 0)
 
     @property
-    def processes(self) -> List[NPUProcess]:
-        """Returns all processes across all cores."""
-        all_processes = []
-        for core in self.cores.values():
-            all_processes.extend(core.processes)
-        return all_processes
-
-    def get_core(self, core_index: int) -> NPUCore:
-        """Get or create a core by index."""
-        if core_index not in self.cores:
-            self.cores[core_index] = NPUCore(core_index=core_index)
-        return self.cores[core_index]
+    def clusters(self) -> Dict[int, List[NPUCore]]:
+        """Cores grouped by cluster index, each sorted global-first."""
+        grouped: Dict[int, List[NPUCore]] = {}
+        for core in self.cores:
+            grouped.setdefault(core.cluster, []).append(core)
+        for cores in grouped.values():
+            cores.sort(key=lambda c: (not c.is_global, c.core))
+        return grouped
 
 
 @dataclass
 class NPUDriverVersions:
-    """NPU driver version information."""
+    """NPU driver version information, keyed by device family."""
     aries: Optional[str] = None
-    aries2: Optional[str] = None
     regulus: Optional[str] = None
+    regulus_usb: Optional[str] = None
 
 
-def parse_mobilint_output(output: str) -> tuple[List[NPUInfo], NPUDriverVersions]:
-    """
-    Parse the output of 'mobilint-cli status show' command.
+def _safe(fn, *args, default=None):
+    """Call an mbltml getter, returning ``default`` when it is unsupported."""
+    try:
+        return fn(*args)
+    except Exception:
+        return default
 
-    Args:
-        output: Raw string output from mobilint-cli status show
 
-    Returns:
-        Tuple of (list of NPUInfo objects, driver versions)
+def _cluster_index(raw_cluster: int) -> int:
+    """Convert mbltmlCluster_t (0x00010000 << n) into a 0-based index."""
+    if raw_cluster <= 0:
+        return -1
+    return (raw_cluster >> 16).bit_length() - 1
 
-    The function parses a table-formatted output like:
-    +------------------------------------------------------------------------------------------+
-    | Mobilint-NPU-Monitor           Drivers - Aries: N/A     Aries2: 1.9.0   Regulus: N/A     |
-    +------------------------------------------------------------------------------------------+
-    | NPU  Name    Firmware Version |   Pwr:NPU/Total |     Clock:NPU/Bus |       Memory-Usage |
-    | Sig  Temp        Firmware CRC |   Cur:NPU/Total |                   |           NPU-Util |
-    |===============================+=================+===================+====================|
-    |   0  Aries2(aries0)       1.1 |   3.90W  12.72W | 1250MHz / 1000MHz |      0MB / 16384MB |
-    |   0  37 C            fb9a5980 |   0.32A   1.04A |                   |              0.00% |
-    +-------------------------------+-----------------+-------------------+--------------------+
-    """
-    npus: List[NPUInfo] = []
+
+def _core_index(raw_core: int) -> int:
+    """Convert mbltmlCore_t (1-based, 0xFFFE == global) into a 0-based index."""
+    if raw_core == CORE_GLOBAL:
+        return -1
+    return raw_core - 1
+
+
+# psutil.Process objects are cached across queries: constructing one is the
+# expensive part, and watch mode re-queries every refresh interval. The cache
+# is bounded so a long-running watch on a busy host cannot grow without limit.
+_PROCESS_CACHE_LIMIT = 256
+_process_cache: Dict[int, psutil.Process] = {}
+
+
+def _lookup_process(pid: int) -> Dict[str, Any]:
+    """Resolve a PID into a name/username/cmdline, tolerating dead processes."""
+    info: Dict[str, Any] = {
+        'process_name': '?', 'username': None, 'full_command': None,
+    }
+    try:
+        proc = _process_cache.get(pid)
+        if proc is None:
+            if len(_process_cache) >= _PROCESS_CACHE_LIMIT:
+                _process_cache.clear()
+            proc = psutil.Process(pid=pid)
+            _process_cache[pid] = proc
+
+        cmdline = _safe(proc.cmdline, default=[]) or []
+        if cmdline:
+            info['process_name'] = os.path.basename(cmdline[0])
+            info['full_command'] = cmdline
+        else:
+            # Zombie or kernel thread: cmdline is empty but the name survives.
+            info['process_name'] = _safe(proc.name, default='?') or '?'
+        info['username'] = _safe(proc.username)
+    except (psutil.NoSuchProcess, psutil.AccessDenied, ValueError):
+        _process_cache.pop(pid, None)
+    return info
+
+
+def _query_driver_versions() -> NPUDriverVersions:
     drivers = NPUDriverVersions()
-    lines = output.strip().split('\n')
+    for attr, device_type in (
+        ('aries', mbltml.MBLTML_DEVICE_ARIES),
+        ('regulus', mbltml.MBLTML_DEVICE_REGULUS),
+        ('regulus_usb', mbltml.MBLTML_DEVICE_REGULUS_USB),
+    ):
+        version = _safe(mbltml.mbltmlGetDriverVersion, device_type)
+        if version:
+            revision = _safe(mbltml.mbltmlGetDriverRevision, device_type)
+            if revision is not None:
+                version = f"{version}(Rev:{revision})"
+            setattr(drivers, attr, version)
+    return drivers
 
-    # Parse driver versions from header
-    for line in lines:
-        if 'Drivers' in line:
-            aries_match = re.search(r'Aries:\s*(\S+)', line)
-            aries2_match = re.search(r'Aries2:\s*(\S+)', line)
-            regulus_match = re.search(r'Regulus:\s*(\S+)', line)
 
-            if aries_match:
-                val = aries_match.group(1)
-                drivers.aries = None if val == 'N/A' else val
-            if aries2_match:
-                val = aries2_match.group(1)
-                drivers.aries2 = None if val == 'N/A' else val
-            if regulus_match:
-                val = regulus_match.group(1)
-                drivers.regulus = None if val == 'N/A' else val
-            break
+def _query_cores(dev_no: int) -> List[NPUCore]:
+    cores = []
+    for info in _safe(mbltml.mbltmlGetCoreInfos, dev_no, default=[]) or []:
+        cluster = _cluster_index(info.core_id.cluster)
+        if cluster < 0:
+            continue  # MBLTML_CLUSTER_ERROR
+        cores.append(NPUCore(
+            cluster=cluster,
+            core=_core_index(info.core_id.core),
+            npu_time_us=info.npu_time,
+            interval_us=info.interval,
+        ))
+    return cores
 
-    # Find NPU data lines (pairs of lines for each NPU)
-    # First line: index, name, firmware version, power, clock, memory
-    # Second line: signature, temp, crc, current, utilization
-    npu_data_pattern = re.compile(
-        r'\|\s*(\d+)\s+'  # NPU index
-        r'(\S+)\s+'  # Name (e.g., Aries2(aries0))
-        r'(\S+)\s*\|'  # Firmware version
-        r'\s*([\d.]+)W\s+([\d.]+)W\s*\|'  # Power NPU/Total
-        r'\s*(\d+)MHz\s*/\s*(\d+)MHz\s*\|'  # Clock NPU/Bus
-        r'\s*(\d+)MB\s*/\s*(\d+)MB\s*\|'  # Memory used/total
+
+def _query_processes(dev_no: int) -> List[NPUProcess]:
+    processes = []
+    for info in _safe(mbltml.mbltmlGetProcessInfos, dev_no, default=[]) or []:
+        # The binding over-allocates its output array; skip the empty slots.
+        if info.pid <= 0:
+            continue
+        utilization = 0.0
+        if info.total_interval_us > 0:
+            utilization = 100.0 * info.total_npu_time_us / info.total_interval_us
+        processes.append(NPUProcess(
+            npu_index=dev_no,
+            pid=info.pid,
+            npu_memory=info.npu_memory_usage // _MB,
+            count=info.counts,
+            utilization=utilization,
+            **_lookup_process(info.pid),
+        ))
+    return processes
+
+
+def _query_device(dev_no: int) -> NPUInfo:
+    memory_used = _safe(mbltml.mbltmlGetMemoryUsage, dev_no, default=0) or 0
+    memory_total = _safe(mbltml.mbltmlGetMemoryTotal, dev_no, default=0) or 0
+
+    pcie = {}
+    for key, fn in (
+        ('vendor_id', mbltml.mbltmlGetVendorId),
+        ('device_id', mbltml.mbltmlGetDeviceId),
+        ('sub_vendor_id', mbltml.mbltmlGetSubVendorId),
+        ('sub_device_id', mbltml.mbltmlGetSubDeviceId),
+        ('generation', mbltml.mbltmlGetPcieGen),
+        ('lanes', mbltml.mbltmlGetPcieLanes),
+        ('revision', mbltml.mbltmlGetPcieRev),
+        ('class_code', mbltml.mbltmlGetPcieClassCode),
+    ):
+        value = _safe(fn, dev_no)
+        if value is not None:
+            pcie[key] = value
+
+    return NPUInfo(
+        index=dev_no,
+        node_name=_safe(mbltml.mbltmlGetNodeName, dev_no, default='') or '',
+        device_type=_safe(mbltml.mbltmlGetDeviceType, dev_no, default=0) or 0,
+        hardware_version=_safe(
+            mbltml.mbltmlGetHardwareVersion, dev_no, default=0) or 0,
+        firmware_version=_safe(
+            mbltml.mbltmlGetFirmwareVersion, dev_no, default='?') or '?',
+        firmware_revision=_safe(
+            mbltml.mbltmlGetFirmwareRevision, dev_no, default=0) or 0,
+        firmware_crc=_safe(mbltml.mbltmlGetFirmwareCRC, dev_no, default=0) or 0,
+        temperature=_safe(mbltml.mbltmlGetTemperature, dev_no, default=0) or 0,
+        signal_type=_safe(mbltml.mbltmlGetSignalType, dev_no, default=0) or 0,
+        clock_npu=_safe(mbltml.mbltmlGetNPUClock, dev_no, default=0) or 0,
+        clock_bus=_safe(mbltml.mbltmlGetBusClock, dev_no, default=0) or 0,
+        fan_duty=_safe(mbltml.mbltmlGetFanDuty, dev_no),
+        power_total=_safe(mbltml.mbltmlGetTotalPower, dev_no, default=0.0) or 0.0,
+        current_total=_safe(
+            mbltml.mbltmlGetTotalCurrent, dev_no, default=0.0) or 0.0,
+        voltage_total=_safe(
+            mbltml.mbltmlGetTotalVoltage, dev_no, default=0.0) or 0.0,
+        extra_rail=_safe(mbltml.mbltmlGetExtraPmicId, dev_no),
+        extra_rail_power=_safe(mbltml.mbltmlGetExtraPmicPower, dev_no),
+        extra_rail_current=_safe(mbltml.mbltmlGetExtraPmicCurrent, dev_no),
+        extra_rail_voltage=_safe(mbltml.mbltmlGetExtraPmicVoltage, dev_no),
+        memory_used=memory_used // _MB,
+        memory_total=memory_total // _MB,
+        utilization=_safe(
+            mbltml.mbltmlGetTotalUtilization, dev_no, default=0.0) or 0.0,
+        pcie=pcie,
+        cores=_query_cores(dev_no),
+        processes=_query_processes(dev_no),
     )
-    npu_data_line2_pattern = re.compile(
-        r'\|\s*(\d+)\s+'  # Signature
-        r'(\d+)\s*C\s+'  # Temperature
-        r'(\S+)\s*\|'  # CRC
-        r'\s*([\d.]+)A\s+([\d.]+)A\s*\|'  # Current NPU/Total
-        r'\s*\|'  # Empty clock column
-        r'\s*([\d.]+)%\s*\|'  # Utilization
-    )
-
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        match1 = npu_data_pattern.search(line)
-        if match1 and i + 1 < len(lines):
-            line2 = lines[i + 1]
-            match2 = npu_data_line2_pattern.search(line2)
-            if match2:
-                npu = NPUInfo(
-                    index=int(match1.group(1)),
-                    name=match1.group(2),
-                    firmware_version=match1.group(3),
-                    power_npu=float(match1.group(4)),
-                    power_total=float(match1.group(5)),
-                    clock_npu=int(match1.group(6)),
-                    clock_bus=int(match1.group(7)),
-                    memory_used=int(match1.group(8)),
-                    memory_total=int(match1.group(9)),
-                    signature=int(match2.group(1)),
-                    temperature=int(match2.group(2)),
-                    firmware_crc=match2.group(3),
-                    current_npu=float(match2.group(4)),
-                    current_total=float(match2.group(5)),
-                    utilization=float(match2.group(6)),
-                )
-                npus.append(npu)
-                i += 2
-                continue
-        i += 1
-
-    # Parse processes section
-    # | NPU  Core      PID   Process name                         NPU-MEM       Count  %NPU-Core |
-    # Core can be "0/0" format (current_core/total_cores) or just a number
-    process_pattern = re.compile(
-        r'\|\s*(\d+)\s+'  # NPU index
-        r'(\d+)/(\d+)\s+'  # Core (current/total format)
-        r'(\d+)\s+'  # PID
-        r'(.+?)\s+'  # Process name
-        r'(\d+)MB\s+'  # NPU-MEM
-        r'(\d+)\s+'  # Count
-        r'([\d.]+)%\s*\|'  # %NPU-Core
-    )
-
-    for line in lines:
-        proc_match = process_pattern.search(line)
-        if proc_match:
-            npu_idx = int(proc_match.group(1))
-            process = NPUProcess(
-                npu_index=npu_idx,
-                core_index=int(proc_match.group(2)),
-                total_cores=int(proc_match.group(3)),
-                pid=int(proc_match.group(4)),
-                process_name=proc_match.group(5).strip(),
-                npu_memory=int(proc_match.group(6)),
-                count=int(proc_match.group(7)),
-                utilization=float(proc_match.group(8)),
-            )
-            # Find the NPU and add the process to the appropriate core
-            for npu in npus:
-                if npu.index == npu_idx:
-                    core = npu.get_core(process.core_index)
-                    core.processes.append(process)
-                    break
-
-    return npus, drivers
 
 
-def query_npu_status() -> tuple[List[NPUInfo], NPUDriverVersions]:
+def query_npu_status() -> "tuple[List[NPUInfo], NPUDriverVersions]":
     """
-    Execute mobilint-cli status show and parse the output.
+    Query every Mobilint NPU on the local machine through mbltml.
 
     Returns:
         Tuple of (list of NPUInfo objects, driver versions)
 
     Raises:
-        RuntimeError: If mobilint-cli command fails or is not found
+        RuntimeError: If mbltml is unavailable or the query fails.
     """
     try:
-        result = subprocess.run(
-            ['mobilint-cli', 'status', 'show'],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"mobilint-cli failed with return code {result.returncode}: "
-                f"{result.stderr}"
-            )
-        return parse_mobilint_output(result.stdout)
-    except FileNotFoundError:
-        raise RuntimeError(
-            "mobilint-cli not found. Please ensure Mobilint SDK is installed."
-        )
-    except subprocess.TimeoutExpired:
-        raise RuntimeError("mobilint-cli command timed out")
+        ensure_initialized()
+        count = mbltml.mbltmlGetDeviceCount()
+        npus = [_query_device(dev_no) for dev_no in range(count)]
+        return npus, _query_driver_versions()
+    except RuntimeError:
+        raise
+    except Exception as e:
+        raise RuntimeError(f"Failed to query Mobilint NPUs: {e}") from e
 
 
 def is_npu_available() -> bool:
     """Check if NPU monitoring is available."""
     try:
-        result = subprocess.run(
-            ['mobilint-cli', 'status', 'show'],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        return result.returncode == 0
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+        ensure_initialized()
+        return mbltml.mbltmlGetDeviceCount() > 0
+    except Exception:
         return False
 
 
 def npu_count() -> int:
     """Return the number of available NPUs."""
     try:
-        npus, _ = query_npu_status()
-        return len(npus)
-    except RuntimeError:
+        ensure_initialized()
+        return mbltml.mbltmlGetDeviceCount()
+    except Exception:
         return 0
