@@ -208,9 +208,11 @@ component-hpu() {
 component-npu() {
   local npu_util
 
-  # NPU via npustat (custom tool)
-  if command -v npustat &> /dev/null; then
-    npu_util=$(npustat --no-header 2>/dev/null | awk '{s+=$NF} END {if(NR>0) print s/NR}' | tr -d '%')
+  # NPU via npustat (custom tool). The rendered table is always colored, so
+  # read utilization from --json instead of parsing escape-laden columns.
+  if command -v npustat &> /dev/null && command -v jq &> /dev/null; then
+    npu_util=$(npustat --npu-only --json 2>/dev/null \
+      | jq -r '[.npu.npus[].utilization] | if length > 0 then add / length else empty end')
   fi
 
   if [ -z "$npu_util" ]; then
