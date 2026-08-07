@@ -33,7 +33,7 @@ alias pylist='ps -ef | grep "python"'
 
 # Claude Code (auto-update OMC before launch)
 alias claude='omc update && ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-5[1m]" CLAUDE_CODE_EFFORT_LEVEL="max" IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-5[1m]" --effort max'
-alias codex='command codex --yolo --search -m gpt-5.5 -c model_reasoning_effort=\"xhigh\" --disable fast_mode'
+# Codex launcher lives in 10-functions.zsh (version-checked auto-update)
 
 # GPU/NPU/HPU monitoring
 alias ug='usegpu'

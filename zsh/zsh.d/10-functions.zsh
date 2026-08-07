@@ -261,6 +261,19 @@ function fuzzyvim() {
     vim "$(fzf)"
 }
 
+# codex: launch Codex CLI, self-updating only when npm has a newer version
+function codex() {
+    local current latest
+    current="$(command codex --version 2>/dev/null | awk '{print $NF}')"
+    latest="$(timeout 10 npm view @openai/codex version 2>/dev/null)"
+    if [[ -n "$latest" && "$current" != "$latest" ]]; then
+        echo "codex: updating ${current:-unknown} -> ${latest}"
+        command codex update
+    fi
+    command codex --yolo --search -m gpt-5.6-sol \
+        -c 'model_reasoning_effort="high"' --disable fast_mode "$@"
+}
+
 # =============================================================================
 # Accelerator Device Selection Functions
 # =============================================================================
