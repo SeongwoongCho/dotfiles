@@ -50,9 +50,7 @@ alias cudav='nvcc --version'
 alias cudnnv='cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2'
 
 # CMake presets (Mobilint)
-alias cmakeauto='cmake .. -DDRIVER_TYPE=aries2 -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
-alias cmakeauto_r='cmake .. -DDRIVER_TYPE=regulus -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
-alias cmakeauto_a3='cmake .. -DDRIVER_TYPE=aries3 -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"'
+alias cmakeauto='cmake .. -G Ninja -DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=mold" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=mold -DCMAKE_EXPORT_COMPILE_COMMANDS=ON" -DENABLE_NDE_API=ON'
 
 # Dotfiles management
 alias dotup='bash $MYDOTFILES/src/update.sh'
