@@ -197,3 +197,6 @@ fi
 if [[ -o interactive ]] && [[ -z "$TMUX" ]] && [[ -t 1 ]] && (( $+commands[tmux] )); then
     tmux new-session -A -s 0
 fi
+
+# Claude Code Voice Mode - PulseAudio forwarding
+export PULSE_SERVER="tcp:172.17.0.1:24713"
