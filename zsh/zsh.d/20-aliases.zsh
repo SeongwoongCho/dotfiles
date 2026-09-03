@@ -32,7 +32,9 @@ alias tblist='ps -ef | grep "tensorboard"'
 alias pylist='ps -ef | grep "python"'
 
 # Claude Code (auto-update OMC before launch)
-alias claude='omc update && ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-5[1m]" CLAUDE_CODE_EFFORT_LEVEL="max" IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-5[1m]" --effort max'
+# alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-fable-5-1[1m]" --effort low'
+alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-fable-5[1m]" --effort high'
+# alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-4-6[1m]" --effort max'
 # Codex launcher lives in 10-functions.zsh (version-checked auto-update)
 
 # GPU/NPU/HPU monitoring
