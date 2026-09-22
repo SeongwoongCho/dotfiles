@@ -147,6 +147,10 @@ install_full() {
     command claude plugin marketplace add JuliusBrussee/caveman || true
     command claude plugin install caveman@caveman || true
 
+    echo
+    echo '** [FULL] Configuring opencodex model routing...'
+    bash "$DOT_DIR/src/setup-ocx.sh" || true
+
     # C++ debug tools disabled (nvim-dap-ui not used)
     # echo
     # echo '** [FULL] Setting up C++ debug tools...'

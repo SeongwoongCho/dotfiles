@@ -234,6 +234,12 @@ if [[ "$PROFILE" == "full" ]]; then
         log_info "Updating oh-my-claudecode plugin..."
         claude plugin update oh-my-claudecode 2>/dev/null && log_success "oh-my-claudecode updated" || log_warn "Could not update oh-my-claudecode"
     fi
+
+    # `ocx sync` drops custom models such as cursor/grok-4.7, so re-apply routing.
+    if command -v ocx &>/dev/null; then
+        log_info "Configuring opencodex model routing..."
+        bash "$DOT_DIR/src/setup-ocx.sh" && log_success "opencodex routing applied" || log_warn "Could not configure opencodex routing"
+    fi
 fi
 
 #==================================================#
