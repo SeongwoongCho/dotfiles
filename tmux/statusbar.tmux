@@ -97,6 +97,11 @@ main() {
 "
 }
 
+# Float comparison "$1 >= $2" (awk: bc is not always installed)
+ge() {
+  awk -v a="$1" -v b="$2" 'BEGIN { exit !(a >= b) }'
+}
+
 # CPU Usage calculation
 cpu-usage() {
   if [ "$(uname)" == "Darwin" ]; then
@@ -115,11 +120,11 @@ component-cpu() {
 
   # Color gradient based on usage (red shades)
   local bgcolor fgcolor
-  if   (( $(echo "$cpu_percentage >= 80" | bc -l) )); then bgcolor='#aa2626'; fgcolor='white';
-  elif (( $(echo "$cpu_percentage >= 60" | bc -l) )); then bgcolor='#802323'; fgcolor='white';
-  elif (( $(echo "$cpu_percentage >= 40" | bc -l) )); then bgcolor='#562020'; fgcolor='white';
-  elif (( $(echo "$cpu_percentage >= 20" | bc -l) )); then bgcolor='#3a1e1e'; fgcolor='white';
-  else                                                     bgcolor='#2c1d1d'; fgcolor='#888888';
+  if   ge "$cpu_percentage" 80; then bgcolor='#aa2626'; fgcolor='white';
+  elif ge "$cpu_percentage" 60; then bgcolor='#802323'; fgcolor='white';
+  elif ge "$cpu_percentage" 40; then bgcolor='#562020'; fgcolor='white';
+  elif ge "$cpu_percentage" 20; then bgcolor='#3a1e1e'; fgcolor='white';
+  else                               bgcolor='#2c1d1d'; fgcolor='#888888';
   fi
 
   printf "#[bg=#1c1c1c,fg=$bgcolor,nobold]"
@@ -148,10 +153,10 @@ component-ram() {
 
   # Color gradient (orange shades)
   local bgcolor fgcolor
-  if   (( $(echo "$mem_percentage >= 90" | bc -l) )); then bgcolor='#e67700'; fgcolor='black';
-  elif (( $(echo "$mem_percentage >= 75" | bc -l) )); then bgcolor='#B57A0A'; fgcolor='black';
-  elif (( $(echo "$mem_percentage >= 50" | bc -l) )); then bgcolor='#755515'; fgcolor='white';
-  else                                                     bgcolor='#35301F'; fgcolor='white';
+  if   ge "$mem_percentage" 90; then bgcolor='#e67700'; fgcolor='black';
+  elif ge "$mem_percentage" 75; then bgcolor='#B57A0A'; fgcolor='black';
+  elif ge "$mem_percentage" 50; then bgcolor='#755515'; fgcolor='white';
+  else                               bgcolor='#35301F'; fgcolor='white';
   fi
 
   printf "#[bg=$bgcolor,fg=$fgcolor]  RAM %.1f/%.0fG #[default]" $mem_used $mem_total
@@ -171,11 +176,11 @@ component-gpu() {
 
   # Color gradient (green shades)
   local bgcolor fgcolor
-  if   (( $(echo "$gpu_util >= 90" | bc -l) )); then bgcolor='#40C057'; fgcolor='black';
-  elif (( $(echo "$gpu_util >= 75" | bc -l) )); then bgcolor='#3EAE51'; fgcolor='black';
-  elif (( $(echo "$gpu_util >= 50" | bc -l) )); then bgcolor='#398A44'; fgcolor='black';
-  elif (( $(echo "$gpu_util >= 25" | bc -l) )); then bgcolor='#356537'; fgcolor='white';
-  else                                               bgcolor='#30412A'; fgcolor='white';
+  if   ge "$gpu_util" 90; then bgcolor='#40C057'; fgcolor='black';
+  elif ge "$gpu_util" 75; then bgcolor='#3EAE51'; fgcolor='black';
+  elif ge "$gpu_util" 50; then bgcolor='#398A44'; fgcolor='black';
+  elif ge "$gpu_util" 25; then bgcolor='#356537'; fgcolor='white';
+  else                         bgcolor='#30412A'; fgcolor='white';
   fi
 
   printf "#[bg=$bgcolor,fg=$fgcolor] 󰢮 GPU %3.0f%% #[default]" "$gpu_util"
@@ -195,11 +200,11 @@ component-hpu() {
 
   # Color gradient (blue shades for HPU)
   local bgcolor fgcolor
-  if   (( $(echo "$hpu_util >= 90" | bc -l) )); then bgcolor='#1971c2'; fgcolor='white';
-  elif (( $(echo "$hpu_util >= 75" | bc -l) )); then bgcolor='#1864ab'; fgcolor='white';
-  elif (( $(echo "$hpu_util >= 50" | bc -l) )); then bgcolor='#1c5a99'; fgcolor='white';
-  elif (( $(echo "$hpu_util >= 25" | bc -l) )); then bgcolor='#1e4f87'; fgcolor='white';
-  else                                               bgcolor='#1f4575'; fgcolor='#888888';
+  if   ge "$hpu_util" 90; then bgcolor='#1971c2'; fgcolor='white';
+  elif ge "$hpu_util" 75; then bgcolor='#1864ab'; fgcolor='white';
+  elif ge "$hpu_util" 50; then bgcolor='#1c5a99'; fgcolor='white';
+  elif ge "$hpu_util" 25; then bgcolor='#1e4f87'; fgcolor='white';
+  else                         bgcolor='#1f4575'; fgcolor='#888888';
   fi
 
   printf "#[bg=$bgcolor,fg=$fgcolor]  HPU %3.0f%% #[default]" "$hpu_util"
@@ -221,11 +226,11 @@ component-npu() {
 
   # Color gradient (purple shades for NPU)
   local bgcolor fgcolor
-  if   (( $(echo "$npu_util >= 90" | bc -l) )); then bgcolor='#9c36b5'; fgcolor='white';
-  elif (( $(echo "$npu_util >= 75" | bc -l) )); then bgcolor='#862e9c'; fgcolor='white';
-  elif (( $(echo "$npu_util >= 50" | bc -l) )); then bgcolor='#6c2d82'; fgcolor='white';
-  elif (( $(echo "$npu_util >= 25" | bc -l) )); then bgcolor='#522c68'; fgcolor='white';
-  else                                               bgcolor='#3b2b4e'; fgcolor='#888888';
+  if   ge "$npu_util" 90; then bgcolor='#9c36b5'; fgcolor='white';
+  elif ge "$npu_util" 75; then bgcolor='#862e9c'; fgcolor='white';
+  elif ge "$npu_util" 50; then bgcolor='#6c2d82'; fgcolor='white';
+  elif ge "$npu_util" 25; then bgcolor='#522c68'; fgcolor='white';
+  else                         bgcolor='#3b2b4e'; fgcolor='#888888';
   fi
 
   printf "#[bg=$bgcolor,fg=$fgcolor] 󰚩 NPU %3.0f%% #[default]" "$npu_util"
