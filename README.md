@@ -421,7 +421,7 @@ Environment variable         # Highest priority
 
 | Category | Packages | Install Method |
 |----------|----------|----------------|
-| Core | Neovim, Lua, Luarocks, Node.js | Built from source / NodeSource |
+| Core | Neovim, tmux, Lua, Luarocks, Node.js | Built from source / NodeSource |
 | Rust/Cargo | tree-sitter-cli, git-delta, eza, du-dust, ast-grep | `cargo install` |
 | Python (uv) | pynvim, gpustat, npustat, pre-commit, black, isort, jedi_language_server, python-lsp-server | `uv tool install` |
 | Scripts | zoxide, shfmt, bun, uv | Installer scripts |
@@ -430,6 +430,13 @@ Environment variable         # Highest priority
 | Mobilint | mobilint-cli, mobilint-qb-runtime | APT repo / uv |
 
 **Note:** apt packages use Ubuntu defaults (tested for that release). Rust is installed via `rustup` if not present.
+
+tmux is pinned to **3.7c** in `config/versions.sh` and built with
+`--prefix=/usr/local --enable-sixel`. It installs the normal `tmux` command at
+`/usr/local/bin/tmux`, which takes precedence over `/usr/bin/tmux` on the standard
+PATH. Each installer run rebuilds tmux to ensure SIXEL support, even when the
+version already matches. Running tmux servers are not restarted; the new build
+applies when a new server starts.
 
 ### Adding New Environment
 

@@ -236,6 +236,42 @@ install_by_script() {
 # Custom Install Functions
 #####################################
 
+install_tmux() {
+    local version="${VERSION_TMUX:-3.7c}"
+    local build_dir ret
+    # Require a release number, never a moving tag such as "latest".
+    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+[a-z]?$ ]]; then
+        log_error "tmux-$version" "invalid release version"
+        return 1
+    fi
+    log_install "tmux-$version" "source (--enable-sixel)"
+    if ! build_dir=$(mktemp -d); then
+        log_error "tmux-$version" "temporary build directory"
+        return 1
+    fi
+    # Rebuild even at the same version: tmux -V cannot prove SIXEL support.
+    # Installing the binary does not restart any running tmux server.
+    (
+        cd "$build_dir" &&
+            curl -fSL --retry 3 -o tmux.tar.gz \
+                "https://github.com/tmux/tmux/releases/download/$version/tmux-$version.tar.gz" &&
+            tar xzf tmux.tar.gz &&
+            cd "tmux-$version" &&
+            ./configure --prefix=/usr/local --enable-sixel &&
+            make -j"$(nproc)" &&
+            make install
+    )
+    ret=$?
+    rm -rf -- "$build_dir"
+    if [[ $ret -eq 0 ]]; then
+        hash -r
+        log_success "tmux-$version" "source (--enable-sixel)"
+    else
+        log_error "tmux-$version" "source (--enable-sixel)"
+    fi
+    return "$ret"
+}
+
 install_rust() {
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
     if command -v rustup >/dev/null 2>&1; then
@@ -322,7 +358,7 @@ install_luarocks() {
 }
 
 install_neovim() {
-    local version="${1:-${VERSION_NEOVIM:-v0.11.3}}"
+    local version="${1:-${VERSION_NEOVIM:-v0.12.5}}"
     if command -v nvim >/dev/null 2>&1; then
         local installed
         installed=$(nvim --version 2>/dev/null | head -1 | grep -oP 'v\d+\.\d+\.\d+')
@@ -334,23 +370,42 @@ install_neovim() {
     fi
     log_install "neovim-$version" "source"
 
-    # Install build dependencies
-    DEBIAN_FRONTEND=noninteractive apt-get install -y ninja-build gettext cmake unzip curl build-essential >/dev/null 2>&1
-
-    rm -rf ~/.neovim
-    if git clone --depth 1 https://github.com/neovim/neovim -b "$version" ~/.neovim >/dev/null 2>&1; then
-        (
-            cd ~/.neovim
-            CC=gcc CXX=g++ make CMAKE_BUILD_TYPE=RelWithDebInfo >/dev/null 2>&1
-            make install >/dev/null 2>&1
-        )
-        if [[ $? -eq 0 ]]; then
-            log_success "neovim-$version" "source"
-            return 0
-        fi
+    # Install build dependencies, then build in an isolated temporary directory.
+    if ! DEBIAN_FRONTEND=noninteractive apt-get install -y --no-upgrade ninja-build gettext cmake unzip curl build-essential; then
+        log_error "neovim-$version" "build dependencies"
+        return 1
     fi
-    log_error "neovim-$version" "source"
-    return 1
+    local build_dir ret
+    if ! build_dir=$(mktemp -d); then
+        log_error "neovim-$version" "temporary build directory"
+        return 1
+    fi
+    (
+        git clone --depth 1 https://github.com/neovim/neovim -b "$version" "$build_dir/neovim" &&
+            cd "$build_dir/neovim" &&
+            CC=gcc CXX=g++ make CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX=/usr/local &&
+            # make install never deletes files the previous version shipped, so
+            # install into a fresh runtime and restore the old one on failure.
+            rt=/usr/local/share/nvim/runtime &&
+            rm -rf -- "$rt.old" &&
+            { [[ ! -e "$rt" ]] || mv -- "$rt" "$rt.old"; } &&
+            if make install; then
+                rm -rf -- "$rt.old"
+            else
+                rm -rf -- "$rt"
+                [[ ! -e "$rt.old" ]] || mv -- "$rt.old" "$rt"
+                false
+            fi
+    )
+    ret=$?
+    rm -rf -- "$build_dir"
+    if [[ $ret -eq 0 ]]; then
+        hash -r
+        log_success "neovim-$version" "source"
+    else
+        log_error "neovim-$version" "source"
+    fi
+    return "$ret"
 }
 
 install_vscode_cpptools() {
@@ -639,13 +694,16 @@ main() {
     local apt_packages=(
         sudo python3-opencv aria2 gcc cmake libgl1 libglib2.0-0 g++ ccache nodejs
         unzip zip zsh ssh wget curl git htop rsync fzf
-        tmux libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
+        libevent-dev ncurses-dev bison locales chafa pkg-config build-essential libreadline-dev ripgrep fd-find
         clang-format clang clangd llvm libclang-dev libclang1 libomp-dev gdb
         python3-venv bat duf jq gh glab mold fuse-overlayfs
     )
     for pkg in "${apt_packages[@]}"; do
         install_by_apt "$pkg"
     done
+
+    log_section "Tmux"
+    install_tmux
 
     log_section "Docker"
     install_docker

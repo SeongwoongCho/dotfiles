@@ -45,7 +45,8 @@ _check_version_config() {
 #-------------------------------------------------#
 # Core Tools
 #-------------------------------------------------#
-export VERSION_NEOVIM="${VERSION_NEOVIM:-v0.11.3}"
+export VERSION_NEOVIM="${VERSION_NEOVIM:-v0.12.5}"
+export VERSION_TMUX="${VERSION_TMUX:-3.7c}"
 export VERSION_LUA="${VERSION_LUA:-5.1.5}"
 export VERSION_LUAROCKS="${VERSION_LUAROCKS:-3.11.1}"
 export VERSION_NODE="${VERSION_NODE:-20}"  # Major version for NodeSource
@@ -109,6 +110,7 @@ print_version_info() {
     echo ""
     echo "Package Versions:"
     echo "  Neovim:       $VERSION_NEOVIM"
+    echo "  Tmux:         $VERSION_TMUX (SIXEL)"
     echo "  Lua:          $VERSION_LUA"
     echo "  Luarocks:     $VERSION_LUAROCKS"
     echo "  Node:         $VERSION_NODE.x"
