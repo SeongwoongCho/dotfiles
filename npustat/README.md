@@ -152,8 +152,8 @@ only while the NPU rail is the selected one.
 
 ```
 ── scheduler ── 12/16 nodes open · 10 running · 0 queued ── reserved / total ──────
-  Total        | CPU   98/1316   7% | MEM  392/3811 GB  10% | GPU  1/30 | NPU  4/22
-  Available    | CPU  698           | MEM 1783 GB           | GPU 15    | NPU 14
+  Total        | CPU   98/1316   7% | MEM  392/3811 GB  10% | GPU  1/30 | NPU  4/22  incl. 4 closed
+  Available    | CPU  698/796   88% | MEM 1783/2175 GB  82% | GPU 15/16 | NPU 14/18
   ─────────────┼────────────────────┼───────────────────────┼───────────┼──────────
   server102    | CPU    8/64    12% | MEM   16/ 503 GB   3% | GPU -     | NPU  1/3   1 job
   server150    | CPU    0/96     0% | MEM    0/ 378 GB   0% | GPU  0/2  | NPU  0/1   closed for work hours until 22:00
@@ -164,7 +164,9 @@ How busy the pool behind `scheduler-cli` is. Every figure is a *reservation*
 cannot be reached the section is silently skipped (`-s` or `--debug` says why).
 
 - `Total`: reserved / total over every host, the same sums as `scheduler-cli usage`.
-- `Available`: what is unreserved on hosts that accept a job right now, i.e.
+  Hosts that take no jobs right now are counted too, which the row says
+  (`incl. 4 closed`).
+- `Available`: unreserved / capacity on hosts that accept a job right now, i.e.
   excluding hosts that are closed, cordoned or not answering (shown dimmed).
 - One row per host, ending in its running job count or why it is not open.
 - Queued jobs are listed underneath with what they asked for.
@@ -176,8 +178,8 @@ columns as it takes to fit:
 ```
 ── scheduler ── 12/16 nodes open · 16 running · 5 queued ── reserved / total ────────────────────────────────
                 CPU       MEM GB    GPU   NPU          │               CPU       MEM GB    GPU   NPU
-  Total         174/1316  840/3811  5/30  7/22
-  Available     622       1335      11    11
+  Total         174/1316  840/3811  5/30  7/22  incl. 4 closed
+  Available     622/796  1335/2175  11/16 11/18
   ─────────────────────────────────────────────────────┼─────────────────────────────────────────────────────
   beomsu          6/20     24/31    -     1/4   1 job  │ server200      64/96    160/251   0/3   -     2 jobs
   server150       0/96      0/378   0/2   0/1   closed │ server61        8/32     64/252   1/2   -     1 job

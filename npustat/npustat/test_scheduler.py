@@ -91,14 +91,17 @@ def test_render(pool):
     lines = render(scheduler.new_query()).splitlines()
     assert lines[0].startswith('── scheduler ── 2/5 nodes open · 2 running'
                                ' · 1 queued ── reserved / total ──')
-    assert len(lines[0]) >= len(lines[1])  # the rule spans the table
+    assert len(lines[0]) >= len(lines[2])  # the rule spans the table
     # a thin rule parts the pool-wide rows from the hosts, crossing at each |
     assert set(lines[3].strip()) == {'─', '┼'}
     assert ([i for i, c in enumerate(lines[3]) if c == '┼']
             == [i for i, c in enumerate(lines[1]) if c == '|'])
     by_name = {ln.split()[0]: ln for ln in lines[1:]}
     assert 'CPU  60/256  23%' in by_name['Total']
-    assert 'CPU  68 ' in by_name['Available']
+    # Total counts hosts that take no jobs, and says so; Available is the
+    # unreserved share of the open hosts' capacity
+    assert by_name['Total'].endswith('incl. 1 closed, 2 down')
+    assert 'CPU  68/128  53%' in by_name['Available']
     assert 'MEM  128/ 256 GB  50%' in by_name['busy']
     assert by_name['busy'].endswith('2 jobs')
     assert 'GPU -' in by_name['idle']
@@ -256,9 +259,9 @@ def test_host_state_is_dropped_when_it_buys_a_column(pool, monkeypatch):
     status = scheduler.new_query()
     roomy = render_in(status, 120, 13)
     tight = [cols for cols in range(60, 120)
-             if 'closed' not in '\n'.join(render_in(status, cols, 13))
+             if 'closed' not in '\n'.join(render_in(status, cols, 13)[5:])
              and render_in(status, cols, 13)[1].count('CPU') == 2]
-    assert 'closed' in '\n'.join(roomy)
+    assert 'closed' in '\n'.join(roomy[5:])
     assert tight  # some widths fit two columns only without the state
 
 
@@ -304,3 +307,12 @@ def test_resize_ends_the_wait_early():
     finally:
         signal.set_wakeup_fd(-1)
         signal.signal(signal.SIGWINCH, old_handler)
+
+
+def test_total_is_not_annotated_when_every_host_is_open(pool, monkeypatch):
+    monkeypatch.setattr(scheduler, '_fetch_nodes',
+                        lambda e, t: [raw_node('a'), raw_node('b')])
+    status = scheduler.new_query()
+    assert 'incl.' not in render(status)
+    assert 'incl.' not in '\n'.join(render_in(status, 60, 5))
+    assert status.jsonify()['open_total']['cpu'] == 128

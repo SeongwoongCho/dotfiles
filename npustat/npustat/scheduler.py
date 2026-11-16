@@ -201,6 +201,20 @@ class SchedulerStatus:
                        for n in self.nodes if self.is_open(n))
                 for r in RESOURCES}
 
+    def open_total(self) -> Dict[str, float]:
+        """The capacity of the hosts that accept jobs right now."""
+        return {r: sum(n[r][1] for n in self.nodes if self.is_open(n))
+                for r in RESOURCES}
+
+    def not_open(self) -> str:
+        """Why the totals hold more than can be used: '4 closed, 1 down'."""
+        counts = [('closed', sum(1 for n in self.nodes if n['healthy']
+                                 and not n['cordoned'] and n['closed'])),
+                  ('cordoned', sum(1 for n in self.nodes
+                                   if n['healthy'] and n['cordoned'])),
+                  ('down', sum(1 for n in self.nodes if not n['healthy']))]
+        return ', '.join('%d %s' % (c, what) for what, c in counts if c)
+
     def job_counts(self) -> Optional[Dict[str, int]]:
         if self.jobs is None:
             return None
@@ -219,6 +233,7 @@ class SchedulerStatus:
             # null, not zeros, when nothing is known: 0 free would be a claim
             'fleet': None if self.error else self.fleet(),
             'free': None if self.error else self.free(),
+            'open_total': None if self.error else self.open_total(),
             'jobs': self.job_counts(),
             'queued': [j for j in self.jobs or [] if not j['running']],
             'nodes': [dict(n, open=self.is_open(n),
@@ -339,13 +354,19 @@ class SchedulerStatus:
                     + (5 if res in ('cpu', 'mem') else 0))
 
         table_width = 2 + name_w + sum(3 + cell_width(r) for r in RESOURCES)
+        # Total counts every host, usable or not; saying so on the row keeps
+        # it from being read as what is on offer (that is Available's job).
+        incl = self.not_open()
+        incl = 'incl. ' + incl if incl else ''
+        open_total = self.open_total()
         full_width = table_width + max(
-            [2 + len(state(n)[0]) for n in nodes if state(n)[0]] + [0])
+            [2 + len(state(n)[0]) for n in nodes if state(n)[0]]
+            + [2 + len(incl) if incl else 0])
         if size is None or (full_width <= cols
                             and 4 + len(nodes) + queued_lines <= rows):
             header(table_width)
 
-            def cell(res, used, total, dim):
+            def cell(res, used, total, dim, free=False):
                 unit = ' GB' if res == 'mem' else ''
                 pct = res in ('cpu', 'mem')
                 width = cell_width(res) - len(res) - 1
@@ -361,15 +382,10 @@ class SchedulerStatus:
                         body += ' %3d%%' % min(round(100.0 * used / total),
                                                999)
                 color = '' if dim else load_color(used, total)
+                if free:
+                    color = t.bold_cyan
                 return '%s %s%s%s' % (res.upper(), color, body.ljust(width),
                                       t.normal if color else '')
-
-            def free_cell(res, amount):
-                unit = ' GB' if res == 'mem' else ''
-                width = cell_width(res) - len(res) - 1
-                body = '%*d%s' % (w[res], round(amount), unit)
-                return '%s %s%s%s' % (res.upper(), t.bold_cyan,
-                                      body.ljust(width), t.normal)
 
             def row(name, cells, tail='', dim=False):
                 head = (t.bold_black if dim else t.cyan) + name.ljust(name_w)
@@ -379,8 +395,12 @@ class SchedulerStatus:
                                        (t.normal if dim else '') + tail))
 
             row(TOTAL_LABEL, [cell(r, fleet[r][0], fleet[r][1], False)
-                              for r in RESOURCES])
-            row(FREE_LABEL, [free_cell(r, free[r]) for r in RESOURCES])
+                              for r in RESOURCES],
+                '  ' + rule(incl) if incl else '')
+            # Available reads the other way round: unreserved / capacity,
+            # over the hosts that are open.
+            row(FREE_LABEL, [cell(r, free[r], open_total[r], False, free=True)
+                             for r in RESOURCES])
             # A thin rule between the pool-wide summary and the host rows.
             line('  ' + rule('─' * (name_w + 1) + '┼' + '┼'.join(
                 '─' * (cell_width(r) + 2) for r in RESOURCES)[:-1]))
@@ -402,7 +422,8 @@ class SchedulerStatus:
         labels = {'cpu': 'CPU', 'mem': 'MEM GB', 'gpu': 'GPU', 'npu': 'NPU'}
         # Reserved and total get a width each here: every character saved
         # per host is one a further column can use.
-        wu = {r: len('%d' % round(fleet[r][0])) for r in RESOURCES}
+        wu = {r: len('%d' % round(max(fleet[r][0], free[r])))
+              for r in RESOURCES}
         wt = {r: len('%d' % round(fleet[r][1])) for r in RESOURCES}
         cw = {r: max(wu[r] + 1 + wt[r], len(labels[r])) for r in RESOURCES}
 
@@ -451,10 +472,14 @@ class SchedulerStatus:
         header(2 + k * block_w + 3 * (k - 1))
         line('  ' + gap.join([block('', [(labels[r], t.bold_black)
                                          for r in RESOURCES])] * k))
-        line('  ' + block(TOTAL_LABEL, [amount(r, *fleet[r])
-                                        for r in RESOURCES]))
-        line('  ' + block(FREE_LABEL, [('%*d' % (wu[r], round(free[r])),
-                                        t.bold_cyan) for r in RESOURCES]))
+        total_row = block(TOTAL_LABEL, [amount(r, *fleet[r])
+                                        for r in RESOURCES])
+        if incl and block_w - (tail_w if tail_w else -2) + len(incl) <= cols - 2:
+            total_row = total_row.rstrip() + '  ' + rule(incl)
+        line('  ' + total_row)
+        line('  ' + block(FREE_LABEL, [
+            (amount(r, free[r], open_total[r])[0], t.bold_cyan)
+            for r in RESOURCES]))
         line('  ' + rule('┼'.join(['─' * (block_w + 2)] * k)[1:-1]))
         for i in range(per_column):
             line('  ' + gap.join(
