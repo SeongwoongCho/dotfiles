@@ -3,6 +3,7 @@
 import locale
 import os
 import platform
+import re
 import sys
 import time
 from contextlib import suppress
@@ -15,6 +16,7 @@ from npustat.core import GPUStatCollection, DEFAULT_GPUNAME_WIDTH
 from npustat.core_npu import NPUStatCollection, DEFAULT_NPUNAME_WIDTH
 from npustat.npu import is_npu_available
 from npustat import scheduler
+from npustat.util import safecall
 
 IS_WINDOWS = 'windows' in platform.platform().lower()
 
@@ -62,11 +64,55 @@ def get_complete_for_one_or_zero(input):
     return output
 
 
-def print_gpustat(*, id=None, json=False, debug=False,
-                  no_npu=False, npu_only=False, show_npu_clock=False,
-                  show_npu_extra=False, show_npu_core_status=True,
-                  show_scheduler=None, **kwargs):
-    '''Display the GPU and NPU query results into standard output.'''
+_ESCAPES = re.compile(r'\x1b(?:\[[0-9;?]*[A-Za-z]|\([A-Za-z0-9])')
+
+
+def _screen_size(fp):
+    '''(columns, usable rows) of the screen the output lands on, or None.
+
+    `watch` runs us on a pipe but exports the size of its screen as COLUMNS
+    and LINES, and keeps two rows for its own title. On a terminal the size
+    is asked for directly; one row is kept for the cursor.
+    '''
+    is_tty = safecall(fp.isatty, error_value=False)
+    try:
+        if is_tty:
+            # asked afresh every time, so a resize is seen at once
+            cols, lines = os.get_terminal_size(fp.fileno())
+        else:
+            cols, lines = int(os.environ['COLUMNS']), int(os.environ['LINES'])
+    except (KeyError, OSError, ValueError, AttributeError):
+        return None
+    if cols <= 0 or lines <= 0:
+        return None
+    return cols, lines - (1 if is_tty else 2)
+
+
+class _RowCounter:
+    '''A pass-through to a stream that knows how many screen rows it took.'''
+
+    def __init__(self, fp, columns):
+        self._fp = fp
+        self._columns = columns
+        self._text = []
+
+    def write(self, text):
+        self._text.append(text)
+        return self._fp.write(text)
+
+    def rows(self):
+        text = _ESCAPES.sub('', ''.join(self._text))
+        # a line longer than the screen wraps onto further rows
+        return sum(max(1, -(-len(ln) // self._columns))
+                   for ln in text.split('\n')[:-1])
+
+    def __getattr__(self, name):
+        return getattr(self._fp, name)
+
+
+def _query_stats(*, id=None, debug=False, no_npu=False, npu_only=False,
+                 show_scheduler=None):
+    '''Query everything that is displayed: (gpu, npu, scheduler) stats.'''
     gpu_stats = None
     npu_stats = None
     show_npu = not no_npu  # NPU is shown by default
@@ -128,6 +174,25 @@ def print_gpustat(*, id=None, json=False, debug=False,
                 sys.stderr.write('Scheduler query skipped: %s\n'
                                  % scheduler_status.error)
             scheduler_status = None
+    return gpu_stats, npu_stats, scheduler_status
+
+
+def print_gpustat(*, id=None, json=False, debug=False,
+                  no_npu=False, npu_only=False, show_npu_clock=False,
+                  show_npu_extra=False, show_npu_core_status=True,
+                  show_scheduler=None, _stats=None, **kwargs):
+    '''Display the GPU and NPU query results into standard output.'''
+    # _stats lets a caller redraw what was already queried (watch mode does,
+    # when the terminal is resized): an empty dict is filled in, a filled one
+    # is drawn again without asking anything anew.
+    if _stats:
+        gpu_stats, npu_stats, scheduler_status = _stats['stats']
+    else:
+        gpu_stats, npu_stats, scheduler_status = _query_stats(
+            id=id, debug=debug, no_npu=no_npu, npu_only=npu_only,
+            show_scheduler=show_scheduler)
+        if _stats is not None:
+            _stats['stats'] = gpu_stats, npu_stats, scheduler_status
 
     # Build NPU-specific kwargs
     npu_kwargs = {
@@ -196,6 +261,12 @@ def print_gpustat(*, id=None, json=False, debug=False,
                 npu_name_width = max([len(n.name) for n in npu_stats] + [0])
             name_width = max(gpu_name_width, npu_name_width, DEFAULT_GPUNAME_WIDTH)
 
+        # When the screen size is known, what is written from here on is
+        # counted, so the scheduler section can fit itself into what is left.
+        screen = _screen_size(fp) if scheduler_status else None
+        if screen:
+            fp = _RowCounter(fp, screen[0])
+
         # Print unified header
         if show_header:
             query_time = datetime.now()
@@ -252,28 +323,73 @@ def print_gpustat(*, id=None, json=False, debug=False,
             # A blank line sets the pool apart from this machine's devices.
             if show_header or gpu_stats or npu_stats:
                 fp.write(eol_char)
+            size = None
+            if isinstance(fp, _RowCounter):
+                size = (screen[0], screen[1] - fp.rows())
             scheduler_status.print_formatted(fp, term=t_color,
-                                             eol_char=eol_char)
+                                             eol_char=eol_char, size=size)
             fp.flush()
+
+
+class _ResizeWatch:
+    '''Sleeps that end early when the terminal is resized.
+
+    SIGWINCH is routed to a pipe (signal.set_wakeup_fd), so waiting is a
+    select() on it: nothing is interrupted mid-draw, and a burst of resizes
+    while a pane border is dragged reads as one.
+    '''
+
+    def __init__(self):
+        self._read = None
+        try:
+            import signal
+            self._read, write = os.pipe()
+            os.set_blocking(self._read, False)
+            os.set_blocking(write, False)
+            signal.signal(signal.SIGWINCH, lambda signum, frame: None)
+            signal.set_wakeup_fd(write, warn_on_full_buffer=False)
+        except (AttributeError, OSError, ValueError):
+            self._read = None  # no SIGWINCH here (Windows): plain sleeps
+
+    def wait(self, seconds):
+        '''Wait up to `seconds`; True if a resize ended the wait.'''
+        if seconds <= 0:
+            return False
+        if self._read is None:
+            time.sleep(seconds)
+            return False
+        import select
+        if not select.select([self._read], [], [], seconds)[0]:
+            return False
+        with suppress(OSError):
+            while os.read(self._read, 4096):
+                pass
+        return True
 
 
 def loop_gpustat(interval=1.0, **kwargs):
     term = Terminal()
+    resize = _ResizeWatch()
 
     with term.fullscreen():
+        stats = {}
+        next_query = 0.0
         while 1:
             try:
-                query_start = time.time()
+                now = time.time()
+                if now >= next_query:
+                    stats.clear()  # due: query again rather than redraw
+                    next_query = now + interval
 
                 # Move cursor to (0, 0) but do not restore original cursor loc
                 print(term.move(0, 0), end='')
-                print_gpustat(eol_char=term.clear_eol + os.linesep, **kwargs)
-                print(term.clear_eos, end='')
+                print_gpustat(eol_char=term.clear_eol + os.linesep,
+                              _stats=stats, **kwargs)
+                print(term.clear_eos, end='', flush=True)
 
-                query_duration = time.time() - query_start
-                sleep_duration = interval - query_duration
-                if sleep_duration > 0:
-                    time.sleep(sleep_duration)
+                # A resize redraws at once, from the figures already held;
+                # only the interval running out asks for new ones.
+                resize.wait(next_query - time.time())
             except KeyboardInterrupt:
                 return 0
 

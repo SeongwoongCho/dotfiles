@@ -169,6 +169,24 @@ cannot be reached the section is silently skipped (`-s` or `--debug` says why).
 - One row per host, ending in its running job count or why it is not open.
 - Queued jobs are listed underneath with what they asked for.
 
+When the screen is too small for one row per host (under `watch`, or in
+watch mode), the hosts are laid out compactly, side by side, in as many
+columns as it takes to fit:
+
+```
+── scheduler ── 12/16 nodes open · 16 running · 5 queued ── reserved / total ────────────────────────────────
+                CPU       MEM GB    GPU   NPU          │               CPU       MEM GB    GPU   NPU
+  Total         174/1316  840/3811  5/30  7/22
+  Available     622       1335      11    11
+  ─────────────────────────────────────────────────────┼─────────────────────────────────────────────────────
+  beomsu          6/20     24/31    -     1/4   1 job  │ server200      64/96    160/251   0/3   -     2 jobs
+  server150       0/96      0/378   0/2   0/1   closed │ server61        8/32     64/252   1/2   -     1 job
+```
+
+The percentages go (the colour still tells the load), and so does the state
+after each host when that is what lets one more column in. Piped elsewhere,
+the full table is always printed.
+
 Host capacities are read from the master's `/nodes` JSON; job counts come from
 `scheduler-cli ps --json` (0.1.0 or newer) and are left out without it. Answers
 are reused for 5 seconds, so `watch -n.5 npustat` does not query the master

@@ -206,3 +206,101 @@ def test_unknown_pool_is_null_in_json_not_zero(pool, monkeypatch):
     monkeypatch.setattr(scheduler, '_fetch_nodes', refuse)
     out = scheduler.new_query().jsonify()
     assert out['fleet'] is None and out['free'] is None
+
+
+def many_nodes(monkeypatch, n=16):
+    monkeypatch.setattr(scheduler, '_fetch_nodes', lambda e, t: [
+        raw_node('server%02d' % i, cpus=(i, 64),
+                 closed='closed for work hours' if i % 5 == 0 else None)
+        for i in range(n)])
+    monkeypatch.setattr(scheduler, '_fetch_jobs', lambda e, t: [])
+
+
+def render_in(status, cols, rows):
+    fp = io.StringIO()
+    status.print_formatted(fp, term=Terminal(force_styling=None),
+                           eol_char='\n', size=(cols, rows))
+    return fp.getvalue().splitlines()
+
+
+def test_full_table_is_kept_when_the_screen_has_room(pool, monkeypatch):
+    many_nodes(monkeypatch)
+    status = scheduler.new_query()
+    assert render_in(status, 200, 50) == render(status).splitlines()
+
+
+@pytest.mark.parametrize('cols, rows, columns', [
+    (120, 13, 2),   # too short for 16 rows: two columns of 8
+    (200, 11, 3),   # shorter still, and wide enough for three
+    (60, 40, 1),    # too narrow for the full table: compact, one column
+])
+def test_hosts_move_into_columns_to_fit(pool, monkeypatch,
+                                        cols, rows, columns):
+    many_nodes(monkeypatch)
+    lines = render_in(scheduler.new_query(), cols, rows)
+    assert len(lines) <= rows
+    assert max(map(len, lines)) <= cols
+    assert lines[1].split().count('CPU') == columns
+    text = '\n'.join(lines)
+    assert all('server%02d' % i in text for i in range(16))
+    # hosts read down each column, in name order
+    per_column = -(-16 // columns)
+    assert lines[5].split('│')[0].split()[0] == 'server00'
+    if columns > 1:
+        assert (lines[5].split('│')[1].split()[0]
+                == 'server%02d' % per_column)
+
+
+def test_host_state_is_dropped_when_it_buys_a_column(pool, monkeypatch):
+    many_nodes(monkeypatch)
+    status = scheduler.new_query()
+    roomy = render_in(status, 120, 13)
+    tight = [cols for cols in range(60, 120)
+             if 'closed' not in '\n'.join(render_in(status, cols, 13))
+             and render_in(status, cols, 13)[1].count('CPU') == 2]
+    assert 'closed' in '\n'.join(roomy)
+    assert tight  # some widths fit two columns only without the state
+
+
+def test_queue_gives_way_to_hosts_on_a_short_screen(pool, monkeypatch):
+    many_nodes(monkeypatch)
+    monkeypatch.setattr(scheduler, '_fetch_jobs', lambda e, t: [
+        {'name': 'q%d' % i, 'state': 'queued'} for i in range(4)])
+    lines = render_in(scheduler.new_query(), 120, 14)
+    assert len(lines) <= 14
+    assert lines[-1].strip() == '… and 4 more queued'
+
+
+def test_redraw_reuses_what_was_queried(monkeypatch, capsys):
+    from npustat import cli
+    asked = []
+    monkeypatch.setattr(cli, '_query_stats',
+                        lambda **kw: asked.append(kw) or (None, None, None))
+    stats = {}
+    cli.print_gpustat(_stats=stats)
+    cli.print_gpustat(_stats=stats)   # a redraw, e.g. after a resize
+    assert len(asked) == 1
+    stats.clear()                     # the interval ran out
+    cli.print_gpustat(_stats=stats)
+    assert len(asked) == 2
+    capsys.readouterr()
+
+
+def test_resize_ends_the_wait_early():
+    import os
+    import signal
+    import time
+    from npustat import cli
+    old_handler = signal.getsignal(signal.SIGWINCH)
+    watch = cli._ResizeWatch()
+    try:
+        start = time.time()
+        assert watch.wait(0.05) is False
+        assert time.time() - start >= 0.04
+        os.kill(os.getpid(), signal.SIGWINCH)
+        start = time.time()
+        assert watch.wait(5) is True
+        assert time.time() - start < 1
+    finally:
+        signal.set_wakeup_fd(-1)
+        signal.signal(signal.SIGWINCH, old_handler)

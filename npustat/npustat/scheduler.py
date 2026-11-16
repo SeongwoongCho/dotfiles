@@ -228,8 +228,18 @@ class SchedulerStatus:
 
     # ------------------------------------------------------------------ #
 
-    def print_formatted(self, fp, *, term, eol_char=os.linesep) -> None:
+    def print_formatted(self, fp, *, term, eol_char=os.linesep,
+                        size=None) -> None:
+        """Write the section.
+
+        size is (columns, rows) left for it when the caller knows the screen,
+        e.g. under `watch` or in watch mode, where whatever does not fit is
+        simply cut off. The full one-row-per-host table is used when it fits
+        (or when size is None); otherwise the hosts are laid out compactly in
+        as many side-by-side columns as it takes to fit the rows.
+        """
         t = term
+        cols, rows = size if size else (None, None)
 
         def line(text=''):
             fp.write(text.rstrip() + eol_char)
@@ -237,42 +247,31 @@ class SchedulerStatus:
         def rule(text):
             return t.bold_black + text + t.normal
 
+        def clip(text, width):
+            if width is None or len(text) <= width:
+                return text
+            return text[:max(width - 1, 0)] + '…' if width > 0 else ''
+
         # The section opens with a titled rule, which is also what sets it
         # apart from this machine's own GPU/NPU lines above.
         title = (rule('── ') + t.bold_white + 'scheduler' + t.normal
                  + rule(' ── '))
+        title_len = len('── scheduler ── ')
         if self.error:
-            line('%s%sunavailable: %s%s'
-                 % (title, t.red, self.error, t.normal))
+            line('%s%sunavailable: %s%s' % (
+                title, t.red,
+                clip(self.error, cols and cols - title_len - 13), t.normal))
             return
 
         fleet, free = self.fleet(), self.free()
+        nodes = self.nodes
         # Column widths follow the totals row, which holds the largest numbers.
         w = {r: len('%d' % round(max(fleet[r]))) for r in RESOURCES}
-        name_w = max([len(n['name']) for n in self.nodes]
+        name_w = max([len(n['name']) for n in nodes]
                      + [len(TOTAL_LABEL), len(FREE_LABEL)])
-
-        def cell_width(res):
-            return (len(res) + 1 + 2 * w[res] + 1
-                    + (3 if res == 'mem' else 0)
-                    + (5 if res in ('cpu', 'mem') else 0))
-
-        table_width = 2 + name_w + sum(3 + cell_width(r) for r in RESOURCES)
-
-        n_open = sum(1 for n in self.nodes if self.is_open(n))
-        parts = ['%d/%d nodes open' % (n_open, len(self.nodes))]
-        styled = list(parts)
-        counts = self.job_counts()
-        if counts is not None:
-            queued = '%d queued' % counts['queued']
-            parts += ['%d running' % counts['running'], queued]
-            styled += [parts[1], t.bold_yellow + queued + t.normal
-                       if counts['queued'] else queued]
-        legend = ' ── reserved / total '
-        used = (len('── scheduler ── ') + len(' · '.join(parts))
-                + len(legend))
-        line(title + ' · '.join(styled)
-             + rule(legend + '─' * max(table_width - used, 2)))
+        queued = [j for j in self.jobs or [] if not j['running']]
+        queued_lines = (min(len(queued), MAX_QUEUED_SHOWN)
+                        + (len(queued) > MAX_QUEUED_SHOWN))
 
         def load_color(used, total):
             if not total or not used:
@@ -280,72 +279,189 @@ class SchedulerStatus:
             pct = 100.0 * used / total
             return t.red if pct >= 90 else t.yellow if pct >= 50 else t.green
 
-        def cell(res, used, total, dim):
-            label = res.upper()
-            unit = ' GB' if res == 'mem' else ''
-            pct = res in ('cpu', 'mem')
-            width = 2 * w[res] + 1 + len(unit) + (5 if pct else 0)
-            if not total:
-                body = '-'
-            else:
-                # A unit follows the memory total, so that one is right-
-                # aligned; the others pad on the right instead.
-                fmt = '%*d/%*d%s' if unit else '%*d/%-*d%s'
-                body = fmt % (w[res], round(used), w[res], round(total), unit)
-                if pct:
-                    body += ' %3d%%' % min(round(100.0 * used / total), 999)
-            color = '' if dim else load_color(used, total)
-            return '%s %s%s%s' % (label, color, body.ljust(width),
-                                  t.normal if color else '')
-
-        def free_cell(res, amount):
-            unit = ' GB' if res == 'mem' else ''
-            pct = res in ('cpu', 'mem')
-            width = 2 * w[res] + 1 + len(unit) + (5 if pct else 0)
-            body = '%*d%s' % (w[res], round(amount), unit)
-            return '%s %s%s%s' % (res.upper(), t.bold_cyan,
-                                  body.ljust(width), t.normal)
-
-        def row(name, cells, tail='', dim=False):
-            head = (t.bold_black if dim else t.cyan) + name.ljust(name_w)
-            sep = ' | '
-            body = sep.join(cells)
-            line('  %s%s%s%s%s' % (head, t.normal if not dim else '',
-                                   sep, body,
-                                   (t.normal if dim else '') + tail))
-
-        row(TOTAL_LABEL, [cell(r, fleet[r][0], fleet[r][1], False)
-                          for r in RESOURCES])
-        row(FREE_LABEL, [free_cell(r, free[r]) for r in RESOURCES])
-        # A thin rule between the pool-wide summary and the per-host rows.
-        line('  ' + rule('─' * (name_w + 1) + '┼' + '┼'.join(
-            '─' * (cell_width(r) + 2) for r in RESOURCES)[:-1]))
-
-        for n in self.nodes:
-            is_open = self.is_open(n)
+        def state(n, short=False):
+            """What follows a host's numbers: (text, colour)."""
             if not n['healthy']:
-                tail = '  ' + t.bold_red + 'down' + t.normal
-            elif n['cordoned']:
-                tail = '  ' + t.yellow + 'cordoned' + t.normal
-            elif n['closed']:
-                tail = '  ' + t.yellow + str(n['closed']) + t.normal
-            else:
-                jobs = self.jobs_on(n['name'])
-                tail = '  %d job%s' % (jobs, '' if jobs == 1 else 's') \
-                    if jobs else ''
-            row(n['name'], [cell(r, n[r][0], n[r][1], not is_open)
-                            for r in RESOURCES], tail, dim=not is_open)
+                return 'down', t.bold_red
+            if n['cordoned']:
+                return 'cordoned', t.yellow
+            if n['closed']:
+                return ('closed' if short else n['closed']), t.yellow
+            jobs = self.jobs_on(n['name'])
+            if not jobs:
+                return '', ''
+            return '%d job%s' % (jobs, '' if jobs == 1 else 's'), ''
 
-        queued = [j for j in self.jobs or [] if not j['running']]
-        for j in queued[:MAX_QUEUED_SHOWN]:
-            wants = ' '.join('%s=%s' % (k.rsplit('/', 1)[-1], v)
-                             for k, v in sorted(j['requests'].items()))
-            why = ('  ' + t.bold_black + j['message'] + t.normal
-                   if j['message'] else '')
-            line('  %squeued%s %s  %s%s'
-                 % (t.bold_yellow, t.normal, j['name'], wants, why))
-        if len(queued) > MAX_QUEUED_SHOWN:
-            line('  … and %d more queued' % (len(queued) - MAX_QUEUED_SHOWN))
+        def header(width):
+            n_open = sum(1 for n in nodes if self.is_open(n))
+            parts = ['%d/%d nodes open' % (n_open, len(nodes))]
+            styled = list(parts)
+            counts = self.job_counts()
+            if counts is not None:
+                q = '%d queued' % counts['queued']
+                parts += ['%d running' % counts['running'], q]
+                styled += [parts[1], t.bold_yellow + q + t.normal
+                           if counts['queued'] else q]
+            used = title_len + len(' · '.join(parts))
+            legend = ' ── reserved / total '
+            if cols is not None and used + len(legend) + 2 > cols:
+                legend = ' '  # a narrow screen has no room for the legend
+            used += len(legend)
+            fill = max(width - used, 2)
+            if cols is not None:
+                fill = max(min(fill, cols - used), 0)
+            line(title + ' · '.join(styled) + rule(legend + '─' * fill))
+
+        def queue(room=MAX_QUEUED_SHOWN + 1):
+            # room: rows left for the queue; the last one says what is hidden
+            shown = min(len(queued), MAX_QUEUED_SHOWN, max(room, 0))
+            if shown < len(queued):
+                shown = max(shown - 1, 0)
+            for j in queued[:shown]:
+                wants = ' '.join('%s=%s' % (k.rsplit('/', 1)[-1], v)
+                                 for k, v in sorted(j['requests'].items()))
+                what = clip('%s  %s' % (j['name'], wants),
+                            cols and cols - len('  queued '))
+                why = j['message'] or ''
+                if cols is not None:
+                    why = clip(why, cols - len('  queued ') - len(what) - 2)
+                why = '  ' + t.bold_black + why + t.normal if why else ''
+                line('  %squeued%s %s%s'
+                     % (t.bold_yellow, t.normal, what, why))
+            if shown < len(queued) and room > 0:
+                line('  … and %d more queued' % (len(queued) - shown))
+
+        # ---- full layout: one labelled row per host ------------------- #
+
+        def cell_width(res):
+            return (len(res) + 1 + 2 * w[res] + 1
+                    + (3 if res == 'mem' else 0)
+                    + (5 if res in ('cpu', 'mem') else 0))
+
+        table_width = 2 + name_w + sum(3 + cell_width(r) for r in RESOURCES)
+        full_width = table_width + max(
+            [2 + len(state(n)[0]) for n in nodes if state(n)[0]] + [0])
+        if size is None or (full_width <= cols
+                            and 4 + len(nodes) + queued_lines <= rows):
+            header(table_width)
+
+            def cell(res, used, total, dim):
+                unit = ' GB' if res == 'mem' else ''
+                pct = res in ('cpu', 'mem')
+                width = cell_width(res) - len(res) - 1
+                if not total:
+                    body = '-'
+                else:
+                    # A unit follows the memory total, so that one is right-
+                    # aligned; the others pad on the right instead.
+                    fmt = '%*d/%*d%s' if unit else '%*d/%-*d%s'
+                    body = fmt % (w[res], round(used), w[res], round(total),
+                                  unit)
+                    if pct:
+                        body += ' %3d%%' % min(round(100.0 * used / total),
+                                               999)
+                color = '' if dim else load_color(used, total)
+                return '%s %s%s%s' % (res.upper(), color, body.ljust(width),
+                                      t.normal if color else '')
+
+            def free_cell(res, amount):
+                unit = ' GB' if res == 'mem' else ''
+                width = cell_width(res) - len(res) - 1
+                body = '%*d%s' % (w[res], round(amount), unit)
+                return '%s %s%s%s' % (res.upper(), t.bold_cyan,
+                                      body.ljust(width), t.normal)
+
+            def row(name, cells, tail='', dim=False):
+                head = (t.bold_black if dim else t.cyan) + name.ljust(name_w)
+                sep = ' | '
+                line('  %s%s%s%s%s' % (head, t.normal if not dim else '',
+                                       sep, sep.join(cells),
+                                       (t.normal if dim else '') + tail))
+
+            row(TOTAL_LABEL, [cell(r, fleet[r][0], fleet[r][1], False)
+                              for r in RESOURCES])
+            row(FREE_LABEL, [free_cell(r, free[r]) for r in RESOURCES])
+            # A thin rule between the pool-wide summary and the host rows.
+            line('  ' + rule('─' * (name_w + 1) + '┼' + '┼'.join(
+                '─' * (cell_width(r) + 2) for r in RESOURCES)[:-1]))
+            for n in nodes:
+                is_open = self.is_open(n)
+                text, color = state(n)
+                tail = ('  ' + color + text + (t.normal if color else '')
+                        if text else '')
+                row(n['name'], [cell(r, n[r][0], n[r][1], not is_open)
+                                for r in RESOURCES], tail, dim=not is_open)
+            queue()
+            return
+
+        # ---- compact layout: hosts side by side ----------------------- #
+        # The labels move into a heading and the percentages go (the colour
+        # still tells the load), which makes a host narrow enough to stand
+        # next to others; then as many columns are used as the rows require.
+
+        labels = {'cpu': 'CPU', 'mem': 'MEM GB', 'gpu': 'GPU', 'npu': 'NPU'}
+        # Reserved and total get a width each here: every character saved
+        # per host is one a further column can use.
+        wu = {r: len('%d' % round(fleet[r][0])) for r in RESOURCES}
+        wt = {r: len('%d' % round(fleet[r][1])) for r in RESOURCES}
+        cw = {r: max(wu[r] + 1 + wt[r], len(labels[r])) for r in RESOURCES}
+
+        def arrange(tail_w):
+            """(columns, block width) for hosts with a state this wide."""
+            block_w = (name_w + sum(2 + cw[r] for r in RESOURCES)
+                       + (2 + tail_w if tail_w else 0))
+            most = max(1, (cols - 2 + 3) // (block_w + 3))
+            most = min(most, max(len(nodes), 1))
+            k = next((k for k in range(1, most + 1)
+                      if 5 + -(-len(nodes) // k) + queued_lines <= rows),
+                     most)
+            return k, block_w
+
+        # The state after each host (job count, closed, ...) is given up when
+        # that is what lets one more column in; dimming still marks the hosts
+        # that are not open.
+        tail_w = max([len(state(n, short=True)[0]) for n in nodes] + [0])
+        k, block_w = arrange(tail_w)
+        if tail_w and 5 + -(-len(nodes) // k) > rows:
+            bare = arrange(0)
+            if bare[0] > k:
+                (k, block_w), tail_w = bare, 0
+        per_column = -(-len(nodes) // k)
+
+        def block(name, values, tail=('', ''), dim=False):
+            out = (t.bold_black if dim else t.cyan) + name.ljust(name_w)
+            out += '' if dim else t.normal
+            for r, (text, color) in zip(RESOURCES, values):
+                color = '' if dim else color
+                out += ('  ' + color + text.ljust(cw[r])
+                        + (t.normal if color else ''))
+            out += t.normal if dim else ''
+            if tail_w:
+                out += ('  ' + tail[1] + tail[0].ljust(tail_w)
+                        + (t.normal if tail[1] else ''))
+            return out
+
+        def amount(res, used, total):
+            if not total:
+                return '-', ''
+            return ('%*d/%-*d' % (wu[res], round(used), wt[res],
+                                  round(total)), load_color(used, total))
+
+        gap = ' ' + rule('│') + ' '
+        header(2 + k * block_w + 3 * (k - 1))
+        line('  ' + gap.join([block('', [(labels[r], t.bold_black)
+                                         for r in RESOURCES])] * k))
+        line('  ' + block(TOTAL_LABEL, [amount(r, *fleet[r])
+                                        for r in RESOURCES]))
+        line('  ' + block(FREE_LABEL, [('%*d' % (wu[r], round(free[r])),
+                                        t.bold_cyan) for r in RESOURCES]))
+        line('  ' + rule('┼'.join(['─' * (block_w + 2)] * k)[1:-1]))
+        for i in range(per_column):
+            line('  ' + gap.join(
+                block(n['name'], [amount(r, *n[r]) for r in RESOURCES],
+                      state(n, short=True), dim=not self.is_open(n))
+                for n in nodes[i::per_column]))
+        queue(rows - 5 - per_column)
 
 
 def new_query(timeout: float = 2.0) -> SchedulerStatus:
