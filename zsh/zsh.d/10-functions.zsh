@@ -421,7 +421,8 @@ function dothelp() {
         _cmd "um <ids>" "Set MACCEL_VISIBLE_DEVICES (prompt: maccel:X)"
         _cmd "up <path>" "Set PYTHONPATH (prompt: pypath:~)"
         _cmd "gpu" "Watch gpustat (NVIDIA)"
-        _cmd "npu" "Watch npustat (Mobilint)"
+        _cmd "npu" "Watch npustat (Mobilint + scheduler pool)"
+        _cmd "scheduler-cli" "Shared pool CLI (auto-updates first)"
         _cmd "hpusmi" "Watch hl-smi (Intel Gaudi)"
     fi
 

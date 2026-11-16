@@ -37,11 +37,24 @@ alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permi
 # alias claude='omc update && IS_SANDBOX=1 command claude --dangerously-skip-permissions --model "claude-opus-4-6[1m]" --effort max'
 # Codex launcher lives in 10-functions.zsh (version-checked auto-update)
 
+# scheduler-cli (try updating first; run even if the update fails). A function
+# rather than an alias, so that `x | scheduler-cli ...` still feeds the real
+# command and `cond && scheduler-cli ...` still honours cond. The update is
+# silent when already current, speaks on stderr otherwise (so piping
+# `scheduler-cli ps --json` stays clean), and is given at most 10 seconds.
+scheduler-cli() {
+    timeout 10 scheduler-cli update </dev/null 2>&1 \
+        | grep -v "is the latest release" >&2
+    command scheduler-cli "$@"
+}
+
 # GPU/NPU/HPU monitoring
 alias ug='usegpu'
 alias gpu="watch --color -n.5 gpustat --color"
 alias gpusmi="watch -n.5 nvidia-smi"
-alias npu="watch --color -n.5 npustat --color"
+# npustat's own watch mode rather than `watch`: it redraws at once when the
+# pane is resized, instead of at the next run.
+alias npu="npustat -i .5"
 alias uh='usehpu'
 alias hpusmi="watch -n.5 hl-smi"
 
