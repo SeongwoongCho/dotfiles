@@ -14,6 +14,7 @@ from npustat import __version__
 from npustat.core import GPUStatCollection, DEFAULT_GPUNAME_WIDTH
 from npustat.core_npu import NPUStatCollection, DEFAULT_NPUNAME_WIDTH
 from npustat.npu import is_npu_available
+from npustat import scheduler
 
 IS_WINDOWS = 'windows' in platform.platform().lower()
 
@@ -63,7 +64,8 @@ def get_complete_for_one_or_zero(input):
 
 def print_gpustat(*, id=None, json=False, debug=False,
                   no_npu=False, npu_only=False, show_npu_clock=False,
-                  show_npu_extra=False, show_npu_core_status=True, **kwargs):
+                  show_npu_extra=False, show_npu_core_status=True,
+                  show_scheduler=None, **kwargs):
     '''Display the GPU and NPU query results into standard output.'''
     gpu_stats = None
     npu_stats = None
@@ -115,6 +117,18 @@ def print_gpustat(*, id=None, json=False, debug=False,
             sys.stderr.write('No Mobilint NPU was detected.\n')
             sys.exit(1)
 
+    # Shared compute pool reservations. Shown by default, like the NPU: when
+    # the master cannot be reached the section is silently skipped, unless it
+    # was asked for by name (show_scheduler=True) or --debug is on.
+    scheduler_status = None
+    if show_scheduler is not False:
+        scheduler_status = scheduler.new_query()
+        if scheduler_status.error and not show_scheduler:
+            if debug:
+                sys.stderr.write('Scheduler query skipped: %s\n'
+                                 % scheduler_status.error)
+            scheduler_status = None
+
     # Build NPU-specific kwargs
     npu_kwargs = {
         'force_color': kwargs.get('force_color', False),
@@ -139,6 +153,8 @@ def print_gpustat(*, id=None, json=False, debug=False,
             output['gpu'] = gpu_stats.jsonify()
         if npu_stats and len(npu_stats) > 0:
             output['npu'] = npu_stats.jsonify()
+        if scheduler_status:
+            output['scheduler'] = scheduler_status.jsonify()
 
         import json as json_module
 
@@ -230,6 +246,15 @@ def print_gpustat(*, id=None, json=False, debug=False,
         # Print NPU stats
         if npu_stats and len(npu_stats) > 0:
             npu_stats.print_formatted(fp, **npu_kwargs)
+
+        # Print scheduler pool status
+        if scheduler_status:
+            # A blank line sets the pool apart from this machine's devices.
+            if show_header or gpu_stats or npu_stats:
+                fp.write(eol_char)
+            scheduler_status.print_formatted(fp, term=t_color,
+                                             eol_char=eol_char)
+            fp.flush()
 
 
 def loop_gpustat(interval=1.0, **kwargs):
@@ -362,6 +387,22 @@ def main(*argv):
         '--no-npu-core-status', dest='show_npu_core_status',
         action='store_false', default=True,
         help='Hide per-core status for NPU'
+    )
+
+    scheduler_group = parser.add_argument_group(
+        'Scheduler options',
+        'Reservations of the shared compute pool (what scheduler-cli submits '
+        'to) are shown by default when its master is reachable.')
+    scheduler_flags = scheduler_group.add_mutually_exclusive_group()
+    scheduler_flags.add_argument(
+        '-S', '--no-scheduler', dest='show_scheduler', action='store_false',
+        default=None, help='Hide the scheduler pool status'
+    )
+    scheduler_flags.add_argument(
+        '-s', '--scheduler', dest='show_scheduler', action='store_true',
+        default=None,
+        help='Insist on the scheduler pool status: report an unreachable '
+             'master instead of silently skipping the section'
     )
 
     parser.add_argument('-v', '--version', action='version',

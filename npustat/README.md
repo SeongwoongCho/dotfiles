@@ -84,6 +84,13 @@ Options
 | `--npu-extra` | Display chip, firmware, PCIe and power rail details |
 | `--no-npu-core-status` | Hide per-cluster, per-core utilization |
 
+### Scheduler Options
+
+| Option | Description |
+|--------|-------------|
+| `-S`, `--no-scheduler` | Hide the shared compute pool's reservations (shown by default, see below) |
+| `-s`, `--scheduler` | Report an unreachable master instead of silently skipping the section |
+
 
 Display Format
 --------------
@@ -141,6 +148,38 @@ extra PMIC rail is sampled by firmware at a time, so the rail figure is shown
 only while the NPU rail is the selected one.
 
 
+### Scheduler Display
+
+```
+── scheduler ── 12/16 nodes open · 10 running · 0 queued ── reserved / total ──────
+  Total        | CPU   98/1316   7% | MEM  392/3811 GB  10% | GPU  1/30 | NPU  4/22
+  Available    | CPU  698           | MEM 1783 GB           | GPU 15    | NPU 14
+  ─────────────┼────────────────────┼───────────────────────┼───────────┼──────────
+  server102    | CPU    8/64    12% | MEM   16/ 503 GB   3% | GPU -     | NPU  1/3   1 job
+  server150    | CPU    0/96     0% | MEM    0/ 378 GB   0% | GPU  0/2  | NPU  0/1   closed for work hours until 22:00
+```
+
+How busy the pool behind `scheduler-cli` is. Every figure is a *reservation*
+(what jobs hold), not live utilisation. Shown by default; when the master
+cannot be reached the section is silently skipped (`-s` or `--debug` says why).
+
+- `Total`: reserved / total over every host, the same sums as `scheduler-cli usage`.
+- `Available`: what is unreserved on hosts that accept a job right now, i.e.
+  excluding hosts that are closed, cordoned or not answering (shown dimmed).
+- One row per host, ending in its running job count or why it is not open.
+- Queued jobs are listed underneath with what they asked for.
+
+Host capacities are read from the master's `/nodes` JSON; job counts come from
+`scheduler-cli ps --json` (0.1.0 or newer) and are left out without it. Answers
+are reused for 5 seconds, so `watch -n.5 npustat` does not query the master
+twice a second.
+
+| Environment variable | Default | Meaning |
+|----------------------|---------|---------|
+| `NPUSTAT_SCHEDULER_ENDPOINT` | `https://scheduler.mobilint.com/adm` | The master to ask |
+| `NPUSTAT_SCHEDULER_TTL` | `5` | Seconds an answer is reused; `0` disables the cache |
+
+
 Examples
 --------
 
@@ -166,6 +205,9 @@ npustat --npu-extra
 
 # Show all details
 npustat -a
+
+# Hide the shared compute pool's reservations
+npustat -S
 
 # Watch mode (update every 1 second)
 npustat -i 1
