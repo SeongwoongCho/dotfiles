@@ -6,7 +6,7 @@ import platform
 import re
 import sys
 import time
-from contextlib import suppress
+from contextlib import redirect_stdout, suppress
 from datetime import datetime
 
 from blessed import Terminal
@@ -367,11 +367,39 @@ class _ResizeWatch:
         return True
 
 
+class _Frame:
+    '''Stands in for stdout while one screenful is drawn.
+
+    Written line by line, a frame makes the terminal's cursor visibly sweep
+    down the screen on every refresh. Everything is held back instead and
+    sent in a single write; questions about the terminal still reach it.
+    '''
+
+    def __init__(self, fp):
+        self._fp = fp
+        self._parts = []
+
+    def write(self, text):
+        self._parts.append(text)
+        return len(text)
+
+    def flush(self):
+        pass  # not before the frame is whole
+
+    def show(self):
+        self._fp.write(''.join(self._parts))
+        self._fp.flush()
+
+    def __getattr__(self, name):
+        return getattr(self._fp, name)
+
+
 def loop_gpustat(interval=1.0, **kwargs):
     term = Terminal()
     resize = _ResizeWatch()
 
-    with term.fullscreen():
+    # The cursor has nothing to point at here; hidden, it cannot flicker.
+    with term.fullscreen(), term.hidden_cursor():
         stats = {}
         next_query = 0.0
         while 1:
@@ -382,10 +410,13 @@ def loop_gpustat(interval=1.0, **kwargs):
                     next_query = now + interval
 
                 # Move cursor to (0, 0) but do not restore original cursor loc
-                print(term.move(0, 0), end='')
-                print_gpustat(eol_char=term.clear_eol + os.linesep,
-                              _stats=stats, **kwargs)
-                print(term.clear_eos, end='', flush=True)
+                frame = _Frame(sys.stdout)
+                with redirect_stdout(frame):
+                    print(term.move(0, 0), end='')
+                    print_gpustat(eol_char=term.clear_eol + os.linesep,
+                                  _stats=stats, **kwargs)
+                    print(term.clear_eos, end='')
+                frame.show()
 
                 # A resize redraws at once, from the figures already held;
                 # only the interval running out asks for new ones.
