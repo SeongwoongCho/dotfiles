@@ -350,11 +350,27 @@ class SchedulerStatus:
                 fill = max(min(fill, cols - used), 0)
             line(title + ' · '.join(styled) + rule(legend + '─' * fill))
 
-        def where(j):
-            """The host a waiting job is after, as its queue line says it."""
-            if len(j['wants']) == 1:
-                return j['wants'][0]
-            return '%d nodes' % len(j['wants']) if j['wants'] else 'any'
+        def where(j, short=False):
+            """The host(s) a waiting job is after, as its queue line says.
+
+            Several are listed by name, a shared prefix said once
+            (server150,220,69); short gives their number instead.
+            """
+            wants = j['wants']
+            if not wants:
+                return 'any'
+            if len(wants) > 1 and short:
+                return '%d nodes' % len(wants)
+            heads = [n.rstrip('0123456789') for n in wants]
+            if heads[0] and len(set(heads)) == 1 and all(
+                    len(n) > len(heads[0]) for n in wants):
+                return heads[0] + ','.join(n[len(heads[0]):] for n in wants)
+            return ','.join(wants)
+
+        # The host lists are given up for their count when they would take
+        # more of a known screen than the jobs themselves are left with.
+        short_where = cols is not None and max(
+            [len(where(j)) for j in queued] + [0]) > cols // 4
 
         def queue(room=None):
             # room: rows left for the queue, None when no screen bounds it.
@@ -367,7 +383,7 @@ class SchedulerStatus:
                 shown = max(shown - 1, 0)
             # The host each job waits for comes first, in a column of its
             # own, so one host's backlog reads straight down.
-            where_w = max([len(where(j)) for j in queued] + [0])
+            where_w = max([len(where(j, short_where)) for j in queued] + [0])
             lead = len('  queued ') + where_w + 2
             for j in queued[:shown]:
                 wants = ' '.join('%s=%s' % (k.rsplit('/', 1)[-1], v)
@@ -380,7 +396,8 @@ class SchedulerStatus:
                 why = '  ' + t.bold_black + why + t.normal if why else ''
                 line('  %squeued%s %s%s%s  %s%s'
                      % (t.bold_yellow, t.normal, t.cyan,
-                        where(j).ljust(where_w), t.normal, what, why))
+                        where(j, short_where).ljust(where_w), t.normal,
+                        what, why))
             if shown < len(queued) and room > 0:
                 line('  … and %d more queued' % (len(queued) - shown))
 

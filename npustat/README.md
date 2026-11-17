@@ -173,15 +173,16 @@ cannot be reached the section is silently skipped (`-s` or `--debug` says why).
   it asked for and the scheduler's reason:
 
   ```
-  queued server200  train-a   cpu=8 gpu=1 memory=64Gi  waiting behind train-b
-  queued server200  train-c   cpu=8 gpu=1 memory=64Gi  waiting behind train-b
-  queued 3 nodes    eval-x    cpu=8 gpu=1 memory=96Gi  waiting for room on server200, server210, server230
-  queued any        npu-test  cpu=8 npu=1 memory=64Gi  waiting for room on server131, server41
+  queued server200          train-a   cpu=8 gpu=1 memory=64Gi  waiting behind train-b
+  queued server200          train-c   cpu=8 gpu=1 memory=64Gi  waiting behind train-b
+  queued server200,210,230  eval-x    cpu=8 gpu=1 memory=96Gi  waiting for room on server200, server210, server230
+  queued any                npu-test  cpu=8 npu=1 memory=64Gi  waiting for room on server131, server41
   ```
 
   Jobs after the same host are kept together, so a host's backlog reads
-  straight down. `N nodes` is a job that would take any of several hosts,
-  `any` one that named none. All of the queue is shown when the screen has
+  straight down. A job that would take any of several hosts lists them
+  (`server200,210,230`, or `3 nodes` on a narrow screen); `any` is one that
+  named none. All of the queue is shown when the screen has
   the rows, otherwise as many as fit, ending in `… and N more queued`.
 
 When the screen is too small for one row per host (under `watch`, or in

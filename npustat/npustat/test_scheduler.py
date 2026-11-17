@@ -312,6 +312,8 @@ def test_queue_says_which_host_each_job_waits_for(pool, monkeypatch):
         {'name': 'b1', 'state': 'queued', 'requested_node': 'busy'},
         {'name': 'c1', 'state': 'queued',
          'requested_nodes': ['busy', 'idle', None, 7]},
+        {'name': 'e1', 'state': 'queued',
+         'requested_nodes': ['server150', 'server220', 'server69']},
         {'name': 'a2', 'state': 'queued', 'requested_node': 'server200'},
         {'name': 'd1', 'state': 'queued', 'requested_nodes': 'x'},
         {'name': 'b2', 'state': 'queued', 'requested_node': 'busy'},
@@ -322,17 +324,22 @@ def test_queue_says_which_host_each_job_waits_for(pool, monkeypatch):
             if ln.startswith('  queued')]
     # one host's jobs stay together, in the order the master gave them
     assert [' '.join(r[1:-1]) for r in rows] == [
-        'server200', 'server200', 'busy', 'busy', '3 nodes', 'any']
-    assert [r[-1] for r in rows] == ['a1', 'a2', 'b1', 'b2', 'c1', 'd1']
+        'server200', 'server200', 'busy', 'busy', 'busy,idle,7',
+        'server150,220,69', 'any']
+    assert [r[-1] for r in rows] == ['a1', 'a2', 'b1', 'b2', 'c1', 'e1', 'd1']
     # job names line up under each other whatever the host is called
     lines = [ln for ln in render(status).splitlines() if 'queued ' in ln[:9]]
     assert len({ln.index(r[-1]) for ln, r in zip(lines, rows)}) == 1
     out = status.jsonify()['queued']
-    assert [j['name'] for j in out] == ['a1', 'a2', 'b1', 'b2', 'c1', 'd1']
+    assert [j['name'] for j in out] == [
+        'a1', 'a2', 'b1', 'b2', 'c1', 'e1', 'd1']
     assert out[4]['wants'] == ['busy', 'idle', '7']
     # a narrow screen still cuts the line, host column included
     narrow = [ln for ln in render_in(status, 40, 30) if 'queued ' in ln[:9]]
-    assert len(narrow) == 6 and max(map(len, narrow)) <= 40
+    assert len(narrow) == 7 and max(map(len, narrow)) <= 40
+    # where the names would crowd the jobs out, their number stands in
+    assert [ln.split()[1:3] for ln in narrow[4:6]] == [
+        ['3', 'nodes'], ['3', 'nodes']]
 
 
 def test_redraw_reuses_what_was_queried(monkeypatch, capsys):
