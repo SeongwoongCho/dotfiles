@@ -37,6 +37,7 @@ RAW_JOBS = [
     {'name': 'b', 'node': 'busy', 'state': 'running',
      'requests': {'cpu': '8'}},
     {'name': 'waiting', 'state': 'queued', 'message': 'waiting for gpu',
+     'requested_node': 'idle',
      'requests': {'cpu': '4', 'nvidia.com/gpu': '1'}},
 ]
 
@@ -109,7 +110,7 @@ def test_render(pool):
     assert by_name['dead'].endswith('down')
     assert by_name['bare'].endswith('down')
     assert by_name['queued'].split()[1:] == [
-        'waiting', 'cpu=4', 'gpu=1', 'waiting', 'for', 'gpu']
+        'idle', 'waiting', 'cpu=4', 'gpu=1', 'waiting', 'for', 'gpu']
     # every table row lines its separators up under the fleet row
     seps = [[i for i, c in enumerate(ln) if c == '|']
             for ln in lines[1:9] if '|' in ln]
@@ -272,6 +273,66 @@ def test_queue_gives_way_to_hosts_on_a_short_screen(pool, monkeypatch):
     lines = render_in(scheduler.new_query(), 120, 14)
     assert len(lines) <= 14
     assert lines[-1].strip() == '… and 4 more queued'
+
+
+def queue_of(n, monkeypatch):
+    monkeypatch.setattr(scheduler, '_fetch_jobs', lambda e, t: [
+        {'name': 'q%d' % i, 'state': 'queued'} for i in range(n)])
+
+
+def test_whole_queue_is_listed_when_the_screen_has_room(pool, monkeypatch):
+    many_nodes(monkeypatch)                 # 16 hosts: 20 rows of table
+    queue_of(27, monkeypatch)
+    lines = render_in(scheduler.new_query(), 200, 47)
+    assert len(lines) == 47
+    assert [ln.split()[2] for ln in lines[20:]] == [
+        'q%d' % i for i in range(27)]
+
+
+def test_queue_is_cut_to_the_rows_the_screen_has_left(pool, monkeypatch):
+    many_nodes(monkeypatch)
+    queue_of(27, monkeypatch)
+    lines = render_in(scheduler.new_query(), 200, 40)
+    assert len(lines) == 40                 # to the last row, not short of it
+    assert lines[1].split()[0] == 'Total'   # still one row per host
+    assert lines[-2].split()[2] == 'q18'
+    assert lines[-1].strip() == '… and 8 more queued'
+
+
+def test_queue_is_whole_when_no_screen_bounds_it(pool, monkeypatch):
+    queue_of(27, monkeypatch)
+    text = render(scheduler.new_query())
+    assert 'more queued' not in text
+    assert text.count('queued any  q') == 27
+
+
+def test_queue_says_which_host_each_job_waits_for(pool, monkeypatch):
+    monkeypatch.setattr(scheduler, '_fetch_jobs', lambda e, t: [
+        {'name': 'a1', 'state': 'queued', 'requested_node': 'server200'},
+        {'name': 'b1', 'state': 'queued', 'requested_node': 'busy'},
+        {'name': 'c1', 'state': 'queued',
+         'requested_nodes': ['busy', 'idle', None, 7]},
+        {'name': 'a2', 'state': 'queued', 'requested_node': 'server200'},
+        {'name': 'd1', 'state': 'queued', 'requested_nodes': 'x'},
+        {'name': 'b2', 'state': 'queued', 'requested_node': 'busy'},
+        {'name': 'r', 'state': 'running', 'node': 'busy'},
+    ])
+    status = scheduler.new_query()
+    rows = [ln.split() for ln in render(status).splitlines()
+            if ln.startswith('  queued')]
+    # one host's jobs stay together, in the order the master gave them
+    assert [' '.join(r[1:-1]) for r in rows] == [
+        'server200', 'server200', 'busy', 'busy', '3 nodes', 'any']
+    assert [r[-1] for r in rows] == ['a1', 'a2', 'b1', 'b2', 'c1', 'd1']
+    # job names line up under each other whatever the host is called
+    lines = [ln for ln in render(status).splitlines() if 'queued ' in ln[:9]]
+    assert len({ln.index(r[-1]) for ln, r in zip(lines, rows)}) == 1
+    out = status.jsonify()['queued']
+    assert [j['name'] for j in out] == ['a1', 'a2', 'b1', 'b2', 'c1', 'd1']
+    assert out[4]['wants'] == ['busy', 'idle', '7']
+    # a narrow screen still cuts the line, host column included
+    narrow = [ln for ln in render_in(status, 40, 30) if 'queued ' in ln[:9]]
+    assert len(narrow) == 6 and max(map(len, narrow)) <= 40
 
 
 def test_redraw_reuses_what_was_queried(monkeypatch, capsys):

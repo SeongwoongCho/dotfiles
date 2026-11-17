@@ -27,7 +27,9 @@ DEFAULT_ENDPOINT = 'https://scheduler.mobilint.com/adm'
 DEFAULT_TTL = 5.0
 
 RESOURCES = ('cpu', 'mem', 'gpu', 'npu')
-MAX_QUEUED_SHOWN = 5
+# Rows of queue a layout is chosen to leave room for; the queue itself then
+# takes whatever the screen has left, down to its last job.
+MIN_QUEUED_SHOWN = 5
 
 # The two pool-wide rows: everything reserved over everything there is, and
 # what a job submitted now could still get.
@@ -36,7 +38,7 @@ FREE_LABEL = 'Available'
 
 # Bumped whenever the cached shape changes, so an answer written by another
 # version of npustat is ignored rather than misread.
-CACHE_VERSION = 1
+CACHE_VERSION = 2
 MAX_RESPONSE_BYTES = 8 << 20
 
 _CONTROL_CHARS = re.compile(r'[\x00-\x1f\x7f-\x9f]+')
@@ -162,9 +164,15 @@ def _slim_job(raw: Any) -> Dict[str, Any]:
     requests = raw.get('requests')
     if not isinstance(requests, dict):
         requests = {}
+    # A waiting job names the host it asked for, or several it would take,
+    # or none at all when any host will do.
+    wants = raw.get('requested_nodes')
+    if not isinstance(wants, list):
+        wants = [raw.get('requested_node')]
     return {
         'name': _text(raw.get('name'), '?'),
         'node': _text(raw.get('node')),
+        'wants': [n for n in map(_text, wants) if n],
         'running': raw.get('state') == 'running',
         'priority': _number(raw.get('priority')),
         'requests': {_text(k, '?'): _text(v, '?')
@@ -235,11 +243,24 @@ class SchedulerStatus:
             'free': None if self.error else self.free(),
             'open_total': None if self.error else self.open_total(),
             'jobs': self.job_counts(),
-            'queued': [j for j in self.jobs or [] if not j['running']],
+            'queued': self.queued(),
             'nodes': [dict(n, open=self.is_open(n),
                            jobs=self.jobs_on(n['name']))
                       for n in self.nodes],
         }
+
+    def queued(self) -> List[Dict[str, Any]]:
+        """Waiting jobs, those after the same host(s) next to each other.
+
+        Hosts queue separately, so this is what makes each one's backlog
+        readable. The master's order is kept within a host, and the hosts
+        come in the order of their first waiting job.
+        """
+        groups: Dict[Any, List[Dict[str, Any]]] = {}
+        for j in self.jobs or []:
+            if not j['running']:
+                groups.setdefault(tuple(j['wants']), []).append(j)
+        return [j for group in groups.values() for j in group]
 
     # ------------------------------------------------------------------ #
 
@@ -252,6 +273,8 @@ class SchedulerStatus:
         simply cut off. The full one-row-per-host table is used when it fits
         (or when size is None); otherwise the hosts are laid out compactly in
         as many side-by-side columns as it takes to fit the rows.
+        The queue then takes the rows that are left: all of it when it fits
+        (or when size is None), else as many jobs as there are rows for.
         """
         t = term
         cols, rows = size if size else (None, None)
@@ -284,9 +307,9 @@ class SchedulerStatus:
         w = {r: len('%d' % round(max(fleet[r]))) for r in RESOURCES}
         name_w = max([len(n['name']) for n in nodes]
                      + [len(TOTAL_LABEL), len(FREE_LABEL)])
-        queued = [j for j in self.jobs or [] if not j['running']]
-        queued_lines = (min(len(queued), MAX_QUEUED_SHOWN)
-                        + (len(queued) > MAX_QUEUED_SHOWN))
+        queued = self.queued()
+        queued_lines = (min(len(queued), MIN_QUEUED_SHOWN)
+                        + (len(queued) > MIN_QUEUED_SHOWN))
 
         def load_color(used, total):
             if not total or not used:
@@ -327,22 +350,37 @@ class SchedulerStatus:
                 fill = max(min(fill, cols - used), 0)
             line(title + ' · '.join(styled) + rule(legend + '─' * fill))
 
-        def queue(room=MAX_QUEUED_SHOWN + 1):
-            # room: rows left for the queue; the last one says what is hidden
-            shown = min(len(queued), MAX_QUEUED_SHOWN, max(room, 0))
+        def where(j):
+            """The host a waiting job is after, as its queue line says it."""
+            if len(j['wants']) == 1:
+                return j['wants'][0]
+            return '%d nodes' % len(j['wants']) if j['wants'] else 'any'
+
+        def queue(room=None):
+            # room: rows left for the queue, None when no screen bounds it.
+            # Every job is listed when they fit; otherwise the last row says
+            # how many are hidden.
+            if room is None:
+                room = len(queued)
+            shown = min(len(queued), max(room, 0))
             if shown < len(queued):
                 shown = max(shown - 1, 0)
+            # The host each job waits for comes first, in a column of its
+            # own, so one host's backlog reads straight down.
+            where_w = max([len(where(j)) for j in queued] + [0])
+            lead = len('  queued ') + where_w + 2
             for j in queued[:shown]:
                 wants = ' '.join('%s=%s' % (k.rsplit('/', 1)[-1], v)
                                  for k, v in sorted(j['requests'].items()))
                 what = clip('%s  %s' % (j['name'], wants),
-                            cols and cols - len('  queued '))
+                            cols and cols - lead)
                 why = j['message'] or ''
                 if cols is not None:
-                    why = clip(why, cols - len('  queued ') - len(what) - 2)
+                    why = clip(why, cols - lead - len(what) - 2)
                 why = '  ' + t.bold_black + why + t.normal if why else ''
-                line('  %squeued%s %s%s'
-                     % (t.bold_yellow, t.normal, what, why))
+                line('  %squeued%s %s%s%s  %s%s'
+                     % (t.bold_yellow, t.normal, t.cyan,
+                        where(j).ljust(where_w), t.normal, what, why))
             if shown < len(queued) and room > 0:
                 line('  … and %d more queued' % (len(queued) - shown))
 
@@ -411,7 +449,7 @@ class SchedulerStatus:
                         if text else '')
                 row(n['name'], [cell(r, n[r][0], n[r][1], not is_open)
                                 for r in RESOURCES], tail, dim=not is_open)
-            queue()
+            queue(None if size is None else rows - 4 - len(nodes))
             return
 
         # ---- compact layout: hosts side by side ----------------------- #
