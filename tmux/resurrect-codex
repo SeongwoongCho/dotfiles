@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""Associate live Codex panes with their exact interactive thread, then resume it."""
+
+from contextlib import closing
+import json
+import os
+from pathlib import Path
+import sqlite3
+import subprocess
+import sys
+from uuid import UUID
+
+import resurrect_sessions
+
+
+MARKER = "dotfiles-cx-resume"
+BOOLEAN_FLAGS = {"--yolo", "--dangerously-bypass-approvals-and-sandbox", "--search",
+                 "--no-alt-screen", "--no-daemon", "--strict-config", "--approve-for-me"}
+VALUE_FLAGS = {"--enable", "--disable", "--profile", "-p", "--sandbox", "-s",
+               "--ask-for-approval", "-a", "--add-dir"}
+
+
+def launch_flags(argv):
+    """Keep launch policy/UI flags, never prompts, secrets, or old resume targets."""
+    flags = []
+    args = iter(argv)
+    for arg in args:
+        if arg == "--":
+            break
+        key, separator, value = arg.partition("=")
+        if arg in BOOLEAN_FLAGS:
+            flags.append(arg)
+        elif key in VALUE_FLAGS:
+            value = value if separator else next(args, None)
+            if value is not None:
+                flags.extend([key, value])
+        elif key in {"--config", "-c", "--model", "-m", "--cd", "-C", "--image", "-i"}:
+            if not separator:
+                next(args, None)
+        elif arg in {"resume", "fork"}:
+            continue
+        elif not arg.startswith("-"):
+            # UUIDs following resume/fork are not prompts. Never inspect prompt text.
+            try:
+                UUID(arg)
+            except ValueError:
+                break
+    return flags
+
+
+def thread_metadata(home, session_id):
+    """Read only the thread identity/source/cwd, including paginated histories."""
+    databases = sorted(home.glob("state_*.sqlite"),
+                       key=lambda path: int(path.stem.split("_")[-1])
+                       if path.stem.split("_")[-1].isdigit() else -1, reverse=True)
+    for database in databases:
+        try:
+            with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True, timeout=0.2)) as db:
+                row = db.execute("SELECT id, cwd, source FROM threads WHERE id = ?",
+                                 (session_id,)).fetchone()
+            if row is not None:
+                return {"id": row[0], "cwd": row[1], "source": row[2]}
+        except sqlite3.Error:
+            continue
+    return None
+
+
+def session_record(pid, proc_root=Path("/proc")):
+    # /proc gives the files owned by this live process, not a cwd/mtime guess.
+    proc = proc_root / str(pid)
+    try:
+        if (proc / "comm").read_text().strip() != "codex":
+            return None
+        stat = (proc / "stat").read_text().rsplit(")", 1)[1].split()
+        if stat[2] != stat[5]:
+            return None
+        env = {}
+        for entry in (proc / "environ").read_bytes().split(b"\0"):
+            key, _, value = entry.partition(b"=")
+            if key in (b"CODEX_HOME", b"HOME", b"OCX_SHIM_ACTIVE_PID"):
+                env[os.fsdecode(key)] = os.fsdecode(value)
+        argv = [os.fsdecode(arg) for arg in (proc / "cmdline").read_bytes().split(b"\0") if arg]
+        home = Path(env.get("CODEX_HOME") or str(Path(env.get("HOME", str(Path.home()))) / ".codex"))
+        if not home.is_absolute():
+            home = (proc / "cwd").resolve() / home
+        home = home.resolve()
+        locks = set()
+        headers = {}
+        for fd in (proc / "fd").iterdir():
+            try:
+                target = fd.readlink()
+                if target.parent == home / "thread-writer-locks" and target.suffix == ".lock":
+                    locks.add(str(UUID(target.stem)))
+                elif (target.name.startswith("rollout-") and target.suffix == ".jsonl"
+                      and target.is_relative_to(home / "sessions")):
+                    # Read just session_meta; never scan conversation messages.
+                    with fd.open() as file:
+                        row = json.loads(file.readline(1024 * 1024))
+                    if row.get("type") == "session_meta":
+                        metadata = row["payload"]
+                        headers[str(UUID(metadata["id"]))] = metadata
+            except (OSError, ValueError, KeyError, TypeError, AttributeError):
+                continue
+        records = []
+        # Locks also identify sessions that no longer keep a rollout FD open.
+        # When available, locks exclude previously opened, now inactive rollouts.
+        for session_id in locks or headers.keys():
+            metadata = thread_metadata(home, session_id) or headers.get(session_id)
+            if metadata is None or metadata.get("source") != "cli":
+                continue
+            cwd = metadata.get("cwd")
+            if isinstance(cwd, str) and Path(cwd).is_absolute():
+                records.append({"session_id": session_id, "cwd": cwd, "codex_home": str(home),
+                                "flags": launch_flags(argv[1:]), "ocx": bool(env.get("OCX_SHIM_ACTIVE_PID"))})
+        # Reject process-exit/PID-reuse races while inspecting descriptors.
+        end_stat = (proc / "stat").read_text().rsplit(")", 1)[1].split()
+        if stat[19] != end_stat[19]:
+            return None
+        return records[0] if len(records) == 1 else None
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def save(snapshot):
+    resurrect_sessions.save(snapshot, session_record, MARKER, "codex")
+
+
+def restore(payload=None):
+    env = os.environ.copy()
+    args = ["codex"]
+    if payload is not None:
+        record = json.loads(bytes.fromhex(payload))
+        session_id = str(UUID(record["session_id"]))
+        for key in ("cwd", "codex_home"):
+            if not isinstance(record[key], str) or "\0" in record[key] or not Path(record[key]).is_absolute():
+                raise ValueError(f"invalid {key} in restore record")
+        flags = record["flags"]
+        if (not isinstance(flags, list) or not all(isinstance(flag, str) and "\0" not in flag for flag in flags)
+                or launch_flags(flags) != flags or not isinstance(record["ocx"], bool)):
+            raise ValueError("invalid launch options in restore record")
+        os.chdir(record["cwd"])
+        env["CODEX_HOME"] = record["codex_home"]
+        if record["ocx"]:
+            # The installed codex shim also autostarts OCX. Check explicitly so a
+            # failed proxy cannot silently fall through to an unusable Codex TUI.
+            subprocess.run(["ocx", "ensure"], env=env, check=True)
+        args.extend([*flags, "resume", session_id])
+    else:
+        print("resurrect-codex: snapshot has no exact session ID; choose the conversation to resume",
+              file=sys.stderr)
+        args.append("resume")
+    # Use the installed launcher (including its OCX shim), not the native binary.
+    os.execvpe("codex", args, env)
+
+
+def main():
+    try:
+        if len(sys.argv) == 3 and sys.argv[1] == "--save":
+            save(sys.argv[2])
+        elif len(sys.argv) == 3 and sys.argv[1] == "--restore":
+            restore(sys.argv[2])
+        elif len(sys.argv) == 1:
+            restore()
+        else:
+            raise ValueError("usage: resurrect-codex [--save SNAPSHOT | --restore RECORD]")
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, subprocess.CalledProcessError) as error:
+        print(f"resurrect-codex: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -163,6 +163,39 @@ Git uses `delta` as the pager for beautiful side-by-side diffs with the `forest-
 - **OpenAI Codex CLI** for code generation
 - LSP plugins for multiple languages (TypeScript, Python, Go, Rust, C/C++, etc.)
 
+### Claude and Codex sessions in tmux
+
+Continuum saves every five minutes; `Ctrl-a Ctrl-s` saves immediately. The
+`resurrect-save` hook records each running Claude's session ID, working
+directory, configuration directory, and temporary directory in that tmux snapshot.
+It follows the process tree through `ocx` wrappers, so conversations in separate
+panes of the same project remain distinct. Python 3 and Claude's
+`sessions/<pid>.json` registry are required for this association; Linux also checks
+the process start time and foreground process group to reject stale/background jobs.
+
+On restore, `ocx claude --resume <session-id>` starts the proxy as needed and resumes
+that conversation. Claude restores its saved model; the wrapper does not force a
+model or effort level, but always passes `--dangerously-skip-permissions` so every
+restored session comes back with bypass permissions on. Standard Claude/OMC settings load normally.
+Old snapshots without a session ID open the conversation picker instead of guessing
+the latest conversation. Missing metadata is reported during save. Interrupted
+tools and background jobs are not restarted by conversation restoration.
+
+Codex panes are saved by the same hook, including those reported as `node` by tmux.
+On Linux, `resurrect-codex` reads the live process's open thread locks and session
+metadata, excluding subagents. Read-only SQLite metadata also covers paginated
+histories that have no open rollout file. Multiple sessions in the same directory
+are distinguished by their IDs, never by the latest modification time.
+
+Restore uses the installed `codex` launcher with `resume <session-id>`, the saved
+working directory and `CODEX_HOME`, and the original policy/UI flags (including
+`--yolo`, `--search`, and `--disable fast_mode` when present). Model configuration
+is left to Codex's resume behavior. Sessions launched through the OCX shim first
+run `ocx ensure`; a proxy failure stops restoration. Prompts, credentials, and
+arbitrary `--config` overrides are not replayed. Old saves or sessions without an
+unambiguous persisted ID use the resume picker. Exact automatic Codex discovery
+currently requires Linux `/proc`; remote/shared-daemon sessions may require the picker.
+
 ## Secrets Management
 
 Sensitive config files (tokens, credentials) are stored in a separate private repository and automatically fetched during installation.

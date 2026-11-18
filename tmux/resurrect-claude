@@ -1,30 +1,117 @@
-#!/usr/bin/env bash
-#
-# tmux-resurrect restore target for claude panes.
-#
-# Continues the most recent conversation recorded for $PWD when one exists, and
-# starts a fresh session otherwise -- `claude --continue` fails outright in a
-# directory with no history. Claude Code keeps per-directory transcripts in
-# ~/.claude/projects/<cwd with every non-alphanumeric byte turned into '-'>.
-#
-# The flags are hardcoded rather than recovered from the saved command line
-# because `--model claude-opus-5[1m]` would be glob-expanded (and rejected) by
-# zsh when tmux-resurrect types the command into the restored pane.
+#!/usr/bin/env python3
+"""Save pane-specific Claude sessions and resume them through opencodex.
 
-set -u
+tmux-resurrect's post-save-layout hook passes --save a snapshot filename.
+Each Claude command becomes a self-contained restore record in that snapshot,
+so older snapshots still refer to their own sessions after pane IDs are reused.
+"""
 
-# Claude Code refuses --dangerously-skip-permissions under uid 0 unless the
-# caller vouches for the environment with IS_SANDBOX. The interactive `claude`
-# alias sets it inline, but aliases do not reach this script and the tmux server
-# does not export it, so a restored pane would otherwise die with
-# "--dangerously-skip-permissions cannot be used with root/sudo privileges".
-export IS_SANDBOX=1
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+from uuid import UUID
 
-claude_flags=(--dangerously-skip-permissions --model 'claude-opus-5[1m]' --effort max)
+import resurrect_sessions
 
-project_dir="$HOME/.claude/projects/$(printf '%s' "$PWD" | sed 's/[^A-Za-z0-9]/-/g')"
-if compgen -G "$project_dir/*.jsonl" >/dev/null; then
-  claude_flags=(--continue "${claude_flags[@]}")
-fi
 
-exec claude "${claude_flags[@]}"
+MARKER = "dotfiles-cc-resume"
+SESSION_ENV = ("CLAUDE_CONFIG_DIR", "CLAUDE_CODE_TMPDIR")
+
+
+def warn(message):
+    print(f"resurrect-claude: {message}", file=sys.stderr)
+
+
+def session_record(pid, proc_root=Path("/proc")):
+    """Read metadata only, never transcripts or proxy credentials."""
+    proc = proc_root / str(pid)
+    env = {}
+    if proc_root.is_dir():
+        # On Linux, reject dead/reused PIDs and background jobs in a shell pane.
+        try:
+            stat = (proc / "stat").read_text().rsplit(")", 1)[1].split()
+            if stat[2] != stat[5]:  # process group != terminal foreground group
+                return None
+            for entry in (proc / "environ").read_bytes().split(b"\0"):
+                key, _, value = entry.partition(b"=")
+                if key.decode(errors="replace") in SESSION_ENV:
+                    env[key.decode()] = os.fsdecode(value)
+        except OSError:
+            return None
+    else:
+        stat = None
+
+    config_dir = env.get("CLAUDE_CONFIG_DIR") or os.environ.get(
+        "CLAUDE_CONFIG_DIR", str(Path.home() / ".claude")
+    )
+    try:
+        record = json.loads((Path(config_dir) / "sessions" / f"{pid}.json").read_text())
+        if record.get("pid") != pid or record.get("kind", "interactive") != "interactive":
+            return None
+        if stat is not None and str(record.get("procStart")) != stat[19]:
+            return None
+        session_id = str(UUID(record["sessionId"]))
+        cwd = record["cwd"]
+        if not isinstance(cwd, str) or not Path(cwd).is_absolute():
+            return None
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return None
+    return {"session_id": session_id, "cwd": cwd,
+            "config_dir": str(Path(config_dir).resolve()),
+            "tmpdir": env.get("CLAUDE_CODE_TMPDIR") or str(Path(cwd) / "claude-tmp")}
+
+
+def pane_session(root_pid, children):
+    return resurrect_sessions.pane_session(root_pid, children, session_record)
+
+
+def save(snapshot):
+    resurrect_sessions.save(snapshot, session_record, MARKER, "claude")
+
+
+def restore(payload=None):
+    env = os.environ.copy()
+    # Same root/container opt-in as the interactive Claude launcher.
+    env["IS_SANDBOX"] = "1"
+    args = ["ocx", "claude", "--resume"]
+    if payload is not None:
+        record = json.loads(bytes.fromhex(payload))
+        session_id = str(UUID(record["session_id"]))
+        for key in ("cwd", "config_dir", "tmpdir"):
+            if not isinstance(record[key], str) or not record[key] or "\0" in record[key]:
+                raise ValueError(f"invalid {key} in restore record")
+        os.chdir(record["cwd"])
+        env["CLAUDE_CONFIG_DIR"] = record["config_dir"]
+        env["CLAUDE_CODE_TMPDIR"] = record["tmpdir"]
+        args.append(session_id)
+    else:
+        # Legacy snapshots have no pane/session association. Never guess via -c.
+        warn("snapshot has no exact session ID; choose the conversation to resume")
+        env.setdefault("CLAUDE_CODE_TMPDIR", str(Path.cwd() / "claude-tmp"))
+    # The transcript restores the model. Always come back in bypass-permissions
+    # mode, like the interactive `claude` alias, whatever mode was saved.
+    args.append("--dangerously-skip-permissions")
+    # ocx ensures the proxy is healthy and supplies routing and agent definitions.
+    os.execvpe("ocx", args, env)
+
+
+def main():
+    try:
+        if len(sys.argv) == 3 and sys.argv[1] == "--save":
+            save(sys.argv[2])
+        elif len(sys.argv) == 3 and sys.argv[1] == "--restore":
+            restore(sys.argv[2])
+        elif len(sys.argv) == 1:
+            restore()
+        else:
+            raise ValueError("usage: resurrect-claude [--save SNAPSHOT | --restore RECORD]")
+    except (OSError, ValueError, KeyError, TypeError, subprocess.CalledProcessError) as error:
+        warn(str(error))
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

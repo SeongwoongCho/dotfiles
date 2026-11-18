@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Each provider updates its own pane records in the same snapshot.
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+result=0
+"$script_dir/resurrect-claude" --save "$1" || result=1
+"$script_dir/resurrect-codex" --save "$1" || result=1
+exit "$result"
